@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
-    serverComponentsExternalPackages: ['googleapis', 'resend', 'stripe'],
+    serverComponentsExternalPackages: ['googleapis', 'resend', 'stripe', 'pg'],
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {
