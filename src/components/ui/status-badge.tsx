@@ -1,5 +1,3 @@
-"use client";
-
 import * as React from "react";
 import { Badge } from "./badge";
 import { CheckCircle2, Clock, AlertTriangle, XCircle, Video, MapPin, Users, User } from "lucide-react";

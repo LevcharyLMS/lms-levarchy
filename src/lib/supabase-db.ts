@@ -28,8 +28,9 @@ export const pool =
       process.env.DATABASE_URL ||
       'postgresql://postgres.xegsdlkpdwwmojdatuwb:iTI6MBFuBxvDZaJ9@aws-0-ap-northeast-2.pooler.supabase.com:5432/postgres',
     ssl: { rejectUnauthorized: false },
-    max: 10,
-    idleTimeoutMillis: 30000,
+    max: 2,
+    connectionTimeoutMillis: 2500,
+    idleTimeoutMillis: 10000,
   });
 
 if (process.env.NODE_ENV !== 'production') {
@@ -38,6 +39,26 @@ if (process.env.NODE_ENV !== 'production') {
 
 export class SupabaseDbService {
   /**
+   * Convert any JavaScript Date instances to ISO strings for safe Next.js RSC serialization
+   */
+  private static sanitizeRow(row: any): any {
+    if (!row || typeof row !== 'object') return row;
+    if (row instanceof Date) return row.toISOString();
+    if (Array.isArray(row)) return row.map((r) => SupabaseDbService.sanitizeRow(r));
+    const copy: any = {};
+    for (const [key, val] of Object.entries(row)) {
+      if (val instanceof Date) {
+        copy[key] = val.toISOString();
+      } else if (val !== null && typeof val === 'object') {
+        copy[key] = SupabaseDbService.sanitizeRow(val);
+      } else {
+        copy[key] = val;
+      }
+    }
+    return copy;
+  }
+
+  /**
    * Safe query helper with automatic fallback to in-memory store if DB connection fails
    */
   private static async query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
@@ -45,7 +66,7 @@ export class SupabaseDbService {
       const client = await pool.connect();
       try {
         const result = await client.query(sql, params);
-        return result.rows as T[];
+        return result.rows.map((r) => SupabaseDbService.sanitizeRow(r)) as T[];
       } finally {
         client.release();
       }

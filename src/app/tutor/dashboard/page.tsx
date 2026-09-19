@@ -24,13 +24,20 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function TutorDashboardPage() {
-  const allBookings = await SupabaseDbService.getBookings();
-  const bookings = allBookings;
-  const activeBookings = bookings.filter((b: any) => b.status === "CONFIRMED");
-  const completedBookings = bookings.filter((b: any) => b.status === "COMPLETED");
+  let allBookings: any[] = [];
+
+  try {
+    allBookings = await SupabaseDbService.getBookings();
+  } catch (err) {
+    console.error("Error fetching bookings for tutor dashboard:", err);
+  }
+
+  const bookings = allBookings || [];
+  const activeBookings = bookings.filter((b: any) => b?.status === "CONFIRMED");
+  const completedBookings = bookings.filter((b: any) => b?.status === "COMPLETED");
 
   const netEarningsCents = bookings.reduce(
-    (sum: number, b: any) => sum + (b.financial_snapshot?.tutor_earnings || 0),
+    (sum: number, b: any) => sum + (b?.financial_snapshot?.tutor_earnings || 0),
     0
   );
 
@@ -84,7 +91,7 @@ export default async function TutorDashboardPage() {
                 {todayClass.class_item?.title || "Academic Tutorial"}
               </h3>
               <p className="text-xs text-slate-600">
-                Student: <strong>{todayClass.student?.first_name} {todayClass.student?.last_name}</strong> • Scheduled for {new Date(todayClass.start_time).toLocaleString()}
+                Student: <strong>{todayClass.student?.first_name} {todayClass.student?.last_name}</strong> • Scheduled for {todayClass?.start_time ? new Date(todayClass.start_time).toLocaleString() : "Scheduled Time"}
               </p>
             </div>
 
@@ -174,7 +181,7 @@ export default async function TutorDashboardPage() {
                     </div>
                     <p className="font-semibold text-slate-800 truncate">{b.class_item?.title || "Class Session"}</p>
                     <p className="text-[11px] text-slate-500">
-                      Student: {b.student?.first_name} {b.student?.last_name} • {new Date(b.start_time).toLocaleDateString()}
+                      Student: {b.student?.first_name} {b.student?.last_name} • {b?.start_time ? new Date(b.start_time).toLocaleDateString() : "Scheduled"}
                     </p>
                   </div>
 

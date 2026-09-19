@@ -24,18 +24,30 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function StudentDashboardPage() {
-  const allBookings = await SupabaseDbService.getBookings();
-  // Filter for current student or show bookings
-  const bookings = allBookings;
-  const activeBookings = bookings.filter((b: any) => b.status === "CONFIRMED");
-  const completedBookings = bookings.filter((b: any) => b.status === "COMPLETED");
+  let allBookings: any[] = [];
+  let tutors: any[] = [];
+
+  try {
+    allBookings = await SupabaseDbService.getBookings();
+  } catch (err) {
+    console.error("Error fetching bookings for student dashboard:", err);
+  }
+
+  try {
+    tutors = await SupabaseDbService.getApprovedTutors();
+  } catch (err) {
+    console.error("Error fetching tutors for student dashboard:", err);
+  }
+
+  const bookings = allBookings || [];
+  const activeBookings = bookings.filter((b: any) => b?.status === "CONFIRMED");
+  const completedBookings = bookings.filter((b: any) => b?.status === "COMPLETED");
 
   const nextClass = activeBookings[0];
-  const tutors = await SupabaseDbService.getApprovedTutors();
-  const recommendedTutors = tutors.slice(0, 3);
+  const recommendedTutors = (tutors || []).slice(0, 3);
 
   const totalLearningHours = completedBookings.reduce(
-    (acc: number, b: any) => acc + ((b.class_item?.duration_minutes || 60) / 60),
+    (acc: number, b: any) => acc + ((b?.class_item?.duration_minutes || 60) / 60),
     0
   );
 
@@ -101,7 +113,7 @@ export default async function StudentDashboardPage() {
               <div className="flex flex-wrap items-center gap-4 text-xs text-indigo-200">
                 <div className="flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5 text-indigo-300" />
-                  <span>{new Date(nextClass.start_time).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}</span>
+                  <span>{nextClass?.start_time ? new Date(nextClass.start_time).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }) : "Scheduled Session"}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   {nextClass.format === "VIRTUAL" ? (

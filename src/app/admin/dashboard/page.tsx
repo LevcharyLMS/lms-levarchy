@@ -24,9 +24,22 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
-  const stats = await SupabaseDbService.getAdminKPIs();
-  const bookings = await SupabaseDbService.getBookings();
-  const recentBookings = bookings.slice(0, 5);
+  let stats: any = {};
+  let bookings: any[] = [];
+
+  try {
+    stats = await SupabaseDbService.getAdminKPIs();
+  } catch (err) {
+    console.error("Error fetching admin KPIs:", err);
+  }
+
+  try {
+    bookings = await SupabaseDbService.getBookings();
+  } catch (err) {
+    console.error("Error fetching admin bookings:", err);
+  }
+
+  const recentBookings = (bookings || []).slice(0, 5);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
