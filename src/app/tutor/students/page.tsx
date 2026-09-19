@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ export default function TutorStudentsPage() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadStudents = async () => {
+  const loadStudents = useCallback(async () => {
     try {
       setLoading(true);
       const url = tutorId ? `/api/bookings?tutorId=${tutorId}` : "/api/bookings";
@@ -28,11 +28,11 @@ export default function TutorStudentsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [tutorId]);
 
   useEffect(() => {
     loadStudents();
-  }, [tutorId]);
+  }, [loadStudents]);
 
   // Extract unique students
   const studentMap = new Map();

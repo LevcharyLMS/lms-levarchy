@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/context/auth-context";
 import { Bell, Check, Calendar, DollarSign, ShieldCheck, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ export default function TutorNotificationsPage() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchNotifications = () => {
+  const fetchNotifications = useCallback(() => {
     if (!tutorId) return;
     fetch(`/api/notifications?userId=${tutorId}`)
       .then((res) => res.json())
@@ -33,11 +33,11 @@ export default function TutorNotificationsPage() {
       })
       .catch((err) => console.error("Error fetching tutor notifications:", err))
       .finally(() => setLoading(false));
-  };
+  }, [tutorId]);
 
   useEffect(() => {
     fetchNotifications();
-  }, [tutorId]);
+  }, [fetchNotifications]);
 
   const markAllRead = async () => {
     if (!tutorId) return;

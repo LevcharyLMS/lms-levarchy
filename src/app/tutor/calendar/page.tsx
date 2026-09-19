@@ -134,7 +134,7 @@ export default function TutorCalendarPage() {
         </FadeUp>
       ) : (
         <div className="space-y-4">
-          <h2 className="text-base font-bold text-navy-950">This Week's Confirmed Sessions</h2>
+          <h2 className="text-base font-bold text-navy-950">This Week&apos;s Confirmed Sessions</h2>
           <div className="space-y-3">
             {bookings.map((b) => (
               <Card key={b.id} className="border-slate-200 bg-white shadow-xs">

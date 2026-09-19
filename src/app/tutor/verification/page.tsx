@@ -132,7 +132,7 @@ export default function TutorVerificationPage() {
                   onChange={(e) => setDocType(e.target.value)}
                   className="w-full h-9 px-3 text-xs border border-slate-200 rounded-lg bg-slate-50 focus:ring-1 focus:ring-primary outline-hidden"
                 >
-                  <option value="GOVERNMENT_ID">Government Photo ID (Passport / Driver's License)</option>
+                  <option value="GOVERNMENT_ID">Government Photo ID (Passport / Driver&apos;s License)</option>
                   <option value="DIPLOMA">University Degree / Diploma Certificate</option>
                   <option value="TRANSCRIPT">Official Academic Transcript</option>
                   <option value="TEACHING_LICENSE">State Teaching Credential / Certification</option>
