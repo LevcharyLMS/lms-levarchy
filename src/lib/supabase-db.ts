@@ -7,6 +7,7 @@ import { Pool } from 'pg';
 import { db as memoryDb } from './data-store';
 import {
   UserProfile,
+  StudentProfile,
   TutorProfile,
   ClassItem,
   Booking,

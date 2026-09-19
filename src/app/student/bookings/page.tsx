@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { MoneyDisplay } from "@/components/ui/money-display";
@@ -31,7 +31,7 @@ export default function StudentBookingsPage() {
   const [cancellationSuccess, setCancellationSuccess] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
 
-  const loadBookings = async () => {
+  const loadBookings = useCallback(async () => {
     try {
       setLoading(true);
       const url = user?.id ? `/api/bookings?studentId=${user.id}` : "/api/bookings";
@@ -43,11 +43,11 @@ export default function StudentBookingsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
   useEffect(() => {
     loadBookings();
-  }, [user?.id]);
+  }, [loadBookings]);
 
   const filteredBookings = bookings.filter((b) => {
     if (filter === "ACTIVE") return b.status === "CONFIRMED";
