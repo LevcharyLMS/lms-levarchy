@@ -252,620 +252,21 @@ const initialProfiles: UserProfile[] = [
     created_at: '2026-01-01T00:00:00.000Z',
     updated_at: '2026-01-01T00:00:00.000Z',
   },
-  // 2. Tutors
-  {
-    id: 'usr-tut-1',
-    email: 'marcus.chen@tutor.levchary.local',
-    role: 'TUTOR',
-    first_name: 'Dr. Marcus',
-    last_name: 'Chen',
-    avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-    phone: '+1 (617) 555-0102',
-    country: 'US',
-    city: 'Cambridge',
-    state: 'MA',
-    account_status: 'ACTIVE',
-    verification_status: 'APPROVED',
-    email_verified: true,
-    created_at: '2026-01-10T00:00:00.000Z',
-    updated_at: '2026-01-10T00:00:00.000Z',
-  },
-  {
-    id: 'usr-tut-2',
-    email: 'elena.rostova@tutor.levchary.local',
-    role: 'TUTOR',
-    first_name: 'Prof. Elena',
-    last_name: 'Rostova',
-    avatar_url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150',
-    phone: '+1 (617) 555-0103',
-    country: 'US',
-    city: 'Boston',
-    state: 'MA',
-    account_status: 'ACTIVE',
-    verification_status: 'APPROVED',
-    email_verified: true,
-    created_at: '2026-01-12T00:00:00.000Z',
-    updated_at: '2026-01-12T00:00:00.000Z',
-  },
-  {
-    id: 'usr-tut-3',
-    email: 'sarah.jenkins@tutor.levchary.local',
-    role: 'TUTOR',
-    first_name: 'Sarah',
-    last_name: 'Jenkins, M.S.',
-    avatar_url: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150',
-    phone: '+1 (212) 555-0104',
-    country: 'US',
-    city: 'New York',
-    state: 'NY',
-    account_status: 'ACTIVE',
-    verification_status: 'APPROVED',
-    email_verified: true,
-    created_at: '2026-01-15T00:00:00.000Z',
-    updated_at: '2026-01-15T00:00:00.000Z',
-  },
-  {
-    id: 'usr-tut-4',
-    email: 'david.okonkwo@tutor.levchary.local',
-    role: 'TUTOR',
-    first_name: 'David',
-    last_name: 'Okonkwo',
-    avatar_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
-    phone: '+1 (617) 555-0105',
-    country: 'US',
-    city: 'Boston',
-    state: 'MA',
-    account_status: 'ACTIVE',
-    verification_status: 'APPROVED',
-    email_verified: true,
-    created_at: '2026-01-20T00:00:00.000Z',
-    updated_at: '2026-01-20T00:00:00.000Z',
-  },
-  {
-    id: 'usr-tut-5',
-    email: 'emily.zhao@tutor.levchary.local',
-    role: 'TUTOR',
-    first_name: 'Emily',
-    last_name: 'Zhao',
-    avatar_url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150',
-    phone: '+1 (617) 555-0106',
-    country: 'US',
-    city: 'Cambridge',
-    state: 'MA',
-    account_status: 'ACTIVE',
-    verification_status: 'PENDING_REVIEW', // Candidate tutor awaiting verification review
-    email_verified: true,
-    created_at: '2026-02-01T00:00:00.000Z',
-    updated_at: '2026-02-01T00:00:00.000Z',
-  },
-  // 3. Students
-  {
-    id: 'usr-stu-1',
-    email: 'student@levchary.local',
-    role: 'STUDENT',
-    first_name: 'Lucas',
-    last_name: 'Miller',
-    avatar_url: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150',
-    phone: '+1 (617) 555-0201',
-    country: 'US',
-    city: 'Boston',
-    state: 'MA',
-    account_status: 'ACTIVE',
-    verification_status: 'APPROVED',
-    email_verified: true,
-    created_at: '2026-02-01T00:00:00.000Z',
-    updated_at: '2026-02-01T00:00:00.000Z',
-  },
-  {
-    id: 'usr-stu-2',
-    email: 'maya.patel@student.levchary.local',
-    role: 'STUDENT',
-    first_name: 'Maya',
-    last_name: 'Patel',
-    avatar_url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150',
-    phone: '+1 (617) 555-0202',
-    country: 'US',
-    city: 'Cambridge',
-    state: 'MA',
-    account_status: 'ACTIVE',
-    verification_status: 'APPROVED',
-    email_verified: true,
-    created_at: '2026-02-05T00:00:00.000Z',
-    updated_at: '2026-02-05T00:00:00.000Z',
-  },
-  {
-    id: 'usr-stu-3',
-    email: 'ethan.hunt@student.levchary.local',
-    role: 'STUDENT',
-    first_name: 'Ethan',
-    last_name: 'Hunt',
-    avatar_url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150',
-    phone: '+1 (212) 555-0203',
-    country: 'US',
-    city: 'New York',
-    state: 'NY',
-    account_status: 'ACTIVE',
-    verification_status: 'APPROVED',
-    email_verified: true,
-    created_at: '2026-02-10T00:00:00.000Z',
-    updated_at: '2026-02-10T00:00:00.000Z',
-  },
 ];
 
-const initialTutorProfiles: TutorProfile[] = [
-  {
-    user_id: 'usr-tut-1',
-    headline: 'MIT Ph.D. in Applied Mathematics & Physics — 12+ Years Teaching',
-    bio: 'Former MIT research fellow specializing in making high-level calculus, physics, and differential equations intuitive and engaging. 98% of my AP students achieve a 5 on their exam.',
-    qualifications: 'Ph.D. in Applied Mathematics (MIT), B.S. in Theoretical Physics (Caltech)',
-    experience_years: 12,
-    hourly_rate: 6500, // $65.00/hr
-    stripe_account_id: 'acct_1MarcusChenMIT',
-    stripe_onboarding_completed: true,
-    rating_avg: 4.95,
-    reviews_count: 38,
-    is_approved: true,
-    preferred_format: 'BOTH',
-    timezone: 'America/New_York',
-    created_at: '2026-01-10T00:00:00.000Z',
-    updated_at: '2026-01-10T00:00:00.000Z',
-  },
-  {
-    user_id: 'usr-tut-2',
-    headline: 'Senior Research Chemist & Harvard Chemistry Faculty',
-    bio: 'Passionate chemistry educator with over 10 years of mentoring students from high school honors chemistry to advanced organic spectroscopy and university research.',
-    qualifications: 'Ph.D. in Organic Chemistry (Harvard), M.S. in Chemical Engineering',
-    experience_years: 10,
-    hourly_rate: 7000, // $70.00/hr
-    stripe_account_id: 'acct_2ElenaRostovaChem',
-    stripe_onboarding_completed: true,
-    rating_avg: 4.92,
-    reviews_count: 29,
-    is_approved: true,
-    preferred_format: 'BOTH',
-    timezone: 'America/New_York',
-    created_at: '2026-01-12T00:00:00.000Z',
-    updated_at: '2026-01-12T00:00:00.000Z',
-  },
-  {
-    user_id: 'usr-tut-3',
-    headline: 'Staff Software Architect & Former Google Lead — Python/Algorithms',
-    bio: 'Teaching computer science from fundamentals to algorithmic optimization. Author of competitive programming courses and dedicated mentor for students aspiring to top tech and CS programs.',
-    qualifications: 'M.S. in Computer Science (Stanford University), Ex-Google Senior SWE',
-    experience_years: 9,
-    hourly_rate: 6000, // $60.00/hr
-    stripe_account_id: 'acct_3SarahJenkinsCS',
-    stripe_onboarding_completed: true,
-    rating_avg: 4.98,
-    reviews_count: 45,
-    is_approved: true,
-    preferred_format: 'VIRTUAL',
-    timezone: 'America/New_York',
-    created_at: '2026-01-15T00:00:00.000Z',
-    updated_at: '2026-01-15T00:00:00.000Z',
-  },
-  {
-    user_id: 'usr-tut-4',
-    headline: 'Columbia Literary Scholar & SAT Verbal Specialist',
-    bio: 'Specialist in rhetorical writing, AP English literature, and standardized reading. Transforming student essays into persuasive, publishable pieces of critical analysis.',
-    qualifications: 'M.A. in English Literature (Columbia University), B.A. in Comparative Literature',
-    experience_years: 7,
-    hourly_rate: 5000, // $50.00/hr
-    stripe_account_id: 'acct_4DavidOkonkwoLit',
-    stripe_onboarding_completed: true,
-    rating_avg: 4.88,
-    reviews_count: 21,
-    is_approved: true,
-    preferred_format: 'BOTH',
-    timezone: 'America/New_York',
-    created_at: '2026-01-20T00:00:00.000Z',
-    updated_at: '2026-01-20T00:00:00.000Z',
-  },
-  {
-    user_id: 'usr-tut-5',
-    headline: 'Biochemistry Specialist & Yale Honors Graduate',
-    bio: 'Applied to teach AP Biology and Pre-Med foundations. Awaiting document verification review.',
-    qualifications: 'B.S. in Molecular Biochemistry (Yale University)',
-    experience_years: 3,
-    hourly_rate: 4500,
-    stripe_account_id: null,
-    stripe_onboarding_completed: false,
-    rating_avg: 5.0,
-    reviews_count: 0,
-    is_approved: false, // NOT approved yet, shows in admin verification queue!
-    preferred_format: 'VIRTUAL',
-    timezone: 'America/New_York',
-    created_at: '2026-02-01T00:00:00.000Z',
-    updated_at: '2026-02-01T00:00:00.000Z',
-  },
-];
-
-const initialClasses: ClassItem[] = [
-  // 1. 1-on-1 Virtual
-  {
-    id: 'cls-1',
-    title: 'AP Calculus BC: 1-on-1 Personalized Mastery Session',
-    description: 'Intensive 1-on-1 differential and integral calculus mentorship. We address your specific problem areas, optimize test pacing, and master free-response strategies with interactive whiteboards and dedicated Google Meet.',
-    tutor_id: 'usr-tut-1',
-    category_id: 'cat-1',
-    subject_id: 'sub-1',
-    grade_id: 'grd-3',
-    class_type: 'ONE_ON_ONE',
-    format: 'VIRTUAL',
-    duration_minutes: 60,
-    price: 6500, // $65.00
-    currency: 'USD',
-    capacity: 1,
-    enrolled_count: 0,
-    meet_url: 'https://meet.google.com/lev-calc-bc1',
-    status: 'PUBLISHED',
-    created_at: '2026-01-20T00:00:00.000Z',
-    updated_at: '2026-01-20T00:00:00.000Z',
-  },
-  // 2. 1-on-1 Physical
-  {
-    id: 'cls-2',
-    title: 'Advanced Classical Mechanics: 1-on-1 Physical Lab & Problem Solving',
-    description: 'In-person university prep in kinematics, energy conservation, rotational dynamics, and experimental analysis conducted at our approved Boston Learning Hub.',
-    tutor_id: 'usr-tut-1',
-    category_id: 'cat-2',
-    subject_id: 'sub-3',
-    grade_id: 'grd-3',
-    class_type: 'ONE_ON_ONE',
-    format: 'PHYSICAL',
-    duration_minutes: 90,
-    price: 9500, // $95.00
-    currency: 'USD',
-    capacity: 1,
-    enrolled_count: 0,
-    location_id: 'loc-1',
-    status: 'PUBLISHED',
-    created_at: '2026-01-22T00:00:00.000Z',
-    updated_at: '2026-01-22T00:00:00.000Z',
-  },
-  // 3. Group Virtual
-  {
-    id: 'cls-3',
-    title: 'Full-Stack Python & Algorithms Sprint (Interactive Group Cohort)',
-    description: 'Hands-on group cohort mastering data structures, binary trees, recursion, and API integration. Live coding drills and collaborative problem solving via dedicated Google Meet.',
-    tutor_id: 'usr-tut-3',
-    category_id: 'cat-3',
-    subject_id: 'sub-5',
-    grade_id: 'grd-3',
-    class_type: 'GROUP',
-    format: 'VIRTUAL',
-    duration_minutes: 75,
-    price: 3500, // $35.00 per student
-    currency: 'USD',
-    capacity: 10,
-    enrolled_count: 6, // 6 enrolled, 4 seats remaining!
-    meet_url: 'https://meet.google.com/lev-pygroup-2026',
-    status: 'OPEN',
-    start_time: '2026-09-22T18:00:00.000Z',
-    end_time: '2026-09-22T19:15:00.000Z',
-    created_at: '2026-01-25T00:00:00.000Z',
-    updated_at: '2026-01-25T00:00:00.000Z',
-  },
-  // 4. Group Physical
-  {
-    id: 'cls-4',
-    title: 'Digital SAT Math Intensive: Boston Weekend Workshop',
-    description: 'Intensive in-person group workshop analyzing digital SAT question archetypes, algebraic shortcuts, and timing calibration in a collaborative classroom environment.',
-    tutor_id: 'usr-tut-1',
-    category_id: 'cat-5',
-    subject_id: 'sub-8',
-    grade_id: 'grd-3',
-    class_type: 'GROUP',
-    format: 'PHYSICAL',
-    duration_minutes: 120,
-    price: 4500, // $45.00 per student
-    currency: 'USD',
-    capacity: 8,
-    enrolled_count: 5, // 5 enrolled, 3 seats remaining
-    location_id: 'loc-1',
-    status: 'OPEN',
-    start_time: '2026-09-24T14:00:00.000Z',
-    end_time: '2026-09-24T16:00:00.000Z',
-    created_at: '2026-01-28T00:00:00.000Z',
-    updated_at: '2026-01-28T00:00:00.000Z',
-  },
-  // 5. Another 1-on-1 Virtual for Chemistry
-  {
-    id: 'cls-5',
-    title: 'Organic Chemistry Reaction Mechanisms Masterclass',
-    description: 'One-on-one deep dive into nucleophilic substitution, elimination, carbonyl reactions, and NMR spectroscopy interpretation.',
-    tutor_id: 'usr-tut-2',
-    category_id: 'cat-2',
-    subject_id: 'sub-4',
-    grade_id: 'grd-4',
-    class_type: 'ONE_ON_ONE',
-    format: 'VIRTUAL',
-    duration_minutes: 60,
-    price: 7000,
-    currency: 'USD',
-    capacity: 1,
-    enrolled_count: 0,
-    meet_url: 'https://meet.google.com/lev-orgchem-dr2',
-    status: 'PUBLISHED',
-    created_at: '2026-02-01T00:00:00.000Z',
-    updated_at: '2026-02-01T00:00:00.000Z',
-  },
-];
-
-const initialBookings: Booking[] = [
-  {
-    id: 'bk-101',
-    booking_number: 'LEV-202609-A8F2K',
-    student_id: 'usr-stu-1',
-    tutor_id: 'usr-tut-1',
-    class_id: 'cls-1',
-    status: 'CONFIRMED',
-    start_time: '2026-09-20T15:00:00.000Z',
-    end_time: '2026-09-20T16:00:00.000Z',
-    timezone: 'America/New_York',
-    format: 'VIRTUAL',
-    meet_url: 'https://meet.google.com/lev-calc-bc1',
-    notes: 'Focus on integration by parts and trigonometric substitution.',
-    created_at: '2026-09-18T10:00:00.000Z',
-    updated_at: '2026-09-18T10:00:00.000Z',
-  },
-  {
-    id: 'bk-102',
-    booking_number: 'LEV-202609-B4X9M',
-    student_id: 'usr-stu-1',
-    tutor_id: 'usr-tut-3',
-    class_id: 'cls-3',
-    status: 'CONFIRMED',
-    start_time: '2026-09-22T18:00:00.000Z',
-    end_time: '2026-09-22T19:15:00.000Z',
-    timezone: 'America/New_York',
-    format: 'VIRTUAL',
-    meet_url: 'https://meet.google.com/lev-pygroup-2026',
-    created_at: '2026-09-17T14:30:00.000Z',
-    updated_at: '2026-09-17T14:30:00.000Z',
-  },
-  {
-    id: 'bk-103',
-    booking_number: 'LEV-202609-C1Z8P',
-    student_id: 'usr-stu-1',
-    tutor_id: 'usr-tut-1',
-    class_id: 'cls-2',
-    status: 'COMPLETED',
-    start_time: '2026-09-15T14:00:00.000Z',
-    end_time: '2026-09-15T15:30:00.000Z',
-    timezone: 'America/New_York',
-    format: 'PHYSICAL',
-    location_id: 'loc-1',
-    created_at: '2026-09-12T11:00:00.000Z',
-    updated_at: '2026-09-15T15:30:00.000Z',
-  },
-];
-
-const initialSnapshots: BookingFinancialSnapshot[] = [
-  {
-    id: 'snap-101',
-    booking_id: 'bk-101',
-    gross_amount: 6500, // $65.00
-    platform_fee_percent: 20.0,
-    platform_fee_amount: 1300, // $13.00
-    tutor_earnings: 5200,      // $52.00
-    stripe_fee_estimate: 219,
-    currency: 'USD',
-    locked_at: '2026-09-18T10:00:00.000Z',
-  },
-  {
-    id: 'snap-102',
-    booking_id: 'bk-102',
-    gross_amount: 3500, // $35.00
-    platform_fee_percent: 20.0,
-    platform_fee_amount: 700,  // $7.00
-    tutor_earnings: 2800,      // $28.00
-    stripe_fee_estimate: 132,
-    currency: 'USD',
-    locked_at: '2026-09-17T14:30:00.000Z',
-  },
-  {
-    id: 'snap-103',
-    booking_id: 'bk-103',
-    gross_amount: 9500, // $95.00
-    platform_fee_percent: 20.0,
-    platform_fee_amount: 1900, // $19.00
-    tutor_earnings: 7600,      // $76.00
-    stripe_fee_estimate: 306,
-    currency: 'USD',
-    locked_at: '2026-09-12T11:00:00.000Z',
-  },
-];
-
-const initialTransactions: Transaction[] = [
-  {
-    id: 'tx-1',
-    booking_id: 'bk-101',
-    student_id: 'usr-stu-1',
-    tutor_id: 'usr-tut-1',
-    type: 'PAYMENT',
-    gross_amount: 6500,
-    fee_amount: 1300,
-    net_amount: 5200,
-    currency: 'USD',
-    status: 'COMPLETED',
-    stripe_charge_id: 'ch_test_101_charge',
-    created_at: '2026-09-18T10:00:00.000Z',
-  },
-  {
-    id: 'tx-2',
-    booking_id: 'bk-102',
-    student_id: 'usr-stu-1',
-    tutor_id: 'usr-tut-3',
-    type: 'PAYMENT',
-    gross_amount: 3500,
-    fee_amount: 700,
-    net_amount: 2800,
-    currency: 'USD',
-    status: 'COMPLETED',
-    stripe_charge_id: 'ch_test_102_charge',
-    created_at: '2026-09-17T14:30:00.000Z',
-  },
-  {
-    id: 'tx-3',
-    booking_id: 'bk-103',
-    student_id: 'usr-stu-1',
-    tutor_id: 'usr-tut-1',
-    type: 'PAYMENT',
-    gross_amount: 9500,
-    fee_amount: 1900,
-    net_amount: 7600,
-    currency: 'USD',
-    status: 'COMPLETED',
-    stripe_charge_id: 'ch_test_103_charge',
-    created_at: '2026-09-12T11:00:00.000Z',
-  },
-];
-
-const initialReviews: Review[] = [
-  {
-    id: 'rev-1',
-    booking_id: 'bk-103',
-    student_id: 'usr-stu-1',
-    tutor_id: 'usr-tut-1',
-    rating: 5,
-    comment: 'Dr. Chen is extraordinary. In just 90 minutes he cleared up angular momentum concepts that I had been struggling with for weeks. Highly recommended!',
-    is_moderated: true,
-    is_published: true,
-    created_at: '2026-09-15T16:00:00.000Z',
-    updated_at: '2026-09-15T16:00:00.000Z',
-  },
-];
-
-const initialFlags: MessageFlag[] = [
-  {
-    id: 'flg-1',
-    message_id: 'msg-suspicious-1',
-    flag_type: 'OFF_PLATFORM_PAYMENT',
-    detected_text: 'Can we settle this via Venmo instead of the website?',
-    severity: 'HIGH',
-    status: 'PENDING_REVIEW',
-    admin_notes: null,
-    created_at: '2026-09-18T14:20:00.000Z',
-  },
-  {
-    id: 'flg-2',
-    message_id: 'msg-phone-1',
-    flag_type: 'PHONE',
-    detected_text: 'Call my cell at 617-555-0199 so we can coordinate.',
-    severity: 'MEDIUM',
-    status: 'PENDING_REVIEW',
-    admin_notes: null,
-    created_at: '2026-09-18T16:45:00.000Z',
-  },
-];
-
-const initialAuditLogs: AuditLog[] = [
-  {
-    id: 'aud-1',
-    actor_id: 'usr-admin-1',
-    actor_role: 'ADMIN',
-    action: 'TUTOR_VERIFIED_AND_APPROVED',
-    entity_type: 'TUTOR_PROFILE',
-    entity_id: 'usr-tut-1',
-    metadata: { note: 'Verified Harvard Ph.D. diploma and government passport credentials' },
-    ip_address: '127.0.0.1',
-    created_at: '2026-01-10T12:00:00.000Z',
-  },
-  {
-    id: 'aud-2',
-    actor_id: 'usr-admin-1',
-    actor_role: 'ADMIN',
-    action: 'COMMISSION_RULE_UPDATED',
-    entity_type: 'COMMISSION_RULE',
-    entity_id: 'rule-std-20',
-    metadata: { standard_platform_rate: 20.0 },
-    ip_address: '127.0.0.1',
-    created_at: '2026-01-11T09:30:00.000Z',
-  },
-];
-
-const initialVerificationDocuments: VerificationDocument[] = [
-  {
-    id: 'doc-1',
-    user_id: 'usr-tut-5',
-    document_type: 'GOVERNMENT_ID',
-    file_path: 'verifications/usr-tut-5/drivers-license.pdf',
-    file_name: 'MA_Drivers_License_Emily_Zhao.pdf',
-    mime_type: 'application/pdf',
-    file_size: 1420500,
-    status: 'PENDING_REVIEW',
-    admin_notes: 'Submitted for verification review.',
-    uploaded_at: '2026-02-01T10:00:00.000Z',
-  },
-  {
-    id: 'doc-2',
-    user_id: 'usr-tut-5',
-    document_type: 'DEGREE_CERTIFICATE',
-    file_path: 'verifications/usr-tut-5/yale_diploma.pdf',
-    file_name: 'Yale_University_BSc_Molecular_Biochemistry.pdf',
-    mime_type: 'application/pdf',
-    file_size: 2840000,
-    status: 'PENDING_REVIEW',
-    admin_notes: 'High honors degree verification.',
-    uploaded_at: '2026-02-01T10:05:00.000Z',
-  },
-];
-
-const initialAvailability: TutorAvailability[] = [
-  { id: 'av-1', tutor_id: 'usr-tut-1', day_of_week: 1, start_time: '09:00', end_time: '17:00', is_active: true, created_at: new Date().toISOString() },
-  { id: 'av-2', tutor_id: 'usr-tut-1', day_of_week: 2, start_time: '09:00', end_time: '17:00', is_active: true, created_at: new Date().toISOString() },
-  { id: 'av-3', tutor_id: 'usr-tut-1', day_of_week: 3, start_time: '09:00', end_time: '17:00', is_active: true, created_at: new Date().toISOString() },
-  { id: 'av-4', tutor_id: 'usr-tut-1', day_of_week: 4, start_time: '09:00', end_time: '17:00', is_active: true, created_at: new Date().toISOString() },
-  { id: 'av-5', tutor_id: 'usr-tut-1', day_of_week: 5, start_time: '09:00', end_time: '15:00', is_active: true, created_at: new Date().toISOString() },
-  { id: 'av-6', tutor_id: 'usr-tut-3', day_of_week: 2, start_time: '10:00', end_time: '20:00', is_active: true, created_at: new Date().toISOString() },
-  { id: 'av-7', tutor_id: 'usr-tut-3', day_of_week: 4, start_time: '10:00', end_time: '20:00', is_active: true, created_at: new Date().toISOString() },
-];
-
-const initialMessages: Message[] = [
-  {
-    id: 'msg-1',
-    conversation_id: 'conv-1',
-    sender_id: 'usr-stu-1',
-    body: 'Hello Dr. Chen! Looking forward to our AP Calculus session this weekend.',
-    is_read: true,
-    has_flag: false,
-    created_at: '2026-09-18T10:05:00.000Z',
-  },
-  {
-    id: 'msg-2',
-    conversation_id: 'conv-1',
-    sender_id: 'usr-tut-1',
-    body: 'Welcome Lucas! Please review section 7.2 on integration techniques ahead of time, and bring any specific problem sets you would like to analyze.',
-    is_read: true,
-    has_flag: false,
-    created_at: '2026-09-18T10:15:00.000Z',
-  },
-  {
-    id: 'msg-suspicious-1',
-    conversation_id: 'conv-2',
-    sender_id: 'usr-stu-2',
-    body: 'Can we settle this via Venmo instead of the website?',
-    is_read: false,
-    has_flag: true,
-    created_at: '2026-09-18T14:20:00.000Z',
-  },
-];
-
-const initialConversations: Conversation[] = [
-  {
-    id: 'conv-1',
-    created_at: '2026-09-18T10:00:00.000Z',
-    updated_at: '2026-09-18T10:15:00.000Z',
-    last_message_at: '2026-09-18T10:15:00.000Z',
-  },
-  {
-    id: 'conv-2',
-    created_at: '2026-09-18T14:00:00.000Z',
-    updated_at: '2026-09-18T14:20:00.000Z',
-    last_message_at: '2026-09-18T14:20:00.000Z',
-  },
-];
+const initialTutorProfiles: TutorProfile[] = [];
+const initialClasses: ClassItem[] = [];
+const initialBookings: Booking[] = [];
+const initialSnapshots: BookingFinancialSnapshot[] = [];
+const initialTransactions: Transaction[] = [];
+const initialReviews: Review[] = [];
+const initialFlags: MessageFlag[] = [];
+const initialNotifications: Notification[] = [];
+const initialAuditLogs: AuditLog[] = [];
+const initialAvailability: TutorAvailability[] = [];
+const initialMessages: Message[] = [];
+const initialConversations: Conversation[] = [];
+const initialVerificationDocuments: VerificationDocument[] = [];
 
 // In-Memory Database Class
 class DataStore {
@@ -894,20 +295,7 @@ class DataStore {
       notifications: [],
       reviews: [...initialReviews],
       audit_logs: [...initialAuditLogs],
-      support_tickets: [
-        {
-          id: 'tkt-1',
-          user_id: 'usr-stu-1',
-          subject: 'Question regarding physical classroom parking at Central Hub',
-          description: 'Is visitor parking validated for weekend physical sessions?',
-          category: 'LOCATIONS',
-          priority: 'NORMAL',
-          status: 'RESOLVED',
-          admin_notes: 'Informed student that building garage provides 2 hours free validation.',
-          created_at: '2026-09-14T09:00:00.000Z',
-          updated_at: '2026-09-14T11:00:00.000Z',
-        },
-      ],
+      support_tickets: [],
       platform_settings: [
         {
           key: 'platform_info',
@@ -934,6 +322,66 @@ class DataStore {
 
   getProfileByEmail(email: string) {
     return this.state.profiles.find((p) => p.email.toLowerCase() === email.toLowerCase());
+  }
+
+  seedTestFixtures() {
+    if (!this.state.profiles.some((p) => p.id === 'usr-tut-1')) {
+      this.state.profiles.push({
+        id: 'usr-tut-1',
+        email: 'marcus.chen@tutor.levchary.local',
+        role: 'TUTOR',
+        first_name: 'Dr. Marcus',
+        last_name: 'Chen',
+        avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+        phone: '+1 (617) 555-0102',
+        country: 'US',
+        city: 'Cambridge',
+        state: 'MA',
+        account_status: 'ACTIVE',
+        verification_status: 'APPROVED',
+        email_verified: true,
+        created_at: '2026-01-10T00:00:00.000Z',
+        updated_at: '2026-01-10T00:00:00.000Z',
+      });
+    }
+    if (!this.state.profiles.some((p) => p.id === 'usr-stu-1')) {
+      this.state.profiles.push({
+        id: 'usr-stu-1',
+        email: 'student@levchary.local',
+        role: 'STUDENT',
+        first_name: 'Lucas',
+        last_name: 'Miller',
+        avatar_url: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150',
+        phone: '+1 (617) 555-0201',
+        country: 'US',
+        city: 'Boston',
+        state: 'MA',
+        account_status: 'ACTIVE',
+        verification_status: 'APPROVED',
+        email_verified: true,
+        created_at: '2026-02-01T00:00:00.000Z',
+        updated_at: '2026-02-01T00:00:00.000Z',
+      });
+    }
+    if (!this.state.tutor_profiles.some((tp) => tp.user_id === 'usr-tut-1')) {
+      this.state.tutor_profiles.push({
+        user_id: 'usr-tut-1',
+        headline: 'Ph.D. in Applied Mathematics (MIT) | 12+ Years Teaching',
+        bio: 'Coaching calculus and physics.',
+        qualifications: 'Ph.D. Applied Math',
+        experience_years: 12,
+        hourly_rate: 6500,
+        stripe_account_id: 'acct_1MarcusChenMIT',
+        stripe_onboarding_completed: true,
+        rating_avg: 4.96,
+        reviews_count: 48,
+        is_approved: true,
+        preferred_format: 'BOTH',
+        timezone: 'America/New_York',
+        created_at: '2026-01-10T00:00:00.000Z',
+        updated_at: '2026-01-10T00:00:00.000Z',
+      });
+    }
   }
 
   updateProfile(id: string, updates: Partial<UserProfile>) {
@@ -1030,6 +478,42 @@ class DataStore {
     };
     this.state.classes.push(newClass);
     return this.hydrateClass(newClass);
+  }
+
+  updateClass(classId: string, updates: Partial<ClassItem>) {
+    const idx = this.state.classes.findIndex((c) => c.id === classId);
+    if (idx < 0) return null;
+    this.state.classes[idx] = {
+      ...this.state.classes[idx],
+      ...updates,
+      updated_at: new Date().toISOString(),
+    };
+    return this.hydrateClass(this.state.classes[idx]);
+  }
+
+  // --- NOTIFICATIONS ---
+  getNotifications(userId: string) {
+    return this.state.notifications
+      .filter((n) => n.user_id === userId)
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 50);
+  }
+
+  createNotification(notification: Omit<Notification, 'id' | 'created_at'>) {
+    const newNotification: Notification = {
+      ...notification,
+      id: `notif-${Date.now()}`,
+      created_at: new Date().toISOString(),
+    };
+    this.state.notifications.push(newNotification);
+    return newNotification;
+  }
+
+  markNotificationsRead(userId: string) {
+    this.state.notifications
+      .filter((n) => n.user_id === userId)
+      .forEach((n) => { n.is_read = true; });
+    return true;
   }
 
   // --- BOOKING ENGINE (ATOMIC SLOT & CAPACITY PRESERVATION) ---

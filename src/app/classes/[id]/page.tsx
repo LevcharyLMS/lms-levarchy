@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { notFound, useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAuth } from "@/context/auth-context";
 import { db } from "@/lib/data-store";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { MoneyDisplay } from "@/components/ui/money-display";
@@ -33,6 +34,8 @@ export default function ClassDetailPage({ params }: ClassPageProps) {
   const router = useRouter();
   const classItem = db.getClassById(params.id);
 
+  const { user } = useAuth();
+
   const [bookingSuccess, setBookingSuccess] = useState<{
     bookingNumber: string;
     meetUrl?: string | null;
@@ -41,8 +44,9 @@ export default function ClassDetailPage({ params }: ClassPageProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
 
-  // 1-on-1 slot selector state
-  const [selectedDate, setSelectedDate] = useState<string>("2026-09-21");
+  // Dynamic next-day selector
+  const defaultDateStr = new Date(Date.now() + 86400000).toISOString().split("T")[0];
+  const [selectedDate, setSelectedDate] = useState<string>(defaultDateStr);
   const [selectedTime, setSelectedTime] = useState<string>("14:00");
   const [studentNotes, setStudentNotes] = useState<string>("");
 
@@ -52,11 +56,17 @@ export default function ClassDetailPage({ params }: ClassPageProps) {
 
   const tutor = classItem.tutor;
   const isGroup = classItem.class_type === "GROUP";
+  const isVirtual = classItem.format === "VIRTUAL";
   const seatsRemaining = classItem.capacity - classItem.enrolled_count;
   const isFull = isGroup && seatsRemaining <= 0;
 
   const handleBooking = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      router.push(`/login?redirect=/classes/${params.id}`);
+      return;
+    }
+
     setIsSubmitting(true);
     setBookingError(null);
 
@@ -68,7 +78,7 @@ export default function ClassDetailPage({ params }: ClassPageProps) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             classType: "GROUP",
-            studentId: "usr-stu-1",
+            studentId: user.id,
             classId: classItem.id,
             timezone: "America/New_York",
           }),
@@ -82,7 +92,7 @@ export default function ClassDetailPage({ params }: ClassPageProps) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             classType: "ONE_ON_ONE",
-            studentId: "usr-stu-1",
+            studentId: user.id,
             tutorId: classItem.tutor_id,
             classId: classItem.id,
             startTime,

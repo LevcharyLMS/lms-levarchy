@@ -22,8 +22,6 @@ export async function GET(req: NextRequest) {
     if (format) {
       tutors = tutors.filter((t: any) => t.preferred_format === format);
     }
-  } else {
-    tutors = db.getTutors({ search, format });
   }
 
   return NextResponse.json({ tutors });

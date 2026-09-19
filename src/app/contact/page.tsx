@@ -8,7 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Mail, Phone, MapPin, CheckCircle2, HelpCircle } from "lucide-react";
 
+import { useAuth } from "@/context/auth-context";
+
 export default function ContactPage() {
+  const { user } = useAuth();
   const [submitted, setSubmitted] = useState<string | null>(null);
   const [subject, setSubject] = useState("");
   const [category, setCategory] = useState("GENERAL");
@@ -21,7 +24,7 @@ export default function ContactPage() {
     setIsSubmitting(true);
 
     const ticket = db.createSupportTicket({
-      user_id: "usr-stu-1", // default demo user
+      user_id: user?.id || "guest-support",
       subject,
       category,
       priority,

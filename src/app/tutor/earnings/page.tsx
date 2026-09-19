@@ -17,9 +17,11 @@ import {
   Calendar,
   ShieldCheck,
 } from "lucide-react";
+import { useAuth } from "@/context/auth-context";
 
 export default function TutorEarningsPage() {
-  const tutorId = "usr-tut-1";
+  const { user } = useAuth();
+  const tutorId = user?.id;
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");

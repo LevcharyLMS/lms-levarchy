@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SupabaseDbService } from "@/lib/supabase-db";
-import { db } from "@/lib/data-store";
 import { BookingService } from "@/services/booking";
 
 export async function GET(req: NextRequest) {

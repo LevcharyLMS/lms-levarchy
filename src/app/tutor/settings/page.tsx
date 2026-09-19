@@ -10,7 +10,7 @@ import { CheckCircle2, User, Bell } from "lucide-react";
 
 export default function TutorSettingsPage() {
   const { user, refreshUser } = useAuth();
-  const tutorId = user?.id || "usr-tut-1";
+  const tutorId = user?.id;
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -28,6 +28,7 @@ export default function TutorSettingsPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!tutorId) return;
     setSaving(true);
     db.updateProfile(tutorId, { first_name: firstName, last_name: lastName, phone });
     await refreshUser();

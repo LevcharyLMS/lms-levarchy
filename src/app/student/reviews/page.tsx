@@ -63,6 +63,10 @@ export default function StudentReviewsPage() {
       setError("Please select a completed session to review.");
       return;
     }
+    if (!user?.id) {
+      setError("Please sign in to submit an evaluation.");
+      return;
+    }
 
     try {
       setSubmitting(true);
@@ -71,7 +75,7 @@ export default function StudentReviewsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           bookingId: booking.id,
-          studentId: user?.id || "usr-stu-1",
+          studentId: user.id,
           tutorId: booking.tutor_id,
           rating,
           comment,

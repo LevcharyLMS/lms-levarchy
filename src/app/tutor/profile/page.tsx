@@ -11,8 +11,8 @@ import { CheckCircle2, User, Sparkles } from "lucide-react";
 
 export default function TutorProfilePage() {
   const { user } = useAuth();
-  const tutorId = user?.id || "usr-tut-1";
-  const tutorData = db.getTutorById(tutorId);
+  const tutorId = user?.id;
+  const tutorData = tutorId ? db.getTutorById(tutorId) : null;
 
   const [headline, setHeadline] = useState("");
   const [qualifications, setQualifications] = useState("");

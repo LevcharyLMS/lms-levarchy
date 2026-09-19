@@ -145,26 +145,29 @@ export class SupabaseDbService {
         ORDER BY tp.rating_avg DESC, tp.reviews_count DESC
       `);
 
-      if (rows.length > 0) {
-        return rows.map((r) => ({
-          ...r,
-          user: {
-            id: r.user_id,
-            email: r.email,
-            first_name: r.first_name,
-            last_name: r.last_name,
-            avatar_url: r.avatar_url,
-          },
-        }));
-      }
+      return rows.map((r) => ({
+        ...r,
+        user: {
+          id: r.user_id,
+          email: r.email,
+          first_name: r.first_name,
+          last_name: r.last_name,
+          avatar_url: r.avatar_url,
+        },
+      }));
     } catch {
-      // fallback
+      return memoryDb.getTutors();
     }
-    return memoryDb.getTutors();
   }
 
   // --- CLASSES QUERY ---
-  static async getClasses(filters?: { format?: string; categoryId?: string }) {
+  static async getClasses(filters?: {
+    format?: string;
+    categoryId?: string;
+    tutorId?: string;
+    status?: string;
+    search?: string;
+  }) {
     try {
       let sql = `
         SELECT
@@ -183,10 +186,20 @@ export class SupabaseDbService {
         LEFT JOIN profiles p ON c.tutor_id = p.id
         LEFT JOIN tutor_profiles tp ON p.id = tp.user_id
         LEFT JOIN class_locations loc ON c.location_id = loc.id
-        WHERE c.status IN ('PUBLISHED', 'OPEN', 'FULL')
+        WHERE 1=1
       `;
 
       const params: any[] = [];
+      if (filters?.tutorId) {
+        params.push(filters.tutorId);
+        sql += ` AND c.tutor_id = $${params.length}`;
+      }
+      if (filters?.status) {
+        params.push(filters.status);
+        sql += ` AND c.status = $${params.length}`;
+      } else if (!filters?.tutorId) {
+        sql += ` AND c.status IN ('PUBLISHED', 'OPEN', 'FULL')`;
+      }
       if (filters?.format) {
         params.push(filters.format);
         sql += ` AND c.format = $${params.length}`;
@@ -195,32 +208,148 @@ export class SupabaseDbService {
         params.push(filters.categoryId);
         sql += ` AND c.category_id = $${params.length}`;
       }
+      if (filters?.search) {
+        params.push(`%${filters.search}%`);
+        sql += ` AND (c.title ILIKE $${params.length} OR c.description ILIKE $${params.length})`;
+      }
 
       sql += ` ORDER BY c.created_at DESC`;
 
       const rows = await this.query(sql, params);
-      if (rows.length > 0) {
-        return rows.map((r) => ({
-          ...r,
-          category: r.category_name ? { name: r.category_name } : undefined,
-          subject: r.subject_name ? { name: r.subject_name } : undefined,
-          tutor: {
-            first_name: r.tutor_first_name,
-            last_name: r.tutor_last_name,
-            avatar_url: r.tutor_avatar_url,
-            tutor_profile: { headline: r.tutor_headline },
-          },
-          location: r.location_name ? { name: r.location_name, address: r.location_address } : undefined,
-        }));
-      }
+      return rows.map((r) => ({
+        ...r,
+        category: r.category_name ? { name: r.category_name } : undefined,
+        subject: r.subject_name ? { name: r.subject_name } : undefined,
+        tutor: {
+          first_name: r.tutor_first_name,
+          last_name: r.tutor_last_name,
+          avatar_url: r.tutor_avatar_url,
+          tutor_profile: { headline: r.tutor_headline },
+        },
+        location: r.location_name ? { name: r.location_name, address: r.location_address } : undefined,
+      }));
     } catch {
-      // fallback
+      return memoryDb.getClasses(filters as any);
     }
-    return memoryDb.getClasses(filters as any);
+  }
+
+  static async createClass(classData: {
+    title: string;
+    description: string;
+    tutor_id: string;
+    category_id: string;
+    subject_id: string;
+    grade_id?: string;
+    class_type: string;
+    format: string;
+    duration_minutes: number;
+    price: number;
+    currency?: string;
+    capacity: number;
+    location_id?: string | null;
+    meet_url?: string | null;
+    status?: string;
+    start_time?: string | null;
+    end_time?: string | null;
+  }) {
+    try {
+      const sql = `
+        INSERT INTO classes (
+          title, description, tutor_id, category_id, subject_id, grade_id,
+          class_type, format, duration_minutes, price, currency, capacity,
+          enrolled_count, location_id, meet_url, status, start_time, end_time, created_at, updated_at
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6,
+          $7, $8, $9, $10, $11, $12,
+          0, $13, $14, $15, $16, $17, NOW(), NOW()
+        )
+        RETURNING *;
+      `;
+      const params = [
+        classData.title,
+        classData.description,
+        classData.tutor_id,
+        classData.category_id,
+        classData.subject_id,
+        classData.grade_id || null,
+        classData.class_type,
+        classData.format,
+        classData.duration_minutes,
+        classData.price,
+        classData.currency || 'USD',
+        classData.capacity || (classData.class_type === 'ONE_ON_ONE' ? 1 : 10),
+        classData.location_id || null,
+        classData.meet_url || null,
+        classData.status || 'PUBLISHED',
+        classData.start_time || null,
+        classData.end_time || null,
+      ];
+      const rows = await this.query(sql, params);
+      if (rows.length > 0) {
+        return rows[0];
+      }
+    } catch (err) {
+      console.error('Error inserting class into PostgreSQL:', err);
+    }
+    return memoryDb.createClass(classData as any);
+  }
+
+  static async updateClass(
+    classId: string,
+    updates: Partial<{
+      title: string;
+      description: string;
+      status: string;
+      price: number;
+      capacity: number;
+      meet_url: string;
+      location_id: string;
+    }>
+  ) {
+    try {
+      const setClauses: string[] = [];
+      const params: any[] = [classId];
+      Object.entries(updates).forEach(([key, val]) => {
+        params.push(val);
+        setClauses.push(`${key} = $${params.length}`);
+      });
+      if (setClauses.length > 0) {
+        setClauses.push(`updated_at = NOW()`);
+        const sql = `UPDATE classes SET ${setClauses.join(', ')} WHERE id = $1 RETURNING *;`;
+        const rows = await this.query(sql, params);
+        if (rows.length > 0) return rows[0];
+      }
+    } catch (err) {
+      console.error('Error updating class in PostgreSQL:', err);
+    }
+    return memoryDb.updateClass(classId, updates as any);
+  }
+
+  static async cancelClass(classId: string) {
+    return this.updateClass(classId, { status: 'CANCELLED' });
+  }
+
+  static async getPlatformCommissionRate(): Promise<{ defaultRate: number; tutorShareRate: number }> {
+    try {
+      const rows = await this.query(`SELECT value FROM platform_settings WHERE key = 'tutor_commission' LIMIT 1`);
+      if (rows.length > 0 && rows[0].value) {
+        const val = typeof rows[0].value === 'string' ? JSON.parse(rows[0].value) : rows[0].value;
+        const rate = parseFloat(val.default_rate || '20');
+        return { defaultRate: rate, tutorShareRate: 100 - rate };
+      }
+      const rules = await this.query(`SELECT default_percent FROM commission_rules WHERE is_active = true LIMIT 1`);
+      if (rules.length > 0) {
+        const rate = parseFloat(rules[0].default_percent || '20');
+        return { defaultRate: rate, tutorShareRate: 100 - rate };
+      }
+    } catch (err) {
+      console.error('Error getting platform commission rate:', err);
+    }
+    return { defaultRate: 20, tutorShareRate: 80 };
   }
 
   // --- BOOKINGS QUERY ---
-  static async getBookings(filters?: { studentId?: string; tutorId?: string }) {
+  static async getBookings(filters?: { studentId?: string; tutorId?: string; status?: string }) {
     try {
       let sql = `
         SELECT
@@ -255,41 +384,42 @@ export class SupabaseDbService {
         params.push(filters.tutorId);
         sql += ` AND b.tutor_id = $${params.length}`;
       }
+      if (filters?.status) {
+        params.push(filters.status);
+        sql += ` AND b.status = $${params.length}`;
+      }
       sql += ` ORDER BY b.start_time DESC`;
 
       const rows = await this.query(sql, params);
-      if (rows.length > 0) {
-        return rows.map((r) => ({
-          ...r,
-          class_item: {
-            title: r.class_title,
-            format: r.class_format,
-            duration_minutes: r.class_duration,
-          },
-          student: {
-            first_name: r.student_first_name,
-            last_name: r.student_last_name,
-            email: r.student_email,
-          },
-          tutor: {
-            first_name: r.tutor_first_name,
-            last_name: r.tutor_last_name,
-            avatar_url: r.tutor_avatar_url,
-          },
-          financial_snapshot: r.gross_amount
-            ? {
-                gross_amount: r.gross_amount,
-                platform_fee_amount: r.platform_fee_amount,
-                tutor_earnings: r.tutor_earnings,
-              }
-            : undefined,
-          location: r.location_name ? { name: r.location_name } : undefined,
-        }));
-      }
+      return rows.map((r) => ({
+        ...r,
+        class_item: {
+          title: r.class_title,
+          format: r.class_format,
+          duration_minutes: r.class_duration,
+        },
+        student: {
+          first_name: r.student_first_name,
+          last_name: r.student_last_name,
+          email: r.student_email,
+        },
+        tutor: {
+          first_name: r.tutor_first_name,
+          last_name: r.tutor_last_name,
+          avatar_url: r.tutor_avatar_url,
+        },
+        financial_snapshot: r.gross_amount
+          ? {
+              gross_amount: r.gross_amount,
+              platform_fee_amount: r.platform_fee_amount,
+              tutor_earnings: r.tutor_earnings,
+            }
+          : undefined,
+        location: r.location_name ? { name: r.location_name } : undefined,
+      }));
     } catch {
-      // fallback
+      return memoryDb.state.bookings as any[];
     }
-    return memoryDb.getBookings(filters);
   }
 
   // --- TRANSACTIONS QUERY ---
@@ -309,11 +439,10 @@ export class SupabaseDbService {
         LEFT JOIN bookings b ON t.booking_id = b.id
         ORDER BY t.created_at DESC
       `);
-      if (rows.length > 0) return rows;
+      return rows;
     } catch {
-      // fallback
+      return memoryDb.state.transactions;
     }
-    return memoryDb.state.transactions;
   }
 
   // --- MESSAGE FLAGS QUERY (MODERATION QUEUE) ---
@@ -498,6 +627,96 @@ export class SupabaseDbService {
     } catch (err) {
       console.error('Error creating review:', err);
       return null;
+    }
+  }
+
+  // --- NOTIFICATIONS QUERY ---
+  static async getNotifications(userId: string) {
+    try {
+      const rows = await this.query(
+        `SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50`,
+        [userId]
+      );
+      return rows;
+    } catch (err) {
+      console.error('Error fetching notifications from DB:', err);
+    }
+    return memoryDb.getNotifications(userId);
+  }
+
+  static async markAllNotificationsRead(userId: string) {
+    try {
+      await this.query(`UPDATE notifications SET is_read = true WHERE user_id = $1`, [userId]);
+      return true;
+    } catch (err) {
+      console.error('Error marking notifications read in DB:', err);
+      return false;
+    }
+  }
+
+  // --- CONVERSATIONS & MESSAGING ---
+  static async getConversations(userId: string) {
+    try {
+      const rows = await this.query(
+        `
+        SELECT 
+          c.id,
+          c.created_at,
+          c.updated_at,
+          c.last_message_at,
+          other_p.id as other_user_id,
+          other_p.first_name as other_first_name,
+          other_p.last_name as other_last_name,
+          other_p.avatar_url as other_avatar_url,
+          other_p.role as other_role,
+          (
+            SELECT body FROM messages m 
+            WHERE m.conversation_id = c.id 
+            ORDER BY m.created_at DESC LIMIT 1
+          ) as last_message_body,
+          (
+            SELECT COUNT(*) FROM messages m 
+            WHERE m.conversation_id = c.id 
+              AND m.sender_id != $1 
+              AND m.is_read = false
+          ) as unread_count
+        FROM conversations c
+        JOIN conversation_participants cp ON c.id = cp.conversation_id
+        JOIN conversation_participants other_cp ON c.id = other_cp.conversation_id AND other_cp.user_id != $1
+        JOIN profiles other_p ON other_cp.user_id = other_p.id
+        WHERE cp.user_id = $1
+        ORDER BY c.last_message_at DESC
+        `,
+        [userId]
+      );
+      return rows;
+    } catch (err) {
+      console.error('Error fetching conversations from DB:', err);
+      return [];
+    }
+  }
+
+  static async getMessages(conversationId: string) {
+    try {
+      const rows = await this.query(
+        `
+        SELECT 
+          m.*,
+          p.first_name as sender_first_name,
+          p.last_name as sender_last_name,
+          p.avatar_url as sender_avatar_url,
+          p.role as sender_role
+        FROM messages m
+        JOIN profiles p ON m.sender_id = p.id
+        WHERE m.conversation_id = $1
+        ORDER BY m.created_at ASC
+        `,
+        [conversationId]
+      );
+      return rows;
+    } catch (err) {
+      console.error('Error fetching messages from DB:', err);
+      return memoryDb.getMessages(conversationId);
     }
   }
 
@@ -745,6 +964,16 @@ export class SupabaseDbService {
       mem.updated_at = now;
     }
     return mem;
+  }
+
+  // --- STUDENT BOOKINGS ---
+  static async getStudentBookings(studentId: string) {
+    return this.getBookings({ studentId });
+  }
+
+  // --- TUTOR BOOKINGS ---
+  static async getTutorBookings(tutorId: string) {
+    return this.getBookings({ tutorId });
   }
 }
 

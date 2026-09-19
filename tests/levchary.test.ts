@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { calculateFinancialSnapshot, formatMoney, parseMoneyToCents, generateBookingNumber } from '../src/lib/utils';
 import { ModerationService } from '../src/services/moderation';
 import { StorageService } from '../src/services/storage';
@@ -6,6 +6,9 @@ import { AuthService } from '../src/services/auth';
 import { db } from '../src/lib/data-store';
 
 describe('Levchary LMS - Comprehensive Production Test Suite', () => {
+  beforeAll(() => {
+    db.seedTestFixtures();
+  });
 
   // ============================================================
   // 1. FINANCIAL PRECISION & IMMUTABILITY (Rules 12, 16, 59)

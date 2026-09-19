@@ -170,10 +170,10 @@ export default function LoginPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => fillCredentials("marcus.chen@tutor.levchary.local")}
+                  onClick={() => fillCredentials("tutor@levchary.local")}
                   className="w-full text-left p-2 rounded-lg bg-slate-50 hover:bg-teal-50 border border-slate-100 hover:border-teal-200 flex items-center justify-between text-[11px] transition-colors"
                 >
-                  <span className="font-semibold text-slate-700">👨‍🏫 Tutor: marcus.chen@tutor.levchary.local</span>
+                  <span className="font-semibold text-slate-700">👨‍🏫 Tutor: tutor@levchary.local</span>
                   <span className="text-slate-400">Use</span>
                 </button>
                 <button

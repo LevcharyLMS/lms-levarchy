@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { db } from "@/lib/data-store";
+import React, { useState, useEffect, useCallback } from "react";
+import { useAuth } from "@/context/auth-context";
 import { TutorAvailability } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,26 +19,40 @@ import {
 } from "lucide-react";
 
 export default function TutorAvailabilityPage() {
-  const tutorId = "usr-tut-1";
-  const [availability, setAvailability] = useState<TutorAvailability[]>(
-    db.state.tutor_availability.filter((a) => a.tutor_id === tutorId)
-  );
+  const { user } = useAuth();
+  const tutorId = user?.id || "";
 
-  const [blockedDates, setBlockedDates] = useState<string[]>([
-    "2026-11-26", // Thanksgiving
-    "2026-12-25", // Christmas
-  ]);
+  const [availability, setAvailability] = useState<TutorAvailability[]>([]);
+  const [blockedDates, setBlockedDates] = useState<string[]>([]);
   const [newBlockedDate, setNewBlockedDate] = useState("");
-
-  const [newDay, setNewDay] = useState(1); // Monday
+  const [newDay, setNewDay] = useState(1);
   const [newStart, setNewStart] = useState("09:00");
   const [newEnd, setNewEnd] = useState("17:00");
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-  const handleAddSlot = (e: React.FormEvent) => {
+  const fetchAvailability = useCallback(async () => {
+    if (!tutorId) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/tutors/availability?tutorId=${tutorId}`);
+      const data = await res.json();
+      setAvailability(data.availability || []);
+    } catch (err) {
+      console.error("Error loading availability:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [tutorId]);
+
+  useEffect(() => {
+    fetchAvailability();
+  }, [fetchAvailability]);
+
+  const handleAddSlot = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
 
@@ -47,7 +61,6 @@ export default function TutorAvailabilityPage() {
       return;
     }
 
-    // Check overlap for the same day
     const overlap = availability.some(
       (a) =>
         a.day_of_week === newDay &&
@@ -56,30 +69,38 @@ export default function TutorAvailabilityPage() {
     );
 
     if (overlap) {
-      setErrorMessage("Ambiguity prevented: This window overlaps with an existing availability slot on this day.");
+      setErrorMessage("Ambiguity prevented: This window overlaps with an existing slot on this day.");
       return;
     }
 
-    const newSlot: TutorAvailability = {
-      id: `av-${Date.now()}`,
-      tutor_id: tutorId,
-      day_of_week: newDay,
-      start_time: newStart,
-      end_time: newEnd,
-      is_active: true,
-      created_at: new Date().toISOString(),
-    };
+    try {
+      const res = await fetch("/api/tutors/availability", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ day_of_week: newDay, start_time: newStart, end_time: newEnd }),
+      });
 
-    const updated = [...availability, newSlot];
-    setAvailability(updated);
-    db.state.tutor_availability.push(newSlot);
-    setSavedMessage("Availability window saved. Students can book slots during these hours.");
+      if (!res.ok) {
+        const data = await res.json();
+        setErrorMessage(data.error || "Failed to save slot.");
+        return;
+      }
+
+      const data = await res.json();
+      setAvailability((prev) => [...prev, data.availability]);
+      setSavedMessage("Availability window saved. Students can book slots during these hours.");
+    } catch {
+      setErrorMessage("Network error. Please try again.");
+    }
   };
 
-  const handleDeleteSlot = (id: string) => {
-    const updated = availability.filter((a) => a.id !== id);
-    setAvailability(updated);
-    db.state.tutor_availability = db.state.tutor_availability.filter((a) => a.id !== id);
+  const handleDeleteSlot = async (id: string) => {
+    try {
+      await fetch(`/api/tutors/availability?id=${id}`, { method: "DELETE" });
+      setAvailability((prev) => prev.filter((a) => a.id !== id));
+    } catch {
+      console.error("Error deleting slot");
+    }
   };
 
   const handleAddBlockedDate = (e: React.FormEvent) => {
@@ -101,7 +122,7 @@ export default function TutorAvailabilityPage() {
         <div>
           <div className="flex items-center gap-2 mb-0.5">
             <h1 className="text-xl font-bold tracking-tight text-navy-950">
-              Availability & Office Hours
+              Availability &amp; Office Hours
             </h1>
             <span className="px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[10px] font-bold">
               Timezone: America/New_York (EST)
@@ -119,10 +140,7 @@ export default function TutorAvailabilityPage() {
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>{savedMessage}</span>
           </div>
-          <button
-            onClick={() => setSavedMessage(null)}
-            className="underline font-semibold text-emerald-950"
-          >
+          <button onClick={() => setSavedMessage(null)} className="underline font-semibold text-emerald-950">
             Dismiss
           </button>
         </div>
@@ -139,7 +157,7 @@ export default function TutorAvailabilityPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
         <StatCard
           title="Active Weekly Slots"
-          value={availability.length}
+          value={loading ? "—" : availability.length}
           subtitle="Recurring time blocks"
           icon={Clock}
           variant="indigo"
@@ -170,26 +188,20 @@ export default function TutorAvailabilityPage() {
 
           <form onSubmit={handleAddSlot} className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Day of Week
-              </label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Day of Week</label>
               <select
                 value={newDay}
                 onChange={(e) => setNewDay(Number(e.target.value))}
                 className="w-full h-9 px-3 text-xs border border-slate-200 rounded-lg bg-slate-50 focus:ring-1 focus:ring-primary outline-hidden"
               >
                 {dayNames.map((d, i) => (
-                  <option key={i} value={i}>
-                    {d}
-                  </option>
+                  <option key={i} value={i}>{d}</option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Start Time
-              </label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Start Time</label>
               <Input
                 type="time"
                 value={newStart}
@@ -200,9 +212,7 @@ export default function TutorAvailabilityPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                End Time
-              </label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">End Time</label>
               <Input
                 type="time"
                 value={newEnd}
@@ -213,10 +223,7 @@ export default function TutorAvailabilityPage() {
             </div>
 
             <div>
-              <Button
-                type="submit"
-                className="w-full h-9 text-xs bg-primary hover:bg-primary/90 text-white font-semibold"
-              >
+              <Button type="submit" className="w-full h-9 text-xs bg-primary hover:bg-primary/90 text-white font-semibold">
                 Add Working Slot
               </Button>
             </div>
@@ -230,25 +237,31 @@ export default function TutorAvailabilityPage() {
           <h3 className="font-bold text-xs text-navy-950 uppercase tracking-wider">
             Active Weekly Bookable Windows
           </h3>
-          <span className="text-xs text-slate-400">{availability.length} active slots</span>
+          <span className="text-xs text-slate-400">{loading ? "Loading..." : `${availability.length} active slots`}</span>
         </div>
 
         <div className="divide-y divide-slate-100">
+          {!loading && availability.length === 0 && (
+            <div className="p-8 text-center">
+              <Clock className="w-7 h-7 text-slate-300 mx-auto mb-2" />
+              <p className="text-xs font-semibold text-navy-950">No availability slots defined</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Add weekly time windows above so students can book sessions.
+              </p>
+            </div>
+          )}
           {availability.map((slot) => (
             <div
               key={slot.id}
               className="p-3.5 flex items-center justify-between hover:bg-slate-50 text-xs transition-colors"
             >
               <div className="flex items-center gap-4">
-                <span className="font-bold text-navy-950 w-24">
-                  {dayNames[slot.day_of_week]}
-                </span>
+                <span className="font-bold text-navy-950 w-24">{dayNames[slot.day_of_week]}</span>
                 <span className="flex items-center gap-1.5 text-slate-600 font-mono">
                   <Clock className="w-3.5 h-3.5 text-primary" />
                   {slot.start_time} – {slot.end_time} EST
                 </span>
               </div>
-
               <Button
                 variant="ghost"
                 size="sm"
@@ -279,12 +292,7 @@ export default function TutorAvailabilityPage() {
               onChange={(e) => setNewBlockedDate(e.target.value)}
               className="text-xs h-9 bg-slate-50 border-slate-200"
             />
-            <Button
-              type="submit"
-              variant="outline"
-              size="sm"
-              className="h-9 text-xs border-slate-200 whitespace-nowrap"
-            >
+            <Button type="submit" variant="outline" size="sm" className="h-9 text-xs border-slate-200 whitespace-nowrap">
               Block Date
             </Button>
           </form>
