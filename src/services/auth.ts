@@ -17,9 +17,30 @@ export class AuthService {
    * Get current session user. In production this validates Supabase Auth JWT and loads profile.
    * In local/demo mode, it supports switching between Admin, Tutor, and Student demo roles.
    */
-  static async getCurrentSession(activeDemoUserId?: string): Promise<AuthSession | null> {
-    const userId = activeDemoUserId || 'usr-stu-1'; // Default to Student Lucas Miller for demo
-    const profile = db.getProfileById(userId);
+  static async getCurrentSession(activeUserId?: string): Promise<AuthSession | null> {
+    let userId = activeUserId;
+
+    if (!userId) {
+      try {
+        const { cookies } = await import('next/headers');
+        const sessionCookie = cookies().get('levchary_session');
+        if (sessionCookie?.value) {
+          const parsed = JSON.parse(sessionCookie.value);
+          userId = parsed.userId;
+        }
+      } catch {}
+    }
+
+    if (!userId) return null;
+
+    let profile = db.getProfileById(userId);
+    if (!profile) {
+      try {
+        const { SupabaseDbService } = await import('@/lib/supabase-db');
+        const dbUser = await SupabaseDbService.getUserById(userId);
+        if (dbUser) profile = dbUser;
+      } catch {}
+    }
 
     if (!profile) return null;
 

@@ -17,8 +17,11 @@ import {
   AlertTriangle,
   User,
 } from "lucide-react";
+import { useAuth } from "@/context/auth-context";
 
 export default function StudentMessagesPage() {
+  const { user } = useAuth();
+  const currentUserId = user?.id || "usr-stu-1";
   const [activeConvId, setActiveConvId] = useState("conv-1");
   const [messages, setMessages] = useState(db.getMessages("conv-1"));
   const [inputBody, setInputBody] = useState("");
@@ -44,7 +47,7 @@ export default function StudentMessagesPage() {
       avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200",
       lastMessage: "Looking forward to Tuesday's lecture!",
       time: "Yesterday",
-      unread: 1,
+      unread: 0,
     },
   ];
 
@@ -63,7 +66,7 @@ export default function StudentMessagesPage() {
 
     const { message, flags } = db.sendMessage({
       conversationId: activeConvId,
-      senderId: "usr-stu-1",
+      senderId: currentUserId,
       body: inputBody,
     });
 
@@ -187,7 +190,7 @@ export default function StudentMessagesPage() {
             </div>
 
             {messages.map((m) => {
-              const isMe = m.sender_id === "usr-stu-1";
+              const isMe = m.sender_id === currentUserId;
               return (
                 <div
                   key={m.id}

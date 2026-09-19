@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "@/context/auth-context";
 import { db } from "@/lib/data-store";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,15 +9,29 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle2, User, Bell } from "lucide-react";
 
 export default function TutorSettingsPage() {
-  const profile = db.getProfileById("usr-tut-1");
-  const [firstName, setFirstName] = useState(profile?.first_name || "Marcus");
-  const [lastName, setLastName] = useState(profile?.last_name || "Chen");
-  const [phone, setPhone] = useState(profile?.phone || "+1 (617) 555-0102");
-  const [saved, setSaved] = useState(false);
+  const { user, refreshUser } = useAuth();
+  const tutorId = user?.id || "usr-tut-1";
 
-  const handleSave = (e: React.FormEvent) => {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setFirstName(user.first_name || "");
+      setLastName(user.last_name || "");
+      setPhone(user.phone || "");
+    }
+  }, [user]);
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    db.updateProfile("usr-tut-1", { first_name: firstName, last_name: lastName, phone });
+    setSaving(true);
+    db.updateProfile(tutorId, { first_name: firstName, last_name: lastName, phone });
+    await refreshUser();
+    setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
@@ -58,34 +73,44 @@ export default function TutorSettingsPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Mobile Phone</label>
-              <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Verified Email</label>
+              <Input value={user?.email || "tutor@levchary.local"} disabled className="bg-slate-50 text-slate-500 cursor-not-allowed" />
             </div>
 
-            <Button type="submit" variant="default" className="font-semibold">
-              Update Contact Settings
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Phone Number (SMS Session Alerts)</label>
+              <Input
+                placeholder="+1 (555) 000-0000"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+            </div>
+
+            <Button type="submit" variant="default" disabled={saving} className="font-semibold bg-teal-600 hover:bg-teal-700 text-white">
+              {saving ? "Saving Changes..." : "Save Changes"}
             </Button>
           </form>
         </CardContent>
       </Card>
 
+      {/* Notifications Preferences */}
       <Card className="border-slate-200 shadow-xs">
         <CardContent className="p-6 space-y-4">
           <h2 className="text-sm font-bold text-navy-950 flex items-center gap-2 pb-2 border-b border-slate-100">
-            <Bell className="w-4 h-4 text-teal-600" /> Teaching Notification Preferences
+            <Bell className="w-4 h-4 text-teal-600" /> Notifications & Reminders
           </h2>
           <div className="space-y-3 text-xs text-slate-700">
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" defaultChecked className="accent-teal-600 rounded" />
-              <span>Email notification immediately when a student books a session</span>
+              <span>Immediate email when a student books a session</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" defaultChecked className="accent-teal-600 rounded" />
-              <span>Reminder alert 1 hour prior to session start with Google Meet conference link</span>
+              <span>SMS reminder 15 minutes before virtual Google Meet begins</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" defaultChecked className="accent-teal-600 rounded" />
-              <span>Instant notification for student messages in the chat</span>
+              <span>Weekly earnings and payout transfer summary</span>
             </label>
           </div>
         </CardContent>

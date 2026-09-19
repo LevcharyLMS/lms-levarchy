@@ -39,9 +39,15 @@ import {
   Shield,
 } from "lucide-react";
 
+import { useAuth } from "@/context/auth-context";
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const displayName = user ? `${user.first_name} ${user.last_name}` : "Platform Administrator";
+  const initials = user ? `${user.first_name?.[0] || "A"}${user.last_name?.[0] || "D"}` : "AD";
 
   // Complete 27 Admin Items Grouped Logically (Section 8 of PRD)
   const navGroups = [
@@ -174,17 +180,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="p-3 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
           <div className="flex items-center gap-2 min-w-0">
             <Avatar className="w-7 h-7 ring-2 ring-indigo-50">
-              <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150" />
-              <AvatarFallback>AD</AvatarFallback>
+              {user?.avatar_url && <AvatarImage src={user.avatar_url} />}
+              <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
             <div className="min-w-0">
-              <p className="text-xs font-bold text-navy-950 truncate">Sarah Jenkins</p>
+              <p className="text-xs font-bold text-navy-950 truncate">{displayName}</p>
               <p className="text-[10px] text-slate-400 truncate">Platform Administrator</p>
             </div>
           </div>
-          <Link href="/login" className="text-slate-400 hover:text-slate-600 p-1" title="Sign Out">
+          <button onClick={logout} className="text-slate-400 hover:text-slate-600 p-1" title="Sign Out">
             <LogOut className="w-3.5 h-3.5" />
-          </Link>
+          </button>
         </div>
       </aside>
 

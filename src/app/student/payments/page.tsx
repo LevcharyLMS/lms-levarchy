@@ -18,8 +18,10 @@ import {
   Printer,
   Calendar,
 } from "lucide-react";
+import { useAuth } from "@/context/auth-context";
 
 export default function StudentPaymentsPage() {
+  const { user } = useAuth();
   const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -29,7 +31,8 @@ export default function StudentPaymentsPage() {
     async function load() {
       try {
         setLoading(true);
-        const res = await fetch("/api/bookings?studentId=usr-stu-1");
+        const url = user?.id ? `/api/bookings?studentId=${user.id}` : "/api/bookings";
+        const res = await fetch(url);
         const data = await res.json();
         setPayments(data.bookings || []);
       } catch (err) {
@@ -39,7 +42,7 @@ export default function StudentPaymentsPage() {
       }
     }
     load();
-  }, []);
+  }, [user?.id]);
 
   const totalTuitionCents = payments.reduce(
     (sum, p) => sum + (p.financial_snapshot?.gross_amount || 0),

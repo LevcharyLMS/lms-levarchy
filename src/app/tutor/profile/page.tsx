@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "@/context/auth-context";
 import { db } from "@/lib/data-store";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,11 +10,22 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle2, User, Sparkles } from "lucide-react";
 
 export default function TutorProfilePage() {
-  const tutorData = db.getTutorById("usr-tut-1");
-  const [headline, setHeadline] = useState(tutorData?.headline || "");
-  const [qualifications, setQualifications] = useState(tutorData?.qualifications || "");
-  const [bio, setBio] = useState(tutorData?.bio || "");
+  const { user } = useAuth();
+  const tutorId = user?.id || "usr-tut-1";
+  const tutorData = db.getTutorById(tutorId);
+
+  const [headline, setHeadline] = useState("");
+  const [qualifications, setQualifications] = useState("");
+  const [bio, setBio] = useState("");
   const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (tutorData) {
+      setHeadline(tutorData.headline || "");
+      setQualifications(tutorData.qualifications || "");
+      setBio(tutorData.bio || "");
+    }
+  }, [tutorData]);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,6 +64,7 @@ export default function TutorProfilePage() {
                 Headline (Displayed on Tutor Cards)
               </label>
               <Input
+                placeholder="e.g. Stanford M.S. in Computer Science • 6+ Years AP Tutoring Experience"
                 value={headline}
                 onChange={(e) => setHeadline(e.target.value)}
                 required
@@ -63,6 +76,7 @@ export default function TutorProfilePage() {
                 Verified Credentials & Diplomas
               </label>
               <Input
+                placeholder="e.g. B.S. Mathematics, M.S. Applied Physics"
                 value={qualifications}
                 onChange={(e) => setQualifications(e.target.value)}
                 required
@@ -75,13 +89,14 @@ export default function TutorProfilePage() {
               </label>
               <Textarea
                 rows={5}
+                placeholder="Describe your teaching philosophy, experience, and what students can expect from your sessions..."
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 required
               />
             </div>
 
-            <Button type="submit" variant="default" className="font-semibold">
+            <Button type="submit" variant="default" className="font-semibold bg-teal-600 hover:bg-teal-700 text-white">
               Save Profile Changes
             </Button>
           </form>

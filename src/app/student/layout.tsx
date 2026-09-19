@@ -23,9 +23,16 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
+import { useAuth } from "@/context/auth-context";
+
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const displayName = user ? `${user.first_name} ${user.last_name}` : "Student Account";
+  const firstName = user?.first_name || "Student";
+  const initials = user ? `${user.first_name?.[0] || "S"}${user.last_name?.[0] || "T"}` : "ST";
 
   // Exact 11 items specified in Section 8 of PRD
   const studentNav = [
@@ -95,17 +102,17 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
         <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
           <Link href="/student/profile" className="flex items-center gap-2.5 min-w-0 hover:opacity-80 transition-opacity">
             <Avatar className="w-8 h-8 ring-2 ring-indigo-50">
-              <AvatarImage src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150" />
-              <AvatarFallback>LM</AvatarFallback>
+              {user?.avatar_url && <AvatarImage src={user.avatar_url} />}
+              <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
             <div className="min-w-0">
-              <p className="text-xs font-bold text-navy-950 truncate">Lucas Miller</p>
+              <p className="text-xs font-bold text-navy-950 truncate">{displayName}</p>
               <p className="text-[10px] text-slate-400 truncate">Student Account</p>
             </div>
           </Link>
-          <Link href="/login" className="text-slate-400 hover:text-slate-600 p-1" title="Sign Out">
+          <button onClick={logout} className="text-slate-400 hover:text-slate-600 p-1" title="Sign Out">
             <LogOut className="w-3.5 h-3.5" />
-          </Link>
+          </button>
         </div>
       </aside>
 
@@ -150,10 +157,10 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
 
             <Link href="/student/profile" className="flex items-center gap-2">
               <Avatar className="w-7 h-7">
-                <AvatarImage src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150" />
-                <AvatarFallback>LM</AvatarFallback>
+                {user?.avatar_url && <AvatarImage src={user.avatar_url} />}
+                <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
-              <span className="text-xs font-semibold text-navy-950 hidden sm:inline-block">Lucas</span>
+              <span className="text-xs font-semibold text-navy-950 hidden sm:inline-block">{firstName}</span>
             </Link>
           </div>
         </header>

@@ -17,6 +17,8 @@ import {
   ArrowRight,
   Sparkles,
   BookOpen,
+import { cookies } from "next/headers";
+import {
   Users,
   Search,
 } from "lucide-react";
@@ -24,11 +26,26 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function StudentDashboardPage() {
+  const cookieStore = cookies();
+  const sessionCookie = cookieStore.get("levchary_session");
+  let studentName = "";
+  let studentId: string | null = null;
+
+  if (sessionCookie?.value) {
+    try {
+      const parsed = JSON.parse(sessionCookie.value);
+      studentId = parsed.userId || null;
+      if (parsed.name) {
+        studentName = parsed.name.split(" ")[0];
+      }
+    } catch {}
+  }
+
   let allBookings: any[] = [];
   let tutors: any[] = [];
 
   try {
-    allBookings = await SupabaseDbService.getBookings();
+    allBookings = await SupabaseDbService.getBookings(studentId ? { studentId } : undefined);
   } catch (err) {
     console.error("Error fetching bookings for student dashboard:", err);
   }
@@ -58,7 +75,7 @@ export default async function StudentDashboardPage() {
         <div>
           <div className="flex items-center gap-2 mb-0.5">
             <h1 className="text-xl font-bold tracking-tight text-navy-950">
-              Welcome back, Lucas!
+              Welcome back{studentName ? `, ${studentName}` : ""}!
             </h1>
             <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
               ID Verified

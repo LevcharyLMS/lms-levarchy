@@ -15,8 +15,10 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { useAuth } from "@/context/auth-context";
 
 export default function StudentCalendarPage() {
+  const { user } = useAuth();
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
@@ -25,7 +27,8 @@ export default function StudentCalendarPage() {
     async function load() {
       try {
         setLoading(true);
-        const res = await fetch("/api/bookings?studentId=usr-stu-1");
+        const url = user?.id ? `/api/bookings?studentId=${user.id}` : "/api/bookings";
+        const res = await fetch(url);
         const data = await res.json();
         const active = (data.bookings || []).filter((b: any) => b.status === "CONFIRMED");
         setBookings(active);
@@ -36,7 +39,7 @@ export default function StudentCalendarPage() {
       }
     }
     load();
-  }, []);
+  }, [user?.id]);
 
   // Compute 7 days of the current viewed week
   const today = new Date();

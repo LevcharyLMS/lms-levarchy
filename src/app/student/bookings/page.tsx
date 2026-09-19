@@ -19,8 +19,10 @@ import {
   CheckCircle2,
   Lock,
 } from "lucide-react";
+import { useAuth } from "@/context/auth-context";
 
 export default function StudentBookingsPage() {
+  const { user } = useAuth();
   const [filter, setFilter] = useState<string>("ALL");
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +34,8 @@ export default function StudentBookingsPage() {
   const loadBookings = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/bookings?studentId=usr-stu-1");
+      const url = user?.id ? `/api/bookings?studentId=${user.id}` : "/api/bookings";
+      const res = await fetch(url);
       const data = await res.json();
       setBookings(data.bookings || []);
     } catch (err) {
@@ -44,7 +47,7 @@ export default function StudentBookingsPage() {
 
   useEffect(() => {
     loadBookings();
-  }, []);
+  }, [user?.id]);
 
   const filteredBookings = bookings.filter((b) => {
     if (filter === "ACTIVE") return b.status === "CONFIRMED";

@@ -521,6 +521,230 @@ export class SupabaseDbService {
     } catch {}
     return memoryDb.state.audit_logs;
   }
+
+  // --- USER PROFILES & AUTH ---
+  static async getUserByEmail(email: string): Promise<UserProfile | null> {
+    try {
+      const rows = await this.query(
+        `SELECT * FROM profiles WHERE LOWER(email) = LOWER($1) LIMIT 1`,
+        [email.trim()]
+      );
+      if (rows.length > 0) return rows[0] as UserProfile;
+    } catch (err) {
+      console.error('Error fetching user by email:', err);
+    }
+    return memoryDb.getProfileByEmail(email) || null;
+  }
+
+  static async getUserById(id: string): Promise<UserProfile | null> {
+    try {
+      const rows = await this.query(
+        `SELECT * FROM profiles WHERE id = $1 LIMIT 1`,
+        [id]
+      );
+      if (rows.length > 0) return rows[0] as UserProfile;
+    } catch (err) {
+      console.error('Error fetching user by ID:', err);
+    }
+    return memoryDb.getProfileById(id) || null;
+  }
+
+  static async createUser(data: {
+    id?: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    role: 'STUDENT' | 'TUTOR' | 'ADMIN';
+    phone?: string;
+    city?: string;
+    state?: string;
+  }): Promise<UserProfile> {
+    const id = data.id || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'usr-' + Date.now());
+    const now = new Date().toISOString();
+    const verificationStatus = data.role === 'STUDENT' ? 'APPROVED' : 'PENDING_REVIEW';
+
+    try {
+      const rows = await this.query(
+        `INSERT INTO profiles (id, email, first_name, last_name, role, phone, city, state, account_status, verification_status, email_verified, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'ACTIVE', $9, true, $10, $11)
+         RETURNING *`,
+        [
+          id,
+          data.email.trim().toLowerCase(),
+          data.first_name.trim(),
+          data.last_name.trim(),
+          data.role,
+          data.phone || null,
+          data.city || null,
+          data.state || null,
+          verificationStatus,
+          now,
+          now,
+        ]
+      );
+
+      if (rows.length > 0) {
+        // Also create role-specific profile
+        if (data.role === 'STUDENT') {
+          await this.query(
+            `INSERT INTO student_profiles (user_id, preferences, created_at, updated_at)
+             VALUES ($1, '{"onboarding_completed": false}'::jsonb, $2, $3)
+             ON CONFLICT (user_id) DO NOTHING`,
+            [id, now, now]
+          );
+        } else if (data.role === 'TUTOR') {
+          await this.query(
+            `INSERT INTO tutor_profiles (user_id, is_approved, created_at, updated_at)
+             VALUES ($1, false, $2, $3)
+             ON CONFLICT (user_id) DO NOTHING`,
+            [id, now, now]
+          );
+        }
+
+        const created = rows[0] as UserProfile;
+        // Keep in-memory store in sync
+        memoryDb.state.profiles.push(created);
+        return created;
+      }
+    } catch (err) {
+      console.error('Error inserting profile in DB, falling back to in-memory:', err);
+    }
+
+    const fallbackProfile: UserProfile = {
+      id,
+      email: data.email.trim().toLowerCase(),
+      first_name: data.first_name.trim(),
+      last_name: data.last_name.trim(),
+      role: data.role,
+      phone: data.phone || null,
+      city: data.city || null,
+      state: data.state || null,
+      country: 'US',
+      account_status: 'ACTIVE',
+      verification_status: verificationStatus as any,
+      email_verified: true,
+      created_at: now,
+      updated_at: now,
+    };
+    memoryDb.state.profiles.push(fallbackProfile);
+
+    if (data.role === 'STUDENT') {
+      memoryDb.state.student_profiles.push({
+        user_id: id,
+        preferences: { onboarding_completed: false },
+        created_at: now,
+        updated_at: now,
+      });
+    }
+
+    return fallbackProfile;
+  }
+
+  static async updateUserProfile(id: string, updates: Partial<UserProfile>): Promise<UserProfile | null> {
+    try {
+      const setParts: string[] = [];
+      const values: any[] = [id];
+      let paramIdx = 2;
+
+      for (const [key, val] of Object.entries(updates)) {
+        if (key === 'id') continue;
+        setParts.push(`${key} = $${paramIdx}`);
+        values.push(val);
+        paramIdx++;
+      }
+
+      setParts.push(`updated_at = NOW()`);
+
+      if (setParts.length > 1) {
+        const rows = await this.query(
+          `UPDATE profiles SET ${setParts.join(', ')} WHERE id = $1 RETURNING *`,
+          values
+        );
+        if (rows.length > 0) {
+          const updated = rows[0] as UserProfile;
+          memoryDb.updateProfile(id, updates);
+          return updated;
+        }
+      }
+    } catch (err) {
+      console.error('Error updating user profile in DB:', err);
+    }
+
+    return memoryDb.updateProfile(id, updates);
+  }
+
+  // --- STUDENT PROFILES & ONBOARDING ---
+  static async getStudentProfile(userId: string): Promise<StudentProfile | null> {
+    try {
+      const rows = await this.query(
+        `SELECT * FROM student_profiles WHERE user_id = $1 LIMIT 1`,
+        [userId]
+      );
+      if (rows.length > 0) return rows[0] as StudentProfile;
+    } catch (err) {
+      console.error('Error fetching student profile from DB:', err);
+    }
+
+    return memoryDb.state.student_profiles.find((s) => s.user_id === userId) || null;
+  }
+
+  static async createOrUpdateStudentProfile(
+    userId: string,
+    data: {
+      grade_level?: string | null;
+      learning_goals?: string | null;
+      preferences?: any;
+    }
+  ): Promise<StudentProfile | null> {
+    const now = new Date().toISOString();
+    const preferencesJson = JSON.stringify(data.preferences || {});
+
+    try {
+      const rows = await this.query(
+        `INSERT INTO student_profiles (user_id, grade_level, learning_goals, preferences, created_at, updated_at)
+         VALUES ($1, $2, $3, $4::jsonb, $5, $6)
+         ON CONFLICT (user_id) DO UPDATE
+         SET grade_level = COALESCE(EXCLUDED.grade_level, student_profiles.grade_level),
+             learning_goals = COALESCE(EXCLUDED.learning_goals, student_profiles.learning_goals),
+             preferences = COALESCE(EXCLUDED.preferences, student_profiles.preferences),
+             updated_at = NOW()
+         RETURNING *`,
+        [userId, data.grade_level || null, data.learning_goals || null, preferencesJson, now, now]
+      );
+
+      if (rows.length > 0) {
+        const res = rows[0] as StudentProfile;
+        const memIdx = memoryDb.state.student_profiles.findIndex((s) => s.user_id === userId);
+        if (memIdx >= 0) {
+          memoryDb.state.student_profiles[memIdx] = res;
+        } else {
+          memoryDb.state.student_profiles.push(res);
+        }
+        return res;
+      }
+    } catch (err) {
+      console.error('Error updating student profile in DB:', err);
+    }
+
+    let mem = memoryDb.state.student_profiles.find((s) => s.user_id === userId);
+    if (!mem) {
+      mem = {
+        user_id: userId,
+        grade_level: data.grade_level || null,
+        learning_goals: data.learning_goals || null,
+        preferences: data.preferences || {},
+        created_at: now,
+        updated_at: now,
+      };
+      memoryDb.state.student_profiles.push(mem);
+    } else {
+      if (data.grade_level !== undefined) mem.grade_level = data.grade_level;
+      if (data.learning_goals !== undefined) mem.learning_goals = data.learning_goals;
+      if (data.preferences !== undefined) mem.preferences = { ...mem.preferences, ...data.preferences };
+      mem.updated_at = now;
+    }
+    return mem;
+  }
 }
 
 export const supabaseDb = SupabaseDbService;

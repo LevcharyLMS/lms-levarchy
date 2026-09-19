@@ -1,29 +1,43 @@
 "use client";
 
-import React, { useState } from "react";
-import { db } from "@/lib/data-store";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "@/context/auth-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, User, Bell, Lock } from "lucide-react";
+import { CheckCircle2, User, Bell } from "lucide-react";
 
 export default function StudentSettingsPage() {
-  const profile = db.getProfileById("usr-stu-1");
-  const [firstName, setFirstName] = useState(profile?.first_name || "Lucas");
-  const [lastName, setLastName] = useState(profile?.last_name || "Miller");
-  const [email, setEmail] = useState(profile?.email || "student@levchary.local");
-  const [phone, setPhone] = useState(profile?.phone || "+1 (617) 555-0201");
+  const { user, updateStudentProfile } = useAuth();
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const handleSave = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (user) {
+      setFirstName(user.first_name || "");
+      setLastName(user.last_name || "");
+      setEmail(user.email || "");
+      setPhone(user.phone || "");
+    }
+  }, [user]);
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    db.updateProfile("usr-stu-1", {
-      first_name: firstName,
-      last_name: lastName,
+    setSaving(true);
+    const success = await updateStudentProfile({
+      firstName,
+      lastName,
       phone,
     });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    setSaving(false);
+    if (success) {
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    }
   };
 
   return (
@@ -82,7 +96,7 @@ export default function StudentSettingsPage() {
                 type="email"
                 value={email}
                 disabled
-                className="bg-slate-50 cursor-not-allowed"
+                className="bg-slate-50 cursor-not-allowed text-slate-500"
               />
               <span className="text-[10px] text-slate-400">
                 To change your verified email, contact administration.
@@ -95,12 +109,18 @@ export default function StudentSettingsPage() {
               </label>
               <Input
                 value={phone}
+                placeholder="+1 (555) 000-0000"
                 onChange={(e) => setPhone(e.target.value)}
               />
             </div>
 
-            <Button type="submit" variant="default" className="font-semibold">
-              Save Changes
+            <Button
+              type="submit"
+              variant="default"
+              disabled={saving}
+              className="font-semibold bg-teal-600 hover:bg-teal-700 text-white"
+            >
+              {saving ? "Saving Changes..." : "Save Changes"}
             </Button>
           </form>
         </CardContent>

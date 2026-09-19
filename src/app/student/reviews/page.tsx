@@ -7,8 +7,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CheckCircle2, Star, AlertCircle, Award, Clock } from "lucide-react";
+import { useAuth } from "@/context/auth-context";
 
 export default function StudentReviewsPage() {
+  const { user } = useAuth();
   const [completedBookings, setCompletedBookings] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,8 +25,9 @@ export default function StudentReviewsPage() {
   const loadData = async () => {
     try {
       setLoading(true);
+      const bookingsUrl = user?.id ? `/api/bookings?studentId=${user.id}` : "/api/bookings";
       const [bookingsRes, reviewsRes] = await Promise.all([
-        fetch("/api/bookings?studentId=usr-stu-1"),
+        fetch(bookingsUrl),
         fetch("/api/reviews"),
       ]);
       const bookingsData = await bookingsRes.json();
@@ -49,7 +52,7 @@ export default function StudentReviewsPage() {
   useEffect(() => {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [user?.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,7 +71,7 @@ export default function StudentReviewsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           bookingId: booking.id,
-          studentId: "usr-stu-1",
+          studentId: user?.id || "usr-stu-1",
           tutorId: booking.tutor_id,
           rating,
           comment,
