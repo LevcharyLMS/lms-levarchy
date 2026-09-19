@@ -17,11 +17,10 @@ import {
   ArrowRight,
   Sparkles,
   BookOpen,
-import { cookies } from "next/headers";
-import {
   Users,
   Search,
 } from "lucide-react";
+import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
