@@ -26,6 +26,11 @@ export const metadata: Metadata = {
     siteName: "Levchary LMS",
     type: "website",
   },
+  icons: {
+    icon: "/logo-icon.png",
+    shortcut: "/favicon.ico",
+    apple: "/logo-icon.png",
+  },
 };
 
 export default function RootLayout({

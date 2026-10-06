@@ -7,7 +7,8 @@ import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { GraduationCap, User, BookOpen, AlertCircle, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Logo } from "@/components/ui/logo";
+import { User, BookOpen, AlertCircle, ArrowRight, CheckCircle2 } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -68,11 +69,9 @@ export default function RegisterPage() {
     <div className="min-h-[85vh] flex items-center justify-center px-4 py-12 bg-slate-50">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
-          <Link href="/" className="inline-flex items-center gap-2 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-teal-600 flex items-center justify-center text-white shadow">
-              <GraduationCap className="w-5 h-5" />
-            </div>
-          </Link>
+          <div className="flex justify-center mb-3">
+            <Logo imageClassName="h-10" showBadge badgeText="LMS" />
+          </div>
           <h1 className="text-2xl font-bold tracking-tight text-navy-950">
             Create Your Account
           </h1>

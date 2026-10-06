@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Logo } from "@/components/ui/logo";
 import {
   GraduationCap,
   Menu,
@@ -35,22 +35,7 @@ export function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand Logo */}
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-600 to-navy-900 flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform">
-            <GraduationCap className="w-5 h-5" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-bold text-lg tracking-tight text-navy-950 flex items-center gap-1.5">
-              LEVCHARY
-              <span className="text-[10px] uppercase font-bold tracking-widest bg-teal-50 text-teal-700 px-1.5 py-0.5 rounded border border-teal-200/50">
-                LMS
-              </span>
-            </span>
-            <span className="text-[10px] text-slate-400 font-medium -mt-1">
-              Verified Marketplace
-            </span>
-          </div>
-        </Link>
+        <Logo showBadge badgeText="LMS" imageClassName="h-9" />
 
         {/* Desktop Navigation Links */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">

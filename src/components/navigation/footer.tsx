@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
-import { GraduationCap, ShieldCheck, Mail, MapPin, Phone } from "lucide-react";
+import { Logo } from "@/components/ui/logo";
+import { ShieldCheck, Mail, MapPin, Phone } from "lucide-react";
 
 export function Footer() {
   return (
@@ -9,13 +10,8 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-navy-800">
           {/* Brand & Vision */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-teal-500 flex items-center justify-center text-navy-950 font-bold shadow">
-                <GraduationCap className="w-5 h-5" />
-              </div>
-              <span className="font-bold text-xl tracking-tight text-white">
-                LEVCHARY LMS
-              </span>
+            <div className="flex items-center">
+              <Logo variant="dark" showBadge badgeText="LMS" imageClassName="h-9" />
             </div>
             <p className="text-sm text-slate-400 max-w-sm leading-relaxed">
               A company-controlled education marketplace connecting students with thoroughly vetted tutors for virtual Google Meet and supervised in-person learning sessions.
