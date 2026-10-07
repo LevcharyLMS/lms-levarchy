@@ -174,13 +174,13 @@ export default async function StudentDashboardPage() {
 
               {/* Join Button (Section 26: Only when eligible) */}
               <div className="flex items-center gap-3 shrink-0">
-                {nextClass.format === "VIRTUAL" && nextClass.meet_url && nextClass.status === "CONFIRMED" ? (
+                {(nextClass.format === "VIRTUAL" || nextClass.format?.includes("ONLINE") || nextClass.meet_url) ? (
                   <Button
                     asChild
                     size="sm"
                     className="h-9 px-4 text-xs font-bold bg-teal-500 hover:bg-teal-600 text-navy-950 gap-1.5 shadow-sm"
                   >
-                    <Link href={nextClass.meet_url.startsWith("http") ? nextClass.meet_url : nextClass.meet_url}>
+                    <Link href={nextClass.meet_url || `/classroom/Levchary-${encodeURIComponent(nextClass.id)}?title=${encodeURIComponent(nextClass.class_item?.title || "Class Session")}`}>
                       <Video className="w-4 h-4" />
                       <span>Join Classroom</span>
                     </Link>

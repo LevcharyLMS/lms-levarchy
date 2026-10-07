@@ -279,13 +279,13 @@ export default function StudentBookingsPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      {isConfirmed && bk.format?.includes("ONLINE") && (
+                      {(isConfirmed || bk.status === "ACTIVE") && (bk.format === "VIRTUAL" || bk.format?.includes("ONLINE") || bk.format === "HYBRID" || bk.meet_url) && (
                         <Button
                           asChild
                           size="sm"
-                          className="h-8 text-xs bg-primary hover:bg-primary/90 text-white gap-1.5 shadow-xs"
+                          className="h-8 text-xs bg-teal-600 hover:bg-teal-700 text-white gap-1.5 shadow-xs font-semibold"
                         >
-                          <Link href={bk.meet_url || `/classroom/Levchary-${bk.id}`}>
+                          <Link href={bk.meet_url || `/classroom/Levchary-${encodeURIComponent(bk.id)}?title=${encodeURIComponent(bk.class_item?.title || "Class Session")}`}>
                             <Video className="w-3.5 h-3.5" />
                             <span>Join Classroom</span>
                           </Link>

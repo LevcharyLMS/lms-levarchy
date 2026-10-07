@@ -98,7 +98,16 @@ export function JitsiClassroom({
       const api = new window.JitsiMeetExternalAPI(domain, options);
       jitsiApiRef.current = api;
 
+      // Auto-dismiss loading screen as soon as Jitsi iframe initializes (1.2s max)
+      const hideTimer = setTimeout(() => {
+        setLoadingRoom(false);
+      }, 1200);
+
       api.addEventListener("videoConferenceJoined", () => {
+        setLoadingRoom(false);
+      });
+
+      api.addEventListener("cameraEndpointReady", () => {
         setLoadingRoom(false);
       });
 
@@ -157,7 +166,11 @@ export function JitsiClassroom({
 
       {/* Loading Overlay */}
       {loadingRoom && !hasError && (
-        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-navy-950/90 backdrop-blur-sm text-white space-y-4">
+        <div
+          onClick={() => setLoadingRoom(false)}
+          className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-navy-950/80 backdrop-blur-sm text-white space-y-4 cursor-pointer transition-opacity duration-300"
+          title="Click to enter meeting immediately"
+        >
           <Loader2 className="w-10 h-10 text-teal-400 animate-spin" />
           <div className="text-center">
             <h4 className="font-bold text-base text-white">Connecting to Virtual Classroom</h4>

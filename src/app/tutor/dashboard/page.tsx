@@ -139,9 +139,9 @@ export default async function TutorDashboardPage() {
               </div>
 
               <div className="flex items-center gap-2.5 shrink-0">
-                {todayClass.format === "VIRTUAL" && todayClass.meet_url ? (
-                  <Button asChild size="sm" className="h-8 text-xs bg-teal-600 hover:bg-teal-700 text-white gap-1.5 shadow-xs">
-                    <Link href={todayClass.meet_url.startsWith("http") ? todayClass.meet_url : todayClass.meet_url}>
+                {(todayClass.format === "VIRTUAL" || todayClass.format?.includes("ONLINE") || todayClass.meet_url) ? (
+                  <Button asChild size="sm" className="h-8 text-xs bg-teal-600 hover:bg-teal-700 text-white gap-1.5 shadow-xs font-semibold">
+                    <Link href={todayClass.meet_url || `/classroom/Levchary-${encodeURIComponent(todayClass.id)}?title=${encodeURIComponent(todayClass.class_item?.title || "Class Session")}`}>
                       <Video className="w-3.5 h-3.5" />
                       <span>Enter Virtual Classroom</span>
                     </Link>

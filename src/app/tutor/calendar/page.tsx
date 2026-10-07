@@ -156,9 +156,9 @@ export default function TutorCalendarPage() {
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
-                    {b.format === "VIRTUAL" && b.meet_url ? (
-                      <Button asChild size="sm" className="h-8 text-xs bg-teal-600 hover:bg-teal-700 text-white gap-1.5 shadow-xs">
-                        <Link href={b.meet_url.startsWith("http") ? b.meet_url : b.meet_url}>
+                    {(b.format === "VIRTUAL" || b.format?.includes("ONLINE") || b.meet_url) ? (
+                      <Button asChild size="sm" className="h-8 text-xs bg-teal-600 hover:bg-teal-700 text-white gap-1.5 shadow-xs font-semibold">
+                        <Link href={b.meet_url || `/classroom/Levchary-${encodeURIComponent(b.id)}?title=${encodeURIComponent(b.class_item?.title || "Class Session")}`}>
                           <Video className="w-3.5 h-3.5" />
                           <span>Enter Virtual Classroom</span>
                         </Link>
