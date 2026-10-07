@@ -23,13 +23,7 @@ import { useAuth } from "@/context/auth-context";
 export function Navbar() {
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [currentRole, setCurrentRole] = useState<"STUDENT" | "TUTOR" | "ADMIN" | "GUEST">("GUEST");
   const pathname = usePathname();
-
-  // Infer active portal from pathname
-  const isAdmin = pathname.startsWith("/admin");
-  const isTutor = pathname.startsWith("/tutor");
-  const isStudent = pathname.startsWith("/student");
 
   // Hide navbar on full-page auth screens
   const AUTH_ROUTES = ["/login", "/register", "/tutor/application"];
@@ -116,35 +110,6 @@ export function Navbar() {
             </div>
           ) : (
             <>
-              {/* Quick Portal Switcher */}
-              <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs">
-                <Link
-                  href="/student/dashboard"
-                  className={`px-2.5 py-1 rounded-md font-medium transition-all ${
-                    isStudent ? "bg-white text-navy-950 shadow-xs font-semibold" : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  Student Portal
-                </Link>
-                <Link
-                  href="/tutor/dashboard"
-                  className={`px-2.5 py-1 rounded-md font-medium transition-all ${
-                    isTutor ? "bg-white text-navy-950 shadow-xs font-semibold" : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  Tutor Portal
-                </Link>
-                <Link
-                  href="/admin/dashboard"
-                  className={`px-2.5 py-1 rounded-md font-medium transition-all flex items-center gap-1 ${
-                    isAdmin ? "bg-white text-purple-900 shadow-xs font-semibold" : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  <Shield className="w-3 h-3 text-purple-600" />
-                  Admin
-                </Link>
-              </div>
-
               <Button asChild variant="outline" size="sm">
                 <Link href="/login">Sign In</Link>
               </Button>
@@ -207,35 +172,6 @@ export function Navbar() {
             >
               Become a Tutor
             </Link>
-          </div>
-
-          <div className="pt-3 border-t border-slate-100">
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
-              Portals (Quick Access)
-            </p>
-            <div className="grid grid-cols-3 gap-2">
-              <Link
-                href="/student/dashboard"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-center py-2 px-2 rounded-lg bg-blue-50 text-blue-700 text-xs font-medium"
-              >
-                Student
-              </Link>
-              <Link
-                href="/tutor/dashboard"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-center py-2 px-2 rounded-lg bg-teal-50 text-teal-700 text-xs font-medium"
-              >
-                Tutor
-              </Link>
-              <Link
-                href="/admin/dashboard"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-center py-2 px-2 rounded-lg bg-purple-50 text-purple-700 text-xs font-medium"
-              >
-                Admin
-              </Link>
-            </div>
           </div>
 
           <div className="flex gap-2 pt-2">
