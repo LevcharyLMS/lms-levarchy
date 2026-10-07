@@ -80,7 +80,7 @@ export class AuthService {
    */
   static getDemoUsers() {
     return {
-      admin: db.getProfileByEmail('admin@levchary.local'),
+      admin: db.getProfileByEmail('admin@levchary.com') || db.getProfileByEmail('admin@levchary.local'),
       tutor: db.getProfileByEmail('marcus.chen@tutor.levchary.local'),
       student: db.getProfileByEmail('student@levchary.local'),
       pendingTutor: db.getProfileByEmail('emily.zhao@tutor.levchary.local'),

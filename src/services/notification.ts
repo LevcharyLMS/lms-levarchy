@@ -49,9 +49,24 @@ export class NotificationService {
   }
 
   /**
-   * Abstract transactional email provider (Resend or dev logger)
+   * Abstract transactional email provider (Brevo API v3 or dev logger)
    */
   static async sendTransactionalEmail(params: { to: string; subject: string; text: string; html?: string }) {
+    if (process.env.BREVO_API_KEY) {
+      try {
+        const { BrevoService } = await import('@/lib/brevo');
+        const res = await BrevoService.sendEmail({
+          to: params.to,
+          subject: params.subject,
+          textContent: params.text,
+          htmlContent: params.html || `<p>${params.text}</p>`,
+        });
+        if (res.success) return true;
+      } catch (err) {
+        console.error('Failed to send transactional email via Brevo:', err);
+      }
+    }
+
     const apiKey = process.env.RESEND_API_KEY;
 
     if (apiKey && !apiKey.startsWith('re_123456789')) {

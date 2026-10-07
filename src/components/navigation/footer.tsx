@@ -1,9 +1,19 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Logo } from "@/components/ui/logo";
 import { ShieldCheck, Mail, MapPin, Phone } from "lucide-react";
 
+const AUTH_ROUTES = ["/login", "/register", "/tutor/application"];
+
 export function Footer() {
+  const pathname = usePathname();
+  if (AUTH_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"))) {
+    return null;
+  }
+
   return (
     <footer className="bg-navy-950 text-slate-300 border-t border-navy-900 pt-16 pb-12">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">

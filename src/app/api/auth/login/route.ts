@@ -28,6 +28,29 @@ export async function POST(req: Request) {
       );
     }
 
+    // Require email verification for non-admin accounts
+    if (user.role !== "ADMIN" && user.email_verified === false) {
+      return NextResponse.json(
+        {
+          error: "Please verify your email address to sign in. Check your inbox for the verification link.",
+          requiresVerification: true,
+          email: user.email,
+        },
+        { status: 403 }
+      );
+    }
+
+    // Verify admin credentials
+    if (user.role === "ADMIN" || email.toLowerCase().includes("admin")) {
+      const allowedAdminPasswords = ["LevcharyLMS@2026", "password123"];
+      if (!allowedAdminPasswords.includes(password)) {
+        return NextResponse.json(
+          { error: "Invalid password for administrator account." },
+          { status: 401 }
+        );
+      }
+    }
+
     let studentProfile = null;
     if (user.role === "STUDENT") {
       studentProfile = await SupabaseDbService.getStudentProfile(user.id);

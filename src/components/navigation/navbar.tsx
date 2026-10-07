@@ -31,6 +31,12 @@ export function Navbar() {
   const isTutor = pathname.startsWith("/tutor");
   const isStudent = pathname.startsWith("/student");
 
+  // Hide navbar on full-page auth screens
+  const AUTH_ROUTES = ["/login", "/register", "/tutor/application"];
+  if (AUTH_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"))) {
+    return null;
+  }
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">

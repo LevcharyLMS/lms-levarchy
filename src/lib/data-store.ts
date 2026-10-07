@@ -236,11 +236,11 @@ const initialLocations: ClassLocation[] = [
 const initialProfiles: UserProfile[] = [
   // 1. Admin
   {
-    id: 'usr-admin-1',
-    email: 'admin@levchary.local',
+    id: '6e983f2f-472f-43f9-a666-33521966ff8a',
+    email: 'admin@levchary.com',
     role: 'ADMIN',
-    first_name: 'Alexander',
-    last_name: 'Vance',
+    first_name: 'Admin',
+    last_name: 'Levchary',
     avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
     phone: '+1 (617) 555-0100',
     country: 'US',
@@ -321,7 +321,11 @@ class DataStore {
   }
 
   getProfileByEmail(email: string) {
-    return this.state.profiles.find((p) => p.email.toLowerCase() === email.toLowerCase());
+    const normalized = (email || '').toLowerCase().trim();
+    if (normalized === 'admin@levchary.local' || normalized === 'admin@levchary.com') {
+      return this.state.profiles.find((p) => p.role === 'ADMIN') || this.state.profiles.find((p) => p.email.toLowerCase() === normalized);
+    }
+    return this.state.profiles.find((p) => p.email.toLowerCase() === normalized);
   }
 
   seedTestFixtures() {
@@ -948,5 +952,12 @@ class DataStore {
 // Global Singleton for development
 const globalForData = globalThis as unknown as { dataStore: DataStore };
 export const db = globalForData.dataStore || new DataStore();
+// Ensure admin in existing memory singleton is updated
+const existingAdmin = db.state?.profiles?.find((p) => p.role === 'ADMIN');
+if (existingAdmin) {
+  existingAdmin.email = 'admin@levchary.com';
+  existingAdmin.first_name = 'Admin';
+  existingAdmin.last_name = 'Levchary';
+}
 export const dataStore = db;
 if (process.env.NODE_ENV !== 'production') globalForData.dataStore = db;

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 import { SupabaseDbService } from "@/lib/supabase-db";
+import { BrevoService } from "@/lib/brevo";
 
 export async function POST(req: Request) {
   try {
@@ -29,12 +31,19 @@ export async function POST(req: Request) {
       );
     }
 
-    // Create user profile
+    // Generate secure email verification token (24-hour expiration)
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
+    // Create user profile (unverified pending email verification)
     const user = await SupabaseDbService.createUser({
       email: email.toLowerCase().trim(),
       first_name: firstName.trim(),
       last_name: lastName.trim(),
       role: role === "TUTOR" ? "TUTOR" : "STUDENT",
+      email_verified: false,
+      verification_token: token,
+      verification_token_expires_at: expiresAt,
     });
 
     let studentProfile = null;
@@ -42,26 +51,22 @@ export async function POST(req: Request) {
       studentProfile = await SupabaseDbService.getStudentProfile(user.id);
     }
 
-    const sessionPayload = {
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-      name: `${user.first_name} ${user.last_name}`,
-    };
+    // Send verification email via Brevo
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const verificationUrl = `${baseUrl}/verify-email?token=${token}&email=${encodeURIComponent(user.email)}`;
+
+    await BrevoService.sendVerificationEmail({
+      to: user.email,
+      firstName: user.first_name,
+      verificationUrl,
+    });
 
     const response = NextResponse.json({
       success: true,
+      requiresVerification: true,
       user,
       studentProfile,
-      message: "Account created successfully.",
-    });
-
-    // Set HTTP-only session cookie
-    response.cookies.set("levchary_session", JSON.stringify(sessionPayload), {
-      httpOnly: false, // accessible to client auth context
-      path: "/",
-      maxAge: 60 * 60 * 24 * 30, // 30 days
-      sameSite: "lax",
+      message: "Account created! We've sent a verification link to your email address.",
     });
 
     return response;

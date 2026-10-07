@@ -121,6 +121,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, error: resData.error || "Failed to create account." };
       }
 
+      if (resData.requiresVerification) {
+        return {
+          success: true,
+          requiresVerification: true,
+          user: resData.user,
+          studentProfile: resData.studentProfile,
+          message: resData.message,
+        };
+      }
+
       setUser(resData.user);
       setStudentProfile(resData.studentProfile || null);
 

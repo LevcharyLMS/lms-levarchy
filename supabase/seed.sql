@@ -43,11 +43,11 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO profiles (
     id, email, role, first_name, last_name, avatar_url, phone, account_status, verification_status, email_verified
 ) VALUES (
-    '00000000-0000-0000-0000-000000000001',
-    'admin@levchary.local',
+    '6e983f2f-472f-43f9-a666-33521966ff8a',
+    'admin@levchary.com',
     'ADMIN',
-    'Alexander',
-    'Vance',
+    'Admin',
+    'Levchary',
     'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
     '+1 (617) 555-0100',
     'ACTIVE',
@@ -57,7 +57,7 @@ INSERT INTO profiles (
 
 -- 6. COMMISSION RULE
 INSERT INTO commission_rules (id, name, default_percent, is_active, created_by) VALUES
-('55555555-5555-5555-5555-555555555001', 'Standard Platform Tier (20%)', 20.00, TRUE, '00000000-0000-0000-0000-000000000001')
+('55555555-5555-5555-5555-555555555001', 'Standard Platform Tier (20%)', 20.00, TRUE, '6e983f2f-472f-43f9-a666-33521966ff8a')
 ON CONFLICT (id) DO NOTHING;
 
 -- 7. PLATFORM SETTINGS
@@ -69,5 +69,5 @@ ON CONFLICT (key) DO NOTHING;
 
 -- 8. AUDIT LOG (SEED INITIALIZATION)
 INSERT INTO audit_logs (id, actor_id, actor_role, action, entity_type, entity_id, metadata) VALUES
-('66666666-6666-6666-6666-666666666001', '00000000-0000-0000-0000-000000000001', 'ADMIN', 'PLATFORM_INITIALIZED', 'SYSTEM', 'ROOT', '{"version": "1.0.0", "environment": "production-ready"}'::jsonb)
+('66666666-6666-6666-6666-666666666001', '6e983f2f-472f-43f9-a666-33521966ff8a', 'ADMIN', 'PLATFORM_INITIALIZED', 'SYSTEM', 'ROOT', '{"version": "1.0.0", "environment": "production-ready"}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
