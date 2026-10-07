@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SupabaseDbService } from "@/lib/supabase-db";
-import { GoogleMeetService } from "@/services/google-meet";
+import { JitsiMeetService } from "@/services/jitsi-meet";
 import { cookies } from "next/headers";
 
 export async function GET(req: NextRequest) {
@@ -70,21 +70,21 @@ export async function POST(req: NextRequest) {
     const format = body.format || "VIRTUAL";
     const capacity = classType === "ONE_ON_ONE" ? 1 : Math.max(2, Number(body.capacity || 10));
 
-    // Real Google Meet integration for virtual classes
+    // Jitsi Meet integration for virtual classes
     let meetUrl: string | null = null;
     let meetEventId: string | null = null;
 
     if (format === "VIRTUAL") {
       try {
-        const meetRes = await GoogleMeetService.createMeeting({
+        const meetRes = await JitsiMeetService.createMeeting({
           title: `Levchary: ${title}`,
           startTime: body.start_time || new Date(Date.now() + 86400000).toISOString(),
           endTime: body.end_time || new Date(Date.now() + 86400000 + durationMinutes * 60000).toISOString(),
         });
-        meetUrl = meetRes.meetUrl;
-        meetEventId = meetRes.eventId;
+        meetUrl = meetRes.classroomUrl;
+        meetEventId = meetRes.roomName;
       } catch (err) {
-        console.warn("Google Meet provisioning notice:", err);
+        console.warn("Jitsi Meet provisioning notice:", err);
       }
     }
 

@@ -158,11 +158,10 @@ export default function TutorCalendarPage() {
                   <div className="flex items-center gap-2 shrink-0">
                     {b.format === "VIRTUAL" && b.meet_url ? (
                       <Button asChild size="sm" className="h-8 text-xs bg-teal-600 hover:bg-teal-700 text-white gap-1.5 shadow-xs">
-                        <a href={b.meet_url} target="_blank" rel="noopener noreferrer">
+                        <Link href={b.meet_url.startsWith("http") ? b.meet_url : b.meet_url}>
                           <Video className="w-3.5 h-3.5" />
-                          <span>Launch Google Meet</span>
-                          <ExternalLink className="w-3 h-3 ml-0.5" />
-                        </a>
+                          <span>Enter Virtual Classroom</span>
+                        </Link>
                       </Button>
                     ) : (
                       <span className="text-xs text-slate-500 flex items-center gap-1">

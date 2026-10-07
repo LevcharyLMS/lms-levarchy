@@ -131,7 +131,7 @@ export default function ContactPage() {
                         <option value="BOOKINGS">Bookings & Scheduling</option>
                         <option value="PAYMENTS">Payments & Refunds</option>
                         <option value="LOCATIONS">Physical Learning Hubs</option>
-                        <option value="TECHNICAL">Technical / Google Meet</option>
+                        <option value="TECHNICAL">Technical / Virtual Classroom</option>
                       </select>
                     </div>
 

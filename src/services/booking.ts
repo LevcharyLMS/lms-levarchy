@@ -5,7 +5,7 @@
 
 import { db } from '@/lib/data-store';
 import { BookingStatus, ClassFormat } from '@/types';
-import { GoogleMeetService } from './google-meet';
+import { JitsiMeetService } from './jitsi-meet';
 import { NotificationService } from './notification';
 import { AuditService } from './audit';
 
@@ -27,18 +27,19 @@ export class BookingService {
     // 1. Atomically reserve slot and create immutable financial snapshot
     const { booking, snapshot } = db.bookOneOnOneSlot(params);
 
-    // 2. Generate Google Meet link if virtual
+    // 2. Generate Jitsi Meet classroom link if virtual
     if (params.format === 'VIRTUAL') {
       try {
-        const meetInfo = await GoogleMeetService.createMeeting({
+        const meetInfo = await JitsiMeetService.createMeeting({
           title: `Levchary 1-on-1 Class: ${booking.booking_number}`,
           startTime: booking.start_time,
           endTime: booking.end_time,
+          bookingId: booking.id,
         });
-        booking.meet_url = meetInfo.meetUrl;
-        booking.meet_event_id = meetInfo.eventId;
+        booking.meet_url = meetInfo.classroomUrl;
+        booking.meet_event_id = meetInfo.roomName;
       } catch (err) {
-        console.warn('Google Meet fallback utilized:', err);
+        console.warn('Jitsi Meet provisioning notice:', err);
       }
     }
 

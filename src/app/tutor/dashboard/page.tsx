@@ -141,11 +141,10 @@ export default async function TutorDashboardPage() {
               <div className="flex items-center gap-2.5 shrink-0">
                 {todayClass.format === "VIRTUAL" && todayClass.meet_url ? (
                   <Button asChild size="sm" className="h-8 text-xs bg-teal-600 hover:bg-teal-700 text-white gap-1.5 shadow-xs">
-                    <a href={todayClass.meet_url} target="_blank" rel="noopener noreferrer">
+                    <Link href={todayClass.meet_url.startsWith("http") ? todayClass.meet_url : todayClass.meet_url}>
                       <Video className="w-3.5 h-3.5" />
-                      <span>Launch Google Meet</span>
-                      <ExternalLink className="w-3 h-3 ml-0.5" />
-                    </a>
+                      <span>Enter Virtual Classroom</span>
+                    </Link>
                   </Button>
                 ) : (
                   <Button asChild size="sm" variant="outline" className="h-8 text-xs border-slate-200">

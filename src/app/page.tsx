@@ -47,7 +47,7 @@ export default function HomePage() {
             </h1>
 
             <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
-              Levchary LMS guarantees rigorous educator vetting, dedicated Google Meet video classrooms, and supervised in-person learning centers with protected payments.
+              Levchary LMS guarantees rigorous educator vetting, interactive in-app video classrooms, and supervised in-person learning centers with protected payments.
             </p>
 
             {/* Quick Action CTAs */}
@@ -77,7 +77,7 @@ export default function HomePage() {
               </span>
               <span className="flex items-center gap-1.5">
                 <Video className="w-4 h-4 text-teal-400" />
-                Google Meet Auto-Integration
+                In-App Video Classrooms
               </span>
               <span className="flex items-center gap-1.5">
                 <CreditCard className="w-4 h-4 text-teal-400" />
@@ -112,7 +112,7 @@ export default function HomePage() {
               <Badge variant="navy" className="mb-2">1-on-1 Virtual</Badge>
               <h3 className="text-lg font-semibold text-navy-950 mb-2">Private Online Mentorship</h3>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Dedicated Google Meet link generated automatically. Atomic slot locking ensures no double-booking ever occurs.
+                Dedicated interactive virtual classroom provisioned automatically. Atomic slot locking ensures no double-booking ever occurs.
               </p>
             </div>
 
@@ -136,7 +136,7 @@ export default function HomePage() {
               <Badge variant="gold" className="mb-2">Group Virtual</Badge>
               <h3 className="text-lg font-semibold text-navy-950 mb-2">Interactive Online Cohorts</h3>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Strict capacity limits. Enrolled students and tutor share a single dedicated Google Meet session.
+                Strict capacity limits. Enrolled students and tutor share a single dedicated in-app virtual classroom session.
               </p>
             </div>
 
@@ -267,7 +267,7 @@ export default function HomePage() {
               </div>
               <h3 className="font-semibold text-white text-base">Attend Class</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Join dedicated Google Meet conference or check in at the authorized physical learning lab.
+                Join our embedded interactive virtual classroom or check in at the authorized physical learning lab.
               </p>
             </div>
 
@@ -379,10 +379,10 @@ export default function HomePage() {
           <div className="space-y-4">
             <div className="p-6 bg-white rounded-xl border border-slate-200 shadow-xs">
               <h3 className="font-semibold text-sm text-navy-950 mb-2">
-                How does Google Meet integration work for virtual classes?
+                How do virtual classes work on Levchary?
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                When a virtual 1-on-1 or group class is confirmed, our system automatically creates a dedicated Google Calendar event with a unique Google Meet video link. Both tutor and authorized enrolled students can join directly from their dashboards.
+                When a virtual 1-on-1 or group class is confirmed, our system automatically provisions an interactive, encrypted virtual classroom. Both tutor and authorized enrolled students can join directly from their dashboards without leaving the platform.
               </p>
             </div>
 

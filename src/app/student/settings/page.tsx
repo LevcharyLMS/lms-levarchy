@@ -139,7 +139,7 @@ export default function StudentSettingsPage() {
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" defaultChecked className="accent-teal-600 rounded" />
-              <span>Email reminder 1 hour prior to scheduled class (with Google Meet link)</span>
+              <span>Email reminder 1 hour prior to scheduled class (with virtual classroom link)</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" defaultChecked className="accent-teal-600 rounded" />

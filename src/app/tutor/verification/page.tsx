@@ -52,7 +52,7 @@ export default function TutorVerificationPage() {
               </span>
             </div>
             <p className="text-xs text-emerald-800 leading-relaxed">
-              Your credentials have been audited and approved by the administration. Your profile is publicly bookable and authorized to host Google Meet sessions.
+              Your credentials have been audited and approved by the administration. Your profile is publicly bookable and authorized to host interactive virtual classroom sessions.
             </p>
           </div>
         </FadeUp>

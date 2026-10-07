@@ -133,7 +133,7 @@ export default function TutorDetailPage({ params }: TutorPageProps) {
               </li>
               <li className="flex items-center gap-2">
                 <CheckCircle className="w-3.5 h-3.5 text-teal-600 shrink-0" />
-                Automated Google Meet for virtual sessions
+                Automated interactive virtual classroom for online sessions
               </li>
               <li className="flex items-center gap-2">
                 <CheckCircle className="w-3.5 h-3.5 text-teal-600 shrink-0" />

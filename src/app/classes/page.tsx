@@ -117,7 +117,7 @@ export default function ClassesPage() {
               onChange={(e) => setSelectedFormat(e.target.value)}
             >
               <option value="ALL">All Delivery Formats</option>
-              <option value="VIRTUAL">Virtual (Google Meet)</option>
+              <option value="VIRTUAL">Virtual (Interactive Classroom)</option>
               <option value="PHYSICAL">In-Person (Approved Centers)</option>
             </select>
           </div>

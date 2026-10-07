@@ -107,7 +107,7 @@ export default function TutorSettingsPage() {
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" defaultChecked className="accent-teal-600 rounded" />
-              <span>SMS reminder 15 minutes before virtual Google Meet begins</span>
+              <span>SMS reminder 15 minutes before virtual classroom session begins</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" defaultChecked className="accent-teal-600 rounded" />

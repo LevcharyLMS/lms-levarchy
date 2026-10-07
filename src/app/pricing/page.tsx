@@ -65,7 +65,7 @@ export default function PricingPage() {
               </li>
               <li className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0" />
-                Dedicated Google Meet link included with virtual classes
+                Interactive virtual classroom included with virtual classes
               </li>
               <li className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0" />

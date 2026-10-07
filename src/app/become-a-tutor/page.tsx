@@ -25,7 +25,7 @@ export default function BecomeATutorPage() {
           Teach on Levchary LMS
         </h1>
         <p className="text-sm text-slate-500 leading-relaxed">
-          Join a curated community of academic instructors, professors, and subject matter experts. Teach online via Google Meet or in-person at our premium academic hubs.
+          Join a curated community of academic instructors, professors, and subject matter experts. Teach online via interactive virtual classrooms or in-person at our premium academic hubs.
         </p>
         <div className="pt-2">
           <Button asChild size="lg" variant="default" className="shadow-md">

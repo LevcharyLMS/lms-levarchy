@@ -67,7 +67,7 @@ export default function HowItWorksPage() {
             <span className="text-xs font-bold text-teal-600">Step 4</span>
             <h3 className="text-sm font-semibold text-navy-950">Attend & Review</h3>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Join via dedicated Google Meet or attend at our approved learning centers, then rate your educator.
+              Join via our embedded interactive virtual classroom or attend at approved learning centers, then rate your educator.
             </p>
           </div>
         </div>
@@ -123,9 +123,9 @@ export default function HowItWorksPage() {
           <div className="w-10 h-10 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center">
             <Video className="w-5 h-5" />
           </div>
-          <h3 className="text-base font-bold text-navy-950">Virtual Google Meet Classrooms</h3>
+          <h3 className="text-base font-bold text-navy-950">Interactive Virtual Classrooms</h3>
           <p className="text-xs text-slate-600 leading-relaxed">
-            Our server-side Google Calendar API integration generates dedicated conference rooms for each confirmed booking. Access is strictly limited to the assigned tutor and enrolled student participants.
+            Our embedded Jitsi Meet video integration provisions dedicated, encrypted conference classrooms for each confirmed booking. Access is seamlessly integrated into your dashboard without external account barriers.
           </p>
         </div>
 

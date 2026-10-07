@@ -250,7 +250,7 @@ export default function TutorClassesPage() {
             </span>
           </div>
           <p className="text-xs text-slate-500">
-            Publish and manage your academic offerings across virtual Google Meet classrooms and physical venues.
+            Publish and manage your academic offerings across interactive virtual classrooms and physical venues.
           </p>
         </div>
 
@@ -469,7 +469,7 @@ export default function TutorClassesPage() {
                         onChange={(e) => setFormat(e.target.value as ClassFormat)}
                         className="w-full h-9 px-3 text-xs border border-slate-200 rounded-lg bg-slate-50 focus:ring-1 focus:ring-primary outline-hidden"
                       >
-                        <option value="VIRTUAL">Virtual (Google Meet)</option>
+                        <option value="VIRTUAL">Virtual (Interactive Classroom)</option>
                         <option value="PHYSICAL">In-Person (Approved Center)</option>
                       </select>
                     </div>
@@ -529,7 +529,7 @@ export default function TutorClassesPage() {
                     <div className="p-3 bg-indigo-50/70 border border-indigo-200 rounded-xl text-indigo-900 text-xs flex items-center gap-2">
                       <Video className="w-4 h-4 text-indigo-600 shrink-0" />
                       <span>
-                        An authenticated Google Meet classroom room will be provisioned directly through Google Calendar API.
+                        An interactive Jitsi virtual classroom will be provisioned automatically for this session.
                       </span>
                     </div>
                   )}
@@ -650,7 +650,7 @@ export default function TutorClassesPage() {
                           {c.format === "VIRTUAL" ? (
                             <span className="flex items-center gap-1 text-indigo-700 font-medium">
                               <Video className="w-3.5 h-3.5" />
-                              <span>{c.meet_url ? "Google Meet Active" : "Google Meet Auto-Attached"}</span>
+                              <span>{c.meet_url ? "Virtual Classroom Ready" : "Virtual Classroom Auto-Provisioned"}</span>
                             </span>
                           ) : (
                             <span className="flex items-center gap-1">

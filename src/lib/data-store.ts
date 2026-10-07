@@ -567,7 +567,7 @@ class DataStore {
       timezone: params.timezone || 'America/New_York',
       format: params.format,
       location_id: params.locationId,
-      meet_url: params.format === 'VIRTUAL' ? classItem.meet_url || 'https://meet.google.com/lev-' + bookingId : null,
+      meet_url: params.format === 'VIRTUAL' ? classItem.meet_url || `/classroom/Levchary-${bookingId}` : null,
       notes: params.notes,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),

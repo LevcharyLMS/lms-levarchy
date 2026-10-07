@@ -161,7 +161,7 @@ export default function ClassDetailPage({ params }: ClassPageProps) {
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Format:</span>
-              <span>{classItem.format === "VIRTUAL" ? "Virtual Google Meet" : "In-Person Classroom"}</span>
+              <span>{classItem.format === "VIRTUAL" ? "Virtual Classroom" : "In-Person Classroom"}</span>
             </div>
             {classItem.format === "PHYSICAL" && bookingSuccess.locationName && (
               <div className="flex justify-between">
@@ -174,12 +174,12 @@ export default function ClassDetailPage({ params }: ClassPageProps) {
           {classItem.format === "VIRTUAL" && bookingSuccess.meetUrl && (
             <div className="p-4 bg-teal-50 border border-teal-200 rounded-xl space-y-2">
               <p className="text-xs text-teal-900 font-medium">
-                Your dedicated Google Meet video room has been generated:
+                Your dedicated interactive video classroom has been provisioned:
               </p>
               <Button asChild variant="default" size="sm" className="gap-1.5 w-full">
-                <a href={bookingSuccess.meetUrl} target="_blank" rel="noopener noreferrer">
-                  <Video className="w-4 h-4" /> Join Google Meet Classroom <ExternalLink className="w-3.5 h-3.5" />
-                </a>
+                <Link href={bookingSuccess.meetUrl.startsWith("http") ? bookingSuccess.meetUrl : bookingSuccess.meetUrl}>
+                  <Video className="w-4 h-4" /> Enter Virtual Classroom
+                </Link>
               </Button>
             </div>
           )}
@@ -220,7 +220,7 @@ export default function ClassDetailPage({ params }: ClassPageProps) {
                 {classItem.format === "VIRTUAL" ? (
                   <div className="flex items-center gap-1.5 text-teal-700 font-medium">
                     <Video className="w-4 h-4 text-teal-600" />
-                    <span>Dedicated Google Meet</span>
+                    <span>Dedicated Virtual Classroom</span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-1.5 text-slate-700">

@@ -14,7 +14,7 @@ export function Footer() {
               <Logo variant="dark" showBadge badgeText="LMS" imageClassName="h-9" />
             </div>
             <p className="text-sm text-slate-400 max-w-sm leading-relaxed">
-              A company-controlled education marketplace connecting students with thoroughly vetted tutors for virtual Google Meet and supervised in-person learning sessions.
+              A company-controlled education marketplace connecting students with thoroughly vetted tutors for interactive virtual classrooms and supervised in-person learning sessions.
             </p>
             <div className="flex items-center gap-2 text-xs text-teal-400 font-medium">
               <ShieldCheck className="w-4 h-4" />
@@ -127,7 +127,7 @@ export function Footer() {
             <span>•</span>
             <span>Stripe Connect Protected</span>
             <span>•</span>
-            <span>Google Calendar & Meet Integrated</span>
+            <span>Encrypted Video Classrooms</span>
           </div>
         </div>
       </div>

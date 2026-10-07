@@ -33,7 +33,7 @@ export default function PrivacyPage() {
         <section className="space-y-2">
           <h2 className="text-sm font-bold text-navy-950">4. Classroom Recordings & Video Data</h2>
           <p>
-            Virtual classes are hosted via Google Meet through server-authenticated API credentials. Levchary does not monitor or store continuous video streams, except as necessary to resolve verified safety reports or disputes.
+            Virtual classes are hosted via encrypted WebRTC peer video streams through our integrated virtual classroom. Levchary does not monitor or store continuous video streams, except as necessary to resolve verified safety reports or disputes.
           </p>
         </section>
       </div>

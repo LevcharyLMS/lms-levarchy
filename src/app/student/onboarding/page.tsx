@@ -78,8 +78,8 @@ const LEARNING_GOALS = [
 const MODALITY_OPTIONS = [
   {
     id: "VIRTUAL",
-    title: "Google Meet Virtual Classroom",
-    desc: "Live 1-on-1 and cohort sessions via dedicated Google Meet rooms with screen sharing.",
+    title: "Interactive Virtual Classroom",
+    desc: "Live 1-on-1 and cohort sessions via embedded Jitsi video classrooms with screen sharing.",
     icon: Video,
   },
   {
@@ -537,7 +537,7 @@ export default function StudentOnboardingPage() {
                   <div>
                     <span className="text-slate-400 font-medium">Modality:</span>
                     <p className="font-bold text-navy-950">
-                      {preferredFormat === "VIRTUAL" ? "Virtual (Google Meet)" : preferredFormat === "PHYSICAL" ? "Physical Learning Venue" : "Hybrid Virtual & Physical"}
+                      {preferredFormat === "VIRTUAL" ? "Virtual (Interactive Classroom)" : preferredFormat === "PHYSICAL" ? "Physical Learning Venue" : "Hybrid Virtual & Physical"}
                     </p>
                   </div>
                 </div>

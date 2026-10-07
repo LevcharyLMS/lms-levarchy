@@ -10,7 +10,7 @@ export default function FAQPage() {
     },
     {
       q: "How are virtual classes conducted?",
-      a: "Virtual classes leverage our server-side Google Calendar and Google Meet integration. Upon booking confirmation, a dedicated Google Meet room link is generated and attached to the booking. Only authorized participants can access the link.",
+      a: "Virtual classes run through our embedded, encrypted video classroom player. Upon booking confirmation, a dedicated classroom room is automatically provisioned and attached to the session. Students and tutors join directly from their dashboards without needing external video accounts.",
     },
     {
       q: "Where are in-person physical classes hosted?",

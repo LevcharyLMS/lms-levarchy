@@ -155,7 +155,7 @@ export default async function StudentDashboardPage() {
                     {nextClass.format === "VIRTUAL" ? (
                       <>
                         <Video className="w-3.5 h-3.5 text-teal-300" />
-                        <span>Google Meet Virtual Classroom</span>
+                        <span>Interactive Virtual Classroom</span>
                       </>
                     ) : (
                       <>
@@ -180,11 +180,10 @@ export default async function StudentDashboardPage() {
                     size="sm"
                     className="h-9 px-4 text-xs font-bold bg-teal-500 hover:bg-teal-600 text-navy-950 gap-1.5 shadow-sm"
                   >
-                    <a href={nextClass.meet_url} target="_blank" rel="noopener noreferrer">
+                    <Link href={nextClass.meet_url.startsWith("http") ? nextClass.meet_url : nextClass.meet_url}>
                       <Video className="w-4 h-4" />
-                      <span>Join Google Meet</span>
-                      <ExternalLink className="w-3 h-3 ml-0.5" />
-                    </a>
+                      <span>Join Classroom</span>
+                    </Link>
                   </Button>
                 ) : (
                   <Button asChild size="sm" variant="secondary" className="h-9 text-xs">
@@ -416,7 +415,7 @@ export default async function StudentDashboardPage() {
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-500 leading-relaxed">
-                  Your student account is authorized to enroll in both Google Meet virtual classrooms and in-person learning centers.
+                  Your student account is authorized to enroll in both interactive virtual classrooms and in-person learning centers.
                 </p>
               </div>
 

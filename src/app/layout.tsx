@@ -7,14 +7,14 @@ import { AuthProvider } from "@/context/auth-context";
 export const metadata: Metadata = {
   title: "Levchary LMS | Verified Tutors for Virtual & Physical Classes",
   description:
-    "Connect with vetted, background-checked tutors for 1-on-1 and group classes in virtual Google Meet classrooms and supervised physical education centers.",
+    "Connect with vetted, background-checked tutors for 1-on-1 and group classes in interactive virtual classrooms and supervised physical education centers.",
   keywords: [
     "LMS",
     "Tutors",
     "Calculus Tutor",
     "SAT Prep",
     "Private Tutoring",
-    "Google Meet Classes",
+    "Interactive Video Classrooms",
     "In-Person Learning Centers",
   ],
   authors: [{ name: "Levchary LMS Inc." }],

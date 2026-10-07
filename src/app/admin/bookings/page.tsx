@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { MoneyDisplay } from "@/components/ui/money-display";
 import { Button } from "@/components/ui/button";
@@ -393,20 +394,18 @@ export default function AdminBookingsPage() {
                   <div className="flex items-center gap-2">
                     <Video className="w-4 h-4 text-indigo-600" />
                     <div>
-                      <p className="font-semibold text-navy-950 text-xs">Google Meet Session</p>
+                      <p className="font-semibold text-navy-950 text-xs">Virtual Classroom (Jitsi)</p>
                       <p className="text-[10px] text-slate-500 font-mono">
-                        {selectedBooking.meeting_link || "https://meet.google.com/lv-2026-meet"}
+                        {selectedBooking.meeting_link || `/classroom/Levchary-${selectedBooking.id}`}
                       </p>
                     </div>
                   </div>
-                  <a
-                    href={selectedBooking.meeting_link || "https://meet.google.com/lv-2026-meet"}
-                    target="_blank"
-                    rel="noreferrer"
+                  <Link
+                    href={selectedBooking.meeting_link || `/classroom/Levchary-${selectedBooking.id}`}
                     className="p-1.5 bg-white rounded border border-indigo-200 text-indigo-600 hover:bg-indigo-50"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
+                  </Link>
                 </div>
               ) : (
                 <div className="flex items-center gap-2 p-2.5 bg-slate-50 rounded-lg border border-slate-200">

@@ -192,15 +192,10 @@ export default function StudentCalendarPage() {
                   <div className="flex items-center gap-2">
                     {bk.format?.includes("ONLINE") ? (
                       <Button asChild size="sm" className="h-8 text-xs bg-primary hover:bg-primary/90 text-white gap-1.5 shadow-xs">
-                        <a
-                          href={bk.meeting_link || "https://meet.google.com/lv-2026-meet"}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
+                        <Link href={bk.meet_url || `/classroom/Levchary-${bk.id}`}>
                           <Video className="w-3.5 h-3.5" />
-                          <span>Launch Meet</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
+                          <span>Enter Classroom</span>
+                        </Link>
                       </Button>
                     ) : (
                       <Button asChild size="sm" variant="outline" className="h-8 text-xs border-slate-200">

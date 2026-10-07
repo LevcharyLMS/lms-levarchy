@@ -97,7 +97,7 @@ export default function StudentBookingsPage() {
             My Enrolled Classes & Sessions
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Manage your schedule, launch Google Meet virtual classrooms, and view locked tuition receipts.
+            Manage your schedule, launch interactive virtual classrooms, and view locked tuition receipts.
           </p>
         </div>
 
@@ -259,7 +259,7 @@ export default function StudentBookingsPage() {
                     {bk.format?.includes("ONLINE") ? (
                       <div className="flex items-center gap-2 text-indigo-700 font-semibold">
                         <Video className="w-4 h-4 shrink-0" />
-                        <span>Google Meet Classroom</span>
+                        <span>Interactive Classroom</span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 text-slate-700">
@@ -285,15 +285,10 @@ export default function StudentBookingsPage() {
                           size="sm"
                           className="h-8 text-xs bg-primary hover:bg-primary/90 text-white gap-1.5 shadow-xs"
                         >
-                          <a
-                            href={bk.meeting_link || "https://meet.google.com/lv-2026-meet"}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
+                          <Link href={bk.meet_url || `/classroom/Levchary-${bk.id}`}>
                             <Video className="w-3.5 h-3.5" />
                             <span>Join Classroom</span>
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
+                          </Link>
                         </Button>
                       )}
 
