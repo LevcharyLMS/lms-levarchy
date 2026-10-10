@@ -130,6 +130,8 @@ export class SupabaseDbService {
           p.first_name,
           p.last_name,
           p.avatar_url,
+          p.city,
+          p.state,
           tp.headline,
           tp.bio,
           tp.qualifications,
@@ -153,6 +155,8 @@ export class SupabaseDbService {
           first_name: r.first_name,
           last_name: r.last_name,
           avatar_url: r.avatar_url,
+          city: r.city,
+          state: r.state,
         },
       }));
     } catch {
