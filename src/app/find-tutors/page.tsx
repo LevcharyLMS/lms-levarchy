@@ -22,6 +22,7 @@ export default function FindTutorsPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFormat, setSelectedFormat] = useState<string>("ALL");
+  const [instructorType, setInstructorType] = useState<"ALL" | "TUTOR" | "FACULTY">("ALL");
   const [maxRate, setMaxRate] = useState<number>(10000); // in cents ($100)
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
@@ -46,6 +47,14 @@ export default function FindTutorsPage() {
       const user = t.user;
       if (!user) return false;
 
+      // Instructor Type filter (Tutor vs. Faculty)
+      if (instructorType === "FACULTY" && (!t.experience_years || t.experience_years < 4)) {
+        return false;
+      }
+      if (instructorType === "TUTOR" && t.experience_years && t.experience_years >= 4) {
+        return false;
+      }
+
       // Format filter
       if (selectedFormat !== "ALL") {
         if (selectedFormat === "VIRTUAL" && t.preferred_format === "PHYSICAL") return false;
@@ -68,7 +77,7 @@ export default function FindTutorsPage() {
 
       return true;
     });
-  }, [allTutors, searchQuery, selectedFormat, maxRate]);
+  }, [allTutors, searchQuery, selectedFormat, instructorType, maxRate]);
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 max-w-7xl">
@@ -108,6 +117,19 @@ export default function FindTutorsPage() {
                 <X className="w-4 h-4" />
               </button>
             )}
+          </div>
+
+          {/* Instructor Classification Filter (Tutor vs. Faculty) */}
+          <div>
+            <select
+              className="w-full h-9 px-3 text-xs rounded-lg border border-slate-200 bg-slate-50 focus:outline-hidden focus:ring-1 focus:ring-primary font-medium"
+              value={instructorType}
+              onChange={(e) => setInstructorType(e.target.value as any)}
+            >
+              <option value="ALL">All Instructors (Tutors &amp; Faculty)</option>
+              <option value="TUTOR">Tutors (School &amp; Grade Levels)</option>
+              <option value="FACULTY">Faculty (College &amp; Professional)</option>
+            </select>
           </div>
 
           {/* Delivery Format Filter */}

@@ -50,7 +50,19 @@ export function TutorCard({ tutor }: TutorCardProps) {
               <RatingStars rating={tutor.rating_avg || 5.0} count={tutor.reviews_count || 0} />
             </div>
 
-            <div className="mt-2 flex flex-wrap gap-1.5">
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              {/* Dynamic Instructor Classification Badge */}
+              {tutor.experience_years && tutor.experience_years >= 4 ? (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 text-[10px] font-bold">
+                  <GraduationCap className="w-3 h-3 text-purple-600" />
+                  <span>Faculty</span>
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[10px] font-bold">
+                  <ShieldCheck className="w-3 h-3 text-teal-600" />
+                  <span>Verified Tutor</span>
+                </span>
+              )}
               <StatusBadge status={tutor.preferred_format || "VIRTUAL"} />
             </div>
           </div>

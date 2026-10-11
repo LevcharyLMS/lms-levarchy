@@ -183,11 +183,15 @@ export interface Subject {
   category?: Category;
 }
 
+export type InstructorType = 'TUTOR' | 'FACULTY' | 'BOTH';
+
 export interface Grade {
   id: string;
   name: string;
   level: number;
   description?: string | null;
+  instructor_type?: InstructorType;
+  required_verification?: 'STANDARD_ID' | 'FACULTY_CREDENTIALS';
   created_at: string;
 }
 
