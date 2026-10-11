@@ -5,6 +5,7 @@
 
 import { Pool } from 'pg';
 import { db as memoryDb } from './data-store';
+import { supabaseAdmin } from './supabase/admin';
 import {
   UserProfile,
   StudentProfile,
@@ -27,11 +28,11 @@ export const pool =
   new Pool({
     connectionString:
       process.env.DATABASE_URL ||
-      'postgresql://postgres.xegsdlkpdwwmojdatuwb:iTI6MBFuBxvDZaJ9@aws-0-ap-northeast-2.pooler.supabase.com:5432/postgres',
+      'postgresql://postgres.xegsdlkpdwwmojdatuwb:iTI6MBFuBxvDZaJ9@aws-0-ap-northeast-2.pooler.supabase.com:6543/postgres',
     ssl: { rejectUnauthorized: false },
-    max: 2,
-    connectionTimeoutMillis: 10000,
-    idleTimeoutMillis: 10000,
+    max: 5,
+    connectionTimeoutMillis: 3000,
+    idleTimeoutMillis: 30000,
   });
 
 if (process.env.NODE_ENV !== 'production') {
@@ -123,6 +124,52 @@ export class SupabaseDbService {
   // --- TUTORS QUERY ---
   static async getApprovedTutors() {
     try {
+      // 1. Fast straight HTTPS query using Supabase SDK
+      const { data, error } = await supabaseAdmin
+        .from('tutor_profiles')
+        .select(`
+          user_id,
+          headline,
+          bio,
+          qualifications,
+          experience_years,
+          hourly_rate,
+          rating_avg,
+          reviews_count,
+          is_approved,
+          preferred_format,
+          profiles:user_id (
+            id,
+            email,
+            first_name,
+            last_name,
+            avatar_url,
+            city,
+            state,
+            account_status
+          )
+        `)
+        .eq('is_approved', true)
+        .order('rating_avg', { ascending: false });
+
+      if (!error && data && data.length > 0) {
+        return data
+          .filter((t: any) => t.profiles?.account_status !== 'SUSPENDED')
+          .map((t: any) => ({
+            ...t,
+            user: {
+              id: t.user_id,
+              email: t.profiles?.email,
+              first_name: t.profiles?.first_name,
+              last_name: t.profiles?.last_name,
+              avatar_url: t.profiles?.avatar_url,
+              city: t.profiles?.city,
+              state: t.profiles?.state,
+            },
+          }));
+      }
+
+      // 2. Secondary fallback to PostgreSQL query engine
       const rows = await this.query(`
         SELECT
           p.id as user_id,
@@ -147,21 +194,25 @@ export class SupabaseDbService {
         ORDER BY tp.rating_avg DESC, tp.reviews_count DESC
       `);
 
-      return rows.map((r) => ({
-        ...r,
-        user: {
-          id: r.user_id,
-          email: r.email,
-          first_name: r.first_name,
-          last_name: r.last_name,
-          avatar_url: r.avatar_url,
-          city: r.city,
-          state: r.state,
-        },
-      }));
+      if (rows && rows.length > 0) {
+        return rows.map((r) => ({
+          ...r,
+          user: {
+            id: r.user_id,
+            email: r.email,
+            first_name: r.first_name,
+            last_name: r.last_name,
+            avatar_url: r.avatar_url,
+            city: r.city,
+            state: r.state,
+          },
+        }));
+      }
     } catch {
-      return memoryDb.getTutors();
+      // fallback
     }
+
+    return memoryDb.getTutors();
   }
 
   // --- CLASSES QUERY ---
@@ -173,6 +224,59 @@ export class SupabaseDbService {
     search?: string;
   }) {
     try {
+      // 1. Try fast HTTPS query via Supabase SDK
+      let query = supabaseAdmin
+        .from('classes')
+        .select(`
+          *,
+          categories:category_id ( name ),
+          subjects:subject_id ( name ),
+          profiles:tutor_id (
+            first_name,
+            last_name,
+            avatar_url,
+            tutor_profiles:user_id ( headline )
+          ),
+          class_locations:location_id ( name, address )
+        `);
+
+      if (filters?.tutorId) query = query.eq('tutor_id', filters.tutorId);
+      if (filters?.status) {
+        query = query.eq('status', filters.status);
+      } else if (!filters?.tutorId) {
+        query = query.in('status', ['PUBLISHED', 'OPEN', 'FULL']);
+      }
+      if (filters?.format) query = query.eq('format', filters.format);
+      if (filters?.categoryId) query = query.eq('category_id', filters.categoryId);
+
+      query = query.order('created_at', { ascending: false });
+
+      const { data: sdkClasses, error: sdkErr } = await query;
+      if (!sdkErr && sdkClasses && sdkClasses.length > 0) {
+        let list = sdkClasses.map((r: any) => ({
+          ...r,
+          category: r.categories ? { name: r.categories.name } : undefined,
+          subject: r.subjects ? { name: r.subjects.name } : undefined,
+          tutor: {
+            first_name: r.profiles?.first_name,
+            last_name: r.profiles?.last_name,
+            avatar_url: r.profiles?.avatar_url,
+            tutor_profile: { headline: r.profiles?.tutor_profiles?.[0]?.headline || r.profiles?.tutor_profiles?.headline },
+          },
+          location: r.class_locations ? { name: r.class_locations.name, address: r.class_locations.address } : undefined,
+        }));
+
+        if (filters?.search) {
+          const q = filters.search.toLowerCase();
+          list = list.filter(
+            (c: any) =>
+              c.title?.toLowerCase().includes(q) || c.description?.toLowerCase().includes(q)
+          );
+        }
+        return list;
+      }
+
+      // 2. Fallback to SQL Query
       let sql = `
         SELECT
           c.*,

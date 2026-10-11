@@ -116,9 +116,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] bg-[#F8FAFC]">
+    <div className="flex min-h-screen bg-[#F8FAFC]">
       {/* Desktop Persistent Admin Sidebar (260px) */}
-      <aside className="hidden lg:flex flex-col w-[260px] border-r border-slate-200/80 bg-white justify-between shrink-0 h-[calc(100vh-4rem)] sticky top-16">
+      <aside className="hidden lg:flex flex-col w-[260px] border-r border-slate-200/80 bg-white justify-between shrink-0 h-screen sticky top-0">
         {/* Scrollable Nav Area */}
         <div className="p-4 overflow-y-auto space-y-5">
           {/* Workspace Pill */}
@@ -197,7 +197,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Main Workspace Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Header */}
-        <header className="h-14 bg-white border-b border-slate-200/80 px-4 sm:px-6 flex items-center justify-between gap-4 sticky top-16 z-20">
+        <header className="h-14 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 flex items-center justify-between gap-4 sticky top-0 z-30">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setMobileOpen(!mobileOpen)}

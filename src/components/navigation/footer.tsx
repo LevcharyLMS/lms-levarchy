@@ -6,11 +6,19 @@ import { usePathname } from "next/navigation";
 import { Logo } from "@/components/ui/logo";
 import { ShieldCheck, Mail, MapPin, Phone } from "lucide-react";
 
-const AUTH_ROUTES = ["/login", "/register", "/tutor/application"];
+const PORTAL_OR_AUTH_PREFIXES = [
+  "/login",
+  "/register",
+  "/tutor/application",
+  "/student",
+  "/tutor",
+  "/admin",
+  "/classroom",
+];
 
 export function Footer() {
   const pathname = usePathname();
-  if (AUTH_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"))) {
+  if (PORTAL_OR_AUTH_PREFIXES.some((r) => pathname === r || pathname.startsWith(r + "/"))) {
     return null;
   }
 

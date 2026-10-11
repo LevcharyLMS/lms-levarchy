@@ -25,9 +25,17 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
-  // Hide navbar on full-page auth screens
-  const AUTH_ROUTES = ["/login", "/register", "/tutor/application"];
-  if (AUTH_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"))) {
+  // Hide navbar on full-page auth screens and logged-in dashboard / classroom workspaces
+  const PORTAL_OR_AUTH_PREFIXES = [
+    "/login",
+    "/register",
+    "/tutor/application",
+    "/student",
+    "/tutor",
+    "/admin",
+    "/classroom",
+  ];
+  if (PORTAL_OR_AUTH_PREFIXES.some((r) => pathname === r || pathname.startsWith(r + "/"))) {
     return null;
   }
 

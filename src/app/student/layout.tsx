@@ -53,9 +53,9 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   const currentItem = studentNav.find((item) => pathname.startsWith(item.href)) || { label: "Portal" };
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] bg-[#F8FAFC]">
+    <div className="flex min-h-screen bg-[#F8FAFC]">
       {/* Desktop Persistent Sidebar (250px) */}
-      <aside className="hidden lg:flex flex-col w-[250px] border-r border-slate-200/80 bg-white p-4 justify-between shrink-0">
+      <aside className="hidden lg:flex flex-col w-[250px] border-r border-slate-200/80 bg-white p-4 justify-between shrink-0 h-screen sticky top-0">
         <div className="space-y-5">
           {/* Workspace Pill */}
           <div className="p-3 bg-indigo-50/60 border border-indigo-100/80 rounded-xl flex items-center justify-between">
@@ -119,7 +119,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
       {/* Main Workspace Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Header (Breadcrumb, Search & User Menu) */}
-        <header className="h-14 bg-white border-b border-slate-200/80 px-4 sm:px-6 flex items-center justify-between gap-4">
+        <header className="h-14 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 flex items-center justify-between gap-4 sticky top-0 z-30">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
