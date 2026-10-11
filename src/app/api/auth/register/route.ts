@@ -6,7 +6,17 @@ import { BrevoService } from "@/lib/brevo";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { email, password, firstName, lastName, role = "STUDENT" } = body;
+    const {
+      email,
+      password,
+      firstName,
+      lastName,
+      role = "STUDENT",
+      agreedToUserAgreement,
+      agreedToPrivacyPolicy,
+      agreedToInstructorAgreement,
+      agreedToBackgroundCheck,
+    } = body;
 
     if (!email || !password || !firstName || !lastName) {
       return NextResponse.json(
@@ -22,6 +32,27 @@ export async function POST(req: Request) {
       );
     }
 
+    // MANDATORY AGREEMENT VALIDATION
+    // 1. All users must agree to User Agreement and Privacy Policy
+    if (!agreedToUserAgreement || !agreedToPrivacyPolicy) {
+      return NextResponse.json(
+        { error: "You must agree to the Levchary User Agreement and Privacy Policy to create an account." },
+        { status: 400 }
+      );
+    }
+
+    // 2. Tutors/Instructors must additionally agree to Instructor Services Agreement & Background Check Authorization
+    if (role === "TUTOR") {
+      if (!agreedToInstructorAgreement || !agreedToBackgroundCheck) {
+        return NextResponse.json(
+          {
+            error: "Instructors must agree to the Instructor Services Agreement and authorize the Background Check & Verification Authorization to create an account.",
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     // Check if user already exists
     const existingUser = await SupabaseDbService.getUserByEmail(email);
     if (existingUser) {
@@ -35,7 +66,7 @@ export async function POST(req: Request) {
     const token = crypto.randomBytes(32).toString("hex");
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
-    // Create user profile (unverified pending email verification)
+    // Create user profile
     const user = await SupabaseDbService.createUser({
       email: email.toLowerCase().trim(),
       first_name: firstName.trim(),
@@ -55,11 +86,15 @@ export async function POST(req: Request) {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     const verificationUrl = `${baseUrl}/verify-email?token=${token}&email=${encodeURIComponent(user.email)}`;
 
-    await BrevoService.sendVerificationEmail({
-      to: user.email,
-      firstName: user.first_name,
-      verificationUrl,
-    });
+    try {
+      await BrevoService.sendVerificationEmail({
+        to: user.email,
+        firstName: user.first_name,
+        verificationUrl,
+      });
+    } catch (emailErr) {
+      console.warn("Brevo email send failed or not configured, skipping:", emailErr);
+    }
 
     const response = NextResponse.json({
       success: true,

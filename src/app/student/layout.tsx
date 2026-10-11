@@ -46,6 +46,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
     { label: "Reviews", href: "/student/reviews", icon: Star },
     { label: "Notifications", href: "/student/notifications", icon: Bell, badge: 2 },
     { label: "Profile", href: "/student/profile", icon: User },
+    { label: "Verification", href: "/student/verification", icon: ShieldCheck },
     { label: "Settings", href: "/student/settings", icon: Settings },
   ];
 

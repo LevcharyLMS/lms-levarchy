@@ -116,12 +116,22 @@ export function Footer() {
             <ul className="space-y-2.5 text-sm">
               <li>
                 <Link href="/terms" className="hover:text-teal-400 transition-colors">
-                  Terms of Service
+                  User Agreement (Terms)
                 </Link>
               </li>
               <li>
                 <Link href="/privacy" className="hover:text-teal-400 transition-colors">
                   Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/instructor-agreement" className="hover:text-teal-400 transition-colors">
+                  Instructor Services Agreement
+                </Link>
+              </li>
+              <li>
+                <Link href="/background-check-authorization" className="hover:text-teal-400 transition-colors">
+                  Background Check Authorization
                 </Link>
               </li>
               <li>

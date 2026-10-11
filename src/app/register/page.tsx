@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { Logo } from "@/components/ui/logo";
+import { LegalDocumentModal, LegalDocKey } from "@/components/legal/legal-document-modal";
 import {
   AlertCircle,
   Eye,
@@ -17,6 +18,8 @@ import {
   Mail,
   Lock,
   Sparkles,
+  Shield,
+  FileText,
 } from "lucide-react";
 
 const ROLE_OPTIONS = [
@@ -54,8 +57,17 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [agreeUserTerms, setAgreeUserTerms] = useState(false);
+  const [agreeInstructorContract, setAgreeInstructorContract] = useState(false);
+  const [legalModalOpen, setLegalModalOpen] = useState(false);
+  const [activeLegalDoc, setActiveLegalDoc] = useState<LegalDocKey>("userAgreement");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const openLegalDoc = (doc: LegalDocKey) => {
+    setActiveLegalDoc(doc);
+    setLegalModalOpen(true);
+  };
 
   // Password strength
   const getStrength = (pw: string) => {
@@ -89,8 +101,28 @@ export default function RegisterPage() {
       return;
     }
 
+    // Mandatory Agreement checks
+    if (!agreeUserTerms) {
+      setError("You must agree to the Levchary User Agreement and Privacy Policy to create an account.");
+      return;
+    }
+    if (role === "TUTOR" && !agreeInstructorContract) {
+      setError("Instructors must agree to the Instructor Services Agreement and Background Check Authorization.");
+      return;
+    }
+
     setLoading(true);
-    const result = await register({ firstName, lastName, email, password, role });
+    const result = await register({
+      firstName,
+      lastName,
+      email,
+      password,
+      role,
+      agreedToUserAgreement: true,
+      agreedToPrivacyPolicy: true,
+      agreedToInstructorAgreement: role === "TUTOR",
+      agreedToBackgroundCheck: role === "TUTOR",
+    });
 
     if (!result.success) {
       setError(result.error || "Failed to create account. Please try again.");
@@ -377,6 +409,88 @@ export default function RegisterPage() {
                   )}
                 </div>
 
+                {/* Mandatory Legal Agreements Checkboxes */}
+                <div className="space-y-2.5 pt-2 border-t border-slate-100">
+                  {/* Checkbox 1: All Users (Students & Tutors) */}
+                  <label className="flex items-start gap-2.5 text-xs text-slate-700 cursor-pointer select-none group">
+                    <input
+                      type="checkbox"
+                      checked={agreeUserTerms}
+                      onChange={(e) => {
+                        setAgreeUserTerms(e.target.checked);
+                        setError(null);
+                      }}
+                      className="mt-0.5 w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer shrink-0"
+                    />
+                    <span className="leading-relaxed">
+                      I have read and agree to the{" "}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          openLegalDoc("userAgreement");
+                        }}
+                        className="font-semibold text-indigo-600 hover:text-indigo-800 underline inline cursor-pointer"
+                      >
+                        User Agreement
+                      </button>{" "}
+                      and{" "}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          openLegalDoc("privacyPolicy");
+                        }}
+                        className="font-semibold text-indigo-600 hover:text-indigo-800 underline inline cursor-pointer"
+                      >
+                        Privacy Policy
+                      </button>.
+                    </span>
+                  </label>
+
+                  {/* Checkbox 2: Tutors / Faculty ONLY */}
+                  {role === "TUTOR" && (
+                    <label className="flex items-start gap-2.5 text-xs text-teal-950 cursor-pointer select-none p-3 bg-teal-50/70 border border-teal-200 rounded-xl transition-colors hover:bg-teal-50">
+                      <input
+                        type="checkbox"
+                        checked={agreeInstructorContract}
+                        onChange={(e) => {
+                          setAgreeInstructorContract(e.target.checked);
+                          setError(null);
+                        }}
+                        className="mt-0.5 w-4 h-4 rounded border-teal-500 text-teal-600 focus:ring-teal-500 cursor-pointer shrink-0"
+                      />
+                      <span className="leading-relaxed">
+                        <span className="font-bold text-teal-900 block text-[11px] uppercase tracking-wider mb-0.5">
+                          Faculty Contract &amp; Vetting Authorization
+                        </span>
+                        I agree to the{" "}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            openLegalDoc("instructorAgreement");
+                          }}
+                          className="font-semibold text-teal-700 hover:text-teal-900 underline inline cursor-pointer"
+                        >
+                          Instructor Services Agreement
+                        </button>{" "}
+                        and authorize the{" "}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            openLegalDoc("backgroundCheck");
+                          }}
+                          className="font-semibold text-teal-700 hover:text-teal-900 underline inline cursor-pointer"
+                        >
+                          Background Check &amp; Verification Authorization
+                        </button>.
+                      </span>
+                    </label>
+                  )}
+                </div>
+
                 <div className="flex gap-2.5">
                   <button type="button" onClick={() => setStep(1)}
                     className="h-10 px-4 rounded-lg text-sm font-semibold text-slate-600 border border-slate-200 bg-white hover:bg-slate-50 transition-all">
@@ -412,13 +526,47 @@ export default function RegisterPage() {
           </div>
 
           <p className="text-center text-[11px] text-slate-400">
-            By registering, you agree to the{" "}
-            <Link href="/terms" className="underline hover:text-slate-600">Terms of Service</Link>{" "}
-            and{" "}
-            <Link href="/privacy" className="underline hover:text-slate-600">Privacy Policy</Link>.
+            By registering, you confirm legal acceptance of platform agreements. Read our{" "}
+            <Link href="/terms" className="underline hover:text-slate-600">Terms of Service</Link>,{" "}
+            <Link href="/privacy" className="underline hover:text-slate-600">Privacy Policy</Link>
+            {role === "TUTOR" && (
+              <>
+                ,{" "}
+                <Link href="/instructor-agreement" className="underline hover:text-slate-600">Instructor Agreement</Link>
+                , and{" "}
+                <Link href="/background-check-authorization" className="underline hover:text-slate-600">Background Authorization</Link>
+              </>
+            )}.
           </p>
         </div>
       </div>
+
+      {/* Legal Document Viewer Modal */}
+      <LegalDocumentModal
+        isOpen={legalModalOpen}
+        onClose={() => setLegalModalOpen(false)}
+        initialDoc={activeLegalDoc}
+        allowedDocs={
+          role === "TUTOR"
+            ? ["userAgreement", "privacyPolicy", "instructorAgreement", "backgroundCheck"]
+            : ["userAgreement", "privacyPolicy"]
+        }
+        onAccept={(docKey) => {
+          if (docKey === "userAgreement" || docKey === "privacyPolicy") {
+            setAgreeUserTerms(true);
+          } else {
+            setAgreeInstructorContract(true);
+          }
+          setError(null);
+          setLegalModalOpen(false);
+        }}
+        acceptedDocs={{
+          userAgreement: agreeUserTerms,
+          privacyPolicy: agreeUserTerms,
+          instructorAgreement: agreeInstructorContract,
+          backgroundCheck: agreeInstructorContract,
+        }}
+      />
     </div>
   );
 }

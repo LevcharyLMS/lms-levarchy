@@ -16,6 +16,10 @@ interface AuthContextType {
     email: string;
     password: string;
     role: "STUDENT" | "TUTOR";
+    agreedToUserAgreement?: boolean;
+    agreedToPrivacyPolicy?: boolean;
+    agreedToInstructorAgreement?: boolean;
+    agreedToBackgroundCheck?: boolean;
   }) => Promise<{ success: boolean; error?: string; user?: UserProfile; studentProfile?: StudentProfile }>;
   logout: () => Promise<void>;
   updateStudentProfile: (data: any) => Promise<boolean>;
@@ -108,6 +112,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     email: string;
     password: string;
     role: "STUDENT" | "TUTOR";
+    agreedToUserAgreement?: boolean;
+    agreedToPrivacyPolicy?: boolean;
+    agreedToInstructorAgreement?: boolean;
+    agreedToBackgroundCheck?: boolean;
   }) => {
     try {
       const res = await fetch("/api/auth/register", {
