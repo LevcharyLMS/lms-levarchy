@@ -11,10 +11,10 @@ export async function GET() {
     console.error("Error fetching platform stats:", err);
     return NextResponse.json(
       {
-        visitors: 1250,
-        instructors: 6,
-        students: 12,
-        subjects: 8,
+        visitors: 0,
+        instructors: 0,
+        students: 0,
+        subjects: 0,
       },
       { status: 200 }
     );

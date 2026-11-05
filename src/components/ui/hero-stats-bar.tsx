@@ -96,15 +96,21 @@ function AnimatedStatCounter({ rawValue }: { rawValue: number }) {
 export function HeroStatsBar({ initialStats }: { initialStats?: StatsData }) {
   const [stats, setStats] = useState<StatsData>(
     initialStats || {
-      visitors: 1252,
-      instructors: 60,
-      students: 100,
-      subjects: 6,
+      visitors: 0,
+      instructors: 0,
+      students: 0,
+      subjects: 0,
     }
   );
 
   useEffect(() => {
     let isMounted = true;
+
+    // 1. Trigger unique monthly visit tracking (deduplicated via 30-day cookie)
+    fetch("/api/stats/track-visit", { method: "POST" })
+      .catch(() => {});
+
+    // 2. Fetch latest aggregated platform stats
     fetch("/api/stats")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {

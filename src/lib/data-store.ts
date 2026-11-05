@@ -947,6 +947,40 @@ class DataStore {
     this.state.profiles.push(newUser);
     return newUser;
   }
+
+  // --- MONTHLY VISITORS ---
+  incrementMonthlyVisitor(): number {
+    const curMonth = new Date().toISOString().slice(0, 7); // e.g. "2026-11"
+    const settingKey = `visitor_count_${curMonth}`;
+    const idx = this.state.platform_settings.findIndex((s) => s.key === settingKey);
+
+    if (idx === -1) {
+      const initialValue = 1;
+      this.state.platform_settings.push({
+        key: settingKey,
+        value: { count: initialValue },
+        description: `Total unique visitors for ${curMonth}`,
+        updated_at: new Date().toISOString(),
+      });
+      return initialValue;
+    }
+
+    const currentObj = this.state.platform_settings[idx].value;
+    const currentCount = typeof currentObj?.count === 'number' ? currentObj.count : 0;
+    const nextCount = currentCount + 1;
+
+    this.state.platform_settings[idx].value = { count: nextCount };
+    this.state.platform_settings[idx].updated_at = new Date().toISOString();
+    return nextCount;
+  }
+
+  getMonthlyVisitorCount(): number {
+    const curMonth = new Date().toISOString().slice(0, 7);
+    const item = this.state.platform_settings.find((s) => s.key === `visitor_count_${curMonth}`);
+    if (!item?.value) return 0;
+    const count = item.value.count;
+    return typeof count === 'number' ? count : 0;
+  }
 }
 
 // Global Singleton for development
