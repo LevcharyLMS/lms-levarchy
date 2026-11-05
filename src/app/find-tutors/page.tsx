@@ -32,9 +32,9 @@ export default function FindTutorsPage() {
         setLoading(true);
         const res = await fetch("/api/tutors");
         const data = await res.json();
-        setAllTutors(data.tutors || []);
+        setAllTutors(data.instructors || data.tutors || []);
       } catch (err) {
-        console.error("Failed to load tutors:", err);
+        console.error("Failed to load instructors:", err);
       } finally {
         setLoading(false);
       }
@@ -47,11 +47,12 @@ export default function FindTutorsPage() {
       const user = t.user;
       if (!user) return false;
 
-      // Instructor Type filter (Tutor vs. Faculty)
-      if (instructorType === "FACULTY" && (!t.experience_years || t.experience_years < 4)) {
+      // Instructor Type filter: Tutors vs Faculty
+      const isFaculty = t.instructor_type === "FACULTY" || (!t.instructor_type && t.experience_years && t.experience_years >= 4);
+      if (instructorType === "FACULTY" && !isFaculty) {
         return false;
       }
-      if (instructorType === "TUTOR" && t.experience_years && t.experience_years >= 4) {
+      if (instructorType === "TUTOR" && isFaculty) {
         return false;
       }
 
@@ -85,15 +86,15 @@ export default function FindTutorsPage() {
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-1">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-navy-950">
-            Find Verified Faculty & Mentors
+            Find Instructors
           </h1>
           <span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-primary text-xs font-bold flex items-center gap-1">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Vetted Instructors</span>
+            <span>Verified Instructors</span>
           </span>
         </div>
         <p className="text-xs sm:text-sm text-slate-500">
-          Connect with university professors, certified specialists, and experienced academic mentors for 1-on-1 tutoring.
+          Connect with vetted tutors and faculty for 1-on-1 and group learning.
         </p>
       </div>
 
@@ -119,16 +120,16 @@ export default function FindTutorsPage() {
             )}
           </div>
 
-          {/* Instructor Classification Filter (Tutor vs. Faculty) */}
+          {/* Instructor Classification Filter (Strict Clean Labels) */}
           <div>
             <select
               className="w-full h-9 px-3 text-xs rounded-lg border border-slate-200 bg-slate-50 focus:outline-hidden focus:ring-1 focus:ring-primary font-medium"
               value={instructorType}
               onChange={(e) => setInstructorType(e.target.value as any)}
             >
-              <option value="ALL">All Instructors (Tutors &amp; Faculty)</option>
-              <option value="TUTOR">Tutors (School &amp; Grade Levels)</option>
-              <option value="FACULTY">Faculty (College &amp; Professional)</option>
+              <option value="ALL">All Instructors</option>
+              <option value="TUTOR">Tutors</option>
+              <option value="FACULTY">Faculty</option>
             </select>
           </div>
 
@@ -166,13 +167,14 @@ export default function FindTutorsPage() {
         <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 pt-3 border-t border-slate-100">
           <div className="flex items-center gap-2">
             <span>
-              Showing <strong className="text-navy-950">{filteredTutors.length}</strong> verified educators
+              Showing <strong className="text-navy-950">{filteredTutors.length}</strong> verified instructors
             </span>
-            {(searchQuery || selectedFormat !== "ALL" || maxRate < 10000) && (
+            {(searchQuery || selectedFormat !== "ALL" || instructorType !== "ALL" || maxRate < 10000) && (
               <button
                 onClick={() => {
                   setSearchQuery("");
                   setSelectedFormat("ALL");
+                  setInstructorType("ALL");
                   setMaxRate(10000);
                 }}
                 className="text-primary hover:underline font-semibold ml-2"
@@ -219,12 +221,13 @@ export default function FindTutorsPage() {
       ) : (
         <EmptyState
           icon={Search}
-          title="No verified tutors match your search"
-          description="Try broadening your search keywords, adjusting maximum hourly rate, or removing format filters."
+          title="No verified instructors match your search"
+          description="Try broadening your search keywords, selecting 'All Instructors', or adjusting your filters."
           actionLabel="Clear Filters"
           onAction={() => {
             setSearchQuery("");
             setSelectedFormat("ALL");
+            setInstructorType("ALL");
             setMaxRate(10000);
           }}
         />

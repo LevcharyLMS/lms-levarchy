@@ -84,9 +84,9 @@ export class SupabaseDbService {
       const rows = await this.query(`
         SELECT
           (SELECT COUNT(*) FROM profiles WHERE role = 'STUDENT') as total_students,
-          (SELECT COUNT(*) FROM profiles WHERE role = 'TUTOR') as total_tutors,
-          (SELECT COUNT(*) FROM tutor_profiles WHERE is_approved = true) as approved_tutors,
-          (SELECT COUNT(*) FROM tutor_applications WHERE status = 'PENDING_REVIEW') as pending_applications,
+          (SELECT COUNT(*) FROM profiles WHERE role IN ('INSTRUCTOR', 'TUTOR')) as total_tutors,
+          (SELECT COUNT(*) FROM instructor_profiles WHERE is_approved = true) as approved_tutors,
+          (SELECT COUNT(*) FROM instructor_applications WHERE status = 'PENDING_REVIEW') as pending_applications,
           (SELECT COUNT(*) FROM verification_documents WHERE status = 'PENDING_REVIEW') as pending_verifications,
           (SELECT COUNT(*) FROM bookings) as total_bookings,
           (SELECT COUNT(*) FROM bookings WHERE status = 'COMPLETED') as completed_classes,
@@ -121,12 +121,12 @@ export class SupabaseDbService {
     return memoryDb.getAdminStats();
   }
 
-  // --- TUTORS QUERY ---
-  static async getApprovedTutors() {
+  // --- TUTORS / INSTRUCTORS QUERY ---
+  static async getApprovedTutors(filters?: { instructorType?: 'ALL' | 'TUTOR' | 'FACULTY' }) {
     try {
       // 1. Fast straight HTTPS query using Supabase SDK
-      const { data, error } = await supabaseAdmin
-        .from('tutor_profiles')
+      let query = supabaseAdmin
+        .from('instructor_profiles')
         .select(`
           user_id,
           headline,
@@ -138,6 +138,7 @@ export class SupabaseDbService {
           reviews_count,
           is_approved,
           preferred_format,
+          instructor_type,
           profiles:user_id (
             id,
             email,
@@ -149,8 +150,13 @@ export class SupabaseDbService {
             account_status
           )
         `)
-        .eq('is_approved', true)
-        .order('rating_avg', { ascending: false });
+        .eq('is_approved', true);
+
+      if (filters?.instructorType && filters.instructorType !== 'ALL') {
+        query = query.eq('instructor_type', filters.instructorType);
+      }
+
+      const { data, error } = await query.order('rating_avg', { ascending: false });
 
       if (!error && data && data.length > 0) {
         return data
@@ -170,7 +176,7 @@ export class SupabaseDbService {
       }
 
       // 2. Secondary fallback to PostgreSQL query engine
-      const rows = await this.query(`
+      let sql = `
         SELECT
           p.id as user_id,
           p.email,
@@ -187,12 +193,20 @@ export class SupabaseDbService {
           tp.rating_avg,
           tp.reviews_count,
           tp.is_approved,
-          tp.preferred_format
+          tp.preferred_format,
+          tp.instructor_type
         FROM profiles p
-        JOIN tutor_profiles tp ON p.id = tp.user_id
+        JOIN instructor_profiles tp ON p.id = tp.user_id
         WHERE tp.is_approved = true AND p.account_status = 'ACTIVE'
-        ORDER BY tp.rating_avg DESC, tp.reviews_count DESC
-      `);
+      `;
+      const params: any[] = [];
+      if (filters?.instructorType && filters.instructorType !== 'ALL') {
+        params.push(filters.instructorType);
+        sql += ` AND tp.instructor_type = $${params.length}`;
+      }
+      sql += ` ORDER BY tp.rating_avg DESC, tp.reviews_count DESC`;
+
+      const rows = await this.query(sql, params);
 
       if (rows && rows.length > 0) {
         return rows.map((r) => ({
@@ -212,7 +226,12 @@ export class SupabaseDbService {
       // fallback
     }
 
-    return memoryDb.getTutors();
+    return memoryDb.getInstructors({ instructorType: filters?.instructorType });
+  }
+
+  // Alias for backward compatibility
+  static async getInstructors(filters?: { instructorType?: 'ALL' | 'TUTOR' | 'FACULTY' }) {
+    return this.getApprovedTutors(filters);
   }
 
   // --- CLASSES QUERY ---
@@ -220,9 +239,11 @@ export class SupabaseDbService {
     format?: string;
     categoryId?: string;
     tutorId?: string;
+    instructorId?: string;
     status?: string;
     search?: string;
   }) {
+    const instructorFilterId = filters?.instructorId || filters?.tutorId;
     try {
       // 1. Try fast HTTPS query via Supabase SDK
       let query = supabaseAdmin
@@ -231,19 +252,19 @@ export class SupabaseDbService {
           *,
           categories:category_id ( name ),
           subjects:subject_id ( name ),
-          profiles:tutor_id (
+          profiles:instructor_id (
             first_name,
             last_name,
             avatar_url,
-            tutor_profiles:user_id ( headline )
+            instructor_profiles:user_id ( headline )
           ),
           class_locations:location_id ( name, address )
         `);
 
-      if (filters?.tutorId) query = query.eq('tutor_id', filters.tutorId);
+      if (instructorFilterId) query = query.eq('instructor_id', instructorFilterId);
       if (filters?.status) {
         query = query.eq('status', filters.status);
-      } else if (!filters?.tutorId) {
+      } else if (!instructorFilterId) {
         query = query.in('status', ['PUBLISHED', 'OPEN', 'FULL']);
       }
       if (filters?.format) query = query.eq('format', filters.format);
@@ -255,13 +276,21 @@ export class SupabaseDbService {
       if (!sdkErr && sdkClasses && sdkClasses.length > 0) {
         let list = sdkClasses.map((r: any) => ({
           ...r,
+          instructor_id: r.instructor_id,
+          tutor_id: r.instructor_id, // alias
           category: r.categories ? { name: r.categories.name } : undefined,
           subject: r.subjects ? { name: r.subjects.name } : undefined,
+          instructor: {
+            first_name: r.profiles?.first_name,
+            last_name: r.profiles?.last_name,
+            avatar_url: r.profiles?.avatar_url,
+            instructor_profile: { headline: r.profiles?.instructor_profiles?.[0]?.headline || r.profiles?.instructor_profiles?.headline },
+          },
           tutor: {
             first_name: r.profiles?.first_name,
             last_name: r.profiles?.last_name,
             avatar_url: r.profiles?.avatar_url,
-            tutor_profile: { headline: r.profiles?.tutor_profiles?.[0]?.headline || r.profiles?.tutor_profiles?.headline },
+            tutor_profile: { headline: r.profiles?.instructor_profiles?.[0]?.headline || r.profiles?.instructor_profiles?.headline },
           },
           location: r.class_locations ? { name: r.class_locations.name, address: r.class_locations.address } : undefined,
         }));
@@ -291,16 +320,16 @@ export class SupabaseDbService {
         FROM classes c
         LEFT JOIN categories cat ON c.category_id = cat.id
         LEFT JOIN subjects sub ON c.subject_id = sub.id
-        LEFT JOIN profiles p ON c.tutor_id = p.id
-        LEFT JOIN tutor_profiles tp ON p.id = tp.user_id
+        LEFT JOIN profiles p ON c.instructor_id = p.id
+        LEFT JOIN instructor_profiles tp ON p.id = tp.user_id
         LEFT JOIN class_locations loc ON c.location_id = loc.id
         WHERE 1=1
       `;
 
       const params: any[] = [];
-      if (filters?.tutorId) {
-        params.push(filters.tutorId);
-        sql += ` AND c.tutor_id = $${params.length}`;
+      if (instructorFilterId) {
+        params.push(instructorFilterId);
+        sql += ` AND c.instructor_id = $${params.length}`;
       }
       if (filters?.status) {
         params.push(filters.status);
@@ -344,7 +373,8 @@ export class SupabaseDbService {
   static async createClass(classData: {
     title: string;
     description: string;
-    tutor_id: string;
+    instructor_id?: string;
+    tutor_id?: string;
     category_id: string;
     subject_id: string;
     grade_id?: string;
@@ -360,10 +390,11 @@ export class SupabaseDbService {
     start_time?: string | null;
     end_time?: string | null;
   }) {
+    const instructorId = classData.instructor_id || classData.tutor_id || '';
     try {
       const sql = `
         INSERT INTO classes (
-          title, description, tutor_id, category_id, subject_id, grade_id,
+          title, description, instructor_id, category_id, subject_id, grade_id,
           class_type, format, duration_minutes, price, currency, capacity,
           enrolled_count, location_id, meet_url, status, start_time, end_time, created_at, updated_at
         ) VALUES (
@@ -376,7 +407,7 @@ export class SupabaseDbService {
       const params = [
         classData.title,
         classData.description,
-        classData.tutor_id,
+        instructorId,
         classData.category_id,
         classData.subject_id,
         classData.grade_id || null,
@@ -399,7 +430,7 @@ export class SupabaseDbService {
     } catch (err) {
       console.error('Error inserting class into PostgreSQL:', err);
     }
-    return memoryDb.createClass(classData as any);
+    return memoryDb.createClass({ ...classData, instructor_id: instructorId, tutor_id: instructorId } as any);
   }
 
   static async updateClass(
@@ -457,7 +488,8 @@ export class SupabaseDbService {
   }
 
   // --- BOOKINGS QUERY ---
-  static async getBookings(filters?: { studentId?: string; tutorId?: string; status?: string }) {
+  static async getBookings(filters?: { studentId?: string; tutorId?: string; instructorId?: string; status?: string }) {
+    const instructorFilterId = filters?.instructorId || filters?.tutorId;
     try {
       let sql = `
         SELECT
@@ -478,7 +510,7 @@ export class SupabaseDbService {
         FROM bookings b
         LEFT JOIN classes c ON b.class_id = c.id
         LEFT JOIN profiles stu ON b.student_id = stu.id
-        LEFT JOIN profiles tut ON b.tutor_id = tut.id
+        LEFT JOIN profiles tut ON b.instructor_id = tut.id
         LEFT JOIN booking_financial_snapshots snap ON b.id = snap.booking_id
         LEFT JOIN class_locations loc ON b.location_id = loc.id
         WHERE 1=1
@@ -488,9 +520,9 @@ export class SupabaseDbService {
         params.push(filters.studentId);
         sql += ` AND b.student_id = $${params.length}`;
       }
-      if (filters?.tutorId) {
-        params.push(filters.tutorId);
-        sql += ` AND b.tutor_id = $${params.length}`;
+      if (instructorFilterId) {
+        params.push(instructorFilterId);
+        sql += ` AND b.instructor_id = $${params.length}`;
       }
       if (filters?.status) {
         params.push(filters.status);
@@ -501,6 +533,8 @@ export class SupabaseDbService {
       const rows = await this.query(sql, params);
       return rows.map((r) => ({
         ...r,
+        instructor_id: r.instructor_id,
+        tutor_id: r.instructor_id, // alias
         class_item: {
           title: r.class_title,
           format: r.class_format,
@@ -510,6 +544,11 @@ export class SupabaseDbService {
           first_name: r.student_first_name,
           last_name: r.student_last_name,
           email: r.student_email,
+        },
+        instructor: {
+          first_name: r.tutor_first_name,
+          last_name: r.tutor_last_name,
+          avatar_url: r.tutor_avatar_url,
         },
         tutor: {
           first_name: r.tutor_first_name,
@@ -543,11 +582,15 @@ export class SupabaseDbService {
           b.booking_number
         FROM transactions t
         LEFT JOIN profiles stu ON t.student_id = stu.id
-        LEFT JOIN profiles tut ON t.tutor_id = tut.id
+        LEFT JOIN profiles tut ON t.instructor_id = tut.id
         LEFT JOIN bookings b ON t.booking_id = b.id
         ORDER BY t.created_at DESC
       `);
-      return rows;
+      return rows.map((r) => ({
+        ...r,
+        instructor_id: r.instructor_id,
+        tutor_id: r.instructor_id,
+      }));
     } catch {
       return memoryDb.state.transactions;
     }
@@ -696,10 +739,12 @@ export class SupabaseDbService {
   // --- REVIEWS QUERY & CREATION ---
   static async getReviews(options?: {
     tutorId?: string;
+    instructorId?: string;
     featuredOnly?: boolean;
     adminView?: boolean;
   }) {
-    const { tutorId, featuredOnly, adminView } = options || {};
+    const { tutorId, instructorId, featuredOnly, adminView } = options || {};
+    const instructorFilterId = instructorId || tutorId;
 
     try {
       let sql = `
@@ -713,7 +758,7 @@ export class SupabaseDbService {
           b.booking_number
         FROM reviews r
         JOIN profiles stu ON r.student_id = stu.id
-        JOIN profiles tut ON r.tutor_id = tut.id
+        JOIN profiles tut ON r.instructor_id = tut.id
         JOIN bookings b ON r.booking_id = b.id
         WHERE 1=1
       `;
@@ -725,16 +770,22 @@ export class SupabaseDbService {
       if (featuredOnly) {
         sql += ` AND r.is_featured_testimonial = true`;
       }
-      if (tutorId) {
-        params.push(tutorId);
-        sql += ` AND r.tutor_id = $${params.length}`;
+      if (instructorFilterId) {
+        params.push(instructorFilterId);
+        sql += ` AND r.instructor_id = $${params.length}`;
       }
 
       // Order: highest rating to lowest rating, then newest
       sql += ` ORDER BY r.rating DESC, r.created_at DESC`;
 
       const rows = await this.query(sql, params);
-      if (rows.length > 0) return rows;
+      if (rows.length > 0) {
+        return rows.map((r) => ({
+          ...r,
+          instructor_id: r.instructor_id,
+          tutor_id: r.instructor_id, // alias
+        }));
+      }
     } catch {}
 
     // Fallback to in-memory store
@@ -746,8 +797,8 @@ export class SupabaseDbService {
     if (featuredOnly) {
       list = list.filter((r) => r.is_featured_testimonial);
     }
-    if (tutorId) {
-      list = list.filter((r) => r.tutor_id === tutorId);
+    if (instructorFilterId) {
+      list = list.filter((r) => (r.instructor_id || r.tutor_id) === instructorFilterId);
     }
 
     // Sort highest to lowest rating, then newest
@@ -755,10 +806,12 @@ export class SupabaseDbService {
 
     return list.map((r) => {
       const student = memoryDb.getProfileById(r.student_id);
-      const tutor = memoryDb.getProfileById(r.tutor_id);
+      const tutor = memoryDb.getProfileById(r.instructor_id || r.tutor_id || '');
       const booking = memoryDb.state.bookings.find((b) => b.id === r.booking_id);
       return {
         ...r,
+        instructor_id: r.instructor_id || r.tutor_id,
+        tutor_id: r.instructor_id || r.tutor_id,
         student_first_name: student?.first_name || 'Student',
         student_last_name: student?.last_name || '',
         student_avatar_url: student?.avatar_url || '',
@@ -803,13 +856,13 @@ export class SupabaseDbService {
     return memoryDb.updateReview(reviewId, updates);
   }
 
-  static async createReview(bookingId: string, studentId: string, tutorId: string, rating: number, comment: string) {
+  static async createReview(bookingId: string, studentId: string, instructorId: string, rating: number, comment: string) {
     try {
       const rows = await this.query(
-        `INSERT INTO reviews (booking_id, student_id, tutor_id, rating, comment, is_published)
+        `INSERT INTO reviews (booking_id, student_id, instructor_id, rating, comment, is_published)
          VALUES ($1, $2, $3, $4, $5, true)
          RETURNING *`,
-        [bookingId, studentId, tutorId, rating, comment]
+        [bookingId, studentId, instructorId, rating, comment]
       );
       return rows[0] || null;
     } catch (err) {
@@ -981,7 +1034,7 @@ export class SupabaseDbService {
     email: string;
     first_name: string;
     last_name: string;
-    role: 'STUDENT' | 'TUTOR' | 'ADMIN';
+    role: 'STUDENT' | 'INSTRUCTOR' | 'TUTOR' | 'ADMIN';
     phone?: string;
     city?: string;
     state?: string;
@@ -1026,10 +1079,10 @@ export class SupabaseDbService {
              ON CONFLICT (user_id) DO NOTHING`,
             [id, now, now]
           );
-        } else if (data.role === 'TUTOR') {
+        } else if (data.role === 'INSTRUCTOR' || data.role === 'TUTOR') {
           await this.query(
-            `INSERT INTO tutor_profiles (user_id, is_approved, created_at, updated_at)
-             VALUES ($1, false, $2, $3)
+            `INSERT INTO instructor_profiles (user_id, is_approved, instructor_type, created_at, updated_at)
+             VALUES ($1, false, 'TUTOR', $2, $3)
              ON CONFLICT (user_id) DO NOTHING`,
             [id, now, now]
           );
@@ -1267,7 +1320,7 @@ export class SupabaseDbService {
       try {
         const [studentsRes, instructorsRes, subjectsRes, monthlyVisitorsRes] = await Promise.all([
           client.query(`SELECT COUNT(*)::int AS count FROM profiles WHERE role = 'STUDENT' AND account_status = 'ACTIVE'`),
-          client.query(`SELECT COUNT(*)::int AS count FROM tutor_profiles WHERE is_approved = true`),
+          client.query(`SELECT COUNT(*)::int AS count FROM instructor_profiles WHERE is_approved = true`),
           client.query(`SELECT COUNT(*)::int AS count FROM subjects WHERE is_active = true`),
           client.query(`SELECT visitor_count FROM site_monthly_visitors WHERE year_month = $1 LIMIT 1`, [curMonth]).catch(() => ({ rows: [] })),
         ]);

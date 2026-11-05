@@ -148,7 +148,7 @@ export default async function HomePage() {
               <Badge variant="gold" className="mb-2">Group Virtual</Badge>
               <h3 className="text-lg font-semibold text-navy-950 mb-2">Interactive Online Cohorts</h3>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Strict capacity limits. Enrolled students and tutor share a single dedicated in-app virtual classroom session.
+                Strict capacity limits. Enrolled students and instructors share a single dedicated in-app virtual classroom session.
               </p>
             </div>
 
@@ -197,7 +197,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 4. FEATURED VERIFIED TUTORS */}
+      {/* 4. FEATURED VERIFIED INSTRUCTORS */}
       <section className="py-20 bg-white border-b border-slate-200">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-start md:items-end justify-between mb-12">
@@ -206,15 +206,15 @@ export default async function HomePage() {
                 Top Rated Instructors
               </h2>
               <p className="text-3xl font-bold tracking-tight text-navy-950">
-                Meet Verified Levchary Tutors
+                Meet Verified Levchary Instructors
               </p>
               <p className="text-slate-500 text-sm mt-1">
-                Every tutor has passed government ID verification and administrative qualification audits.
+                Every instructor has passed government ID verification and administrative qualification audits.
               </p>
             </div>
             <Button asChild variant="outline" className="mt-4 md:mt-0 gap-1.5">
               <Link href="/find-tutors">
-                Browse All Tutors <ArrowRight className="w-4 h-4" />
+                Browse All Instructors <ArrowRight className="w-4 h-4" />
               </Link>
             </Button>
           </div>
@@ -289,7 +289,7 @@ export default async function HomePage() {
               </div>
               <h3 className="font-semibold text-white text-base">Review & Payout</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Students review completed classes. Tutors receive automated Stripe Connect payouts.
+                Students review completed classes. Instructors receive automated Stripe Connect payouts.
               </p>
             </div>
           </div>
@@ -309,7 +309,7 @@ export default async function HomePage() {
                 The Company-Controlled Difference.
               </h2>
               <p className="mt-4 text-slate-600 text-sm leading-relaxed">
-                Unlike open bulletin boards where anyone can post, Levchary LMS acts as the authoritative guarantor of every single booking, tutor credential, and classroom facility.
+                Unlike open bulletin boards where anyone can post, Levchary LMS acts as the authoritative guarantor of every single booking, instructor credential, and classroom facility.
               </p>
 
               <div className="mt-8 space-y-4">
@@ -319,7 +319,7 @@ export default async function HomePage() {
                   </div>
                   <div>
                     <h4 className="text-sm font-semibold text-navy-950">Verified Government ID & Diplomas</h4>
-                    <p className="text-xs text-slate-500">Every tutor submits photo ID and verified degrees before being approved to teach.</p>
+                    <p className="text-xs text-slate-500">Every instructor submits photo ID and verified degrees before being approved to teach.</p>
                   </div>
                 </div>
 
@@ -359,16 +359,16 @@ export default async function HomePage() {
 
               <div className="space-y-4 text-xs text-slate-600">
                 <div className="p-4 bg-white rounded-xl border border-slate-200/80">
-                  <span className="font-bold text-navy-950 block mb-1">Rule 1: Approved Tutors Only</span>
-                  Only tutors with approved verification documents are bookable in search and calendars.
+                  <span className="font-bold text-navy-950 block mb-1">Rule 1: Approved Instructors Only</span>
+                  Only instructors with approved verification documents are bookable in search and calendars.
                 </div>
                 <div className="p-4 bg-white rounded-xl border border-slate-200/80">
                   <span className="font-bold text-navy-950 block mb-1">Rule 11: Double Booking Prevention</span>
-                  Slot locking algorithms prevent tutors from having overlapping commitments.
+                  Slot locking algorithms prevent instructors from having overlapping commitments.
                 </div>
                 <div className="p-4 bg-white rounded-xl border border-slate-200/80">
                   <span className="font-bold text-navy-950 block mb-1">Rule 12: Immutable Financial Snapshots</span>
-                  Once booked, the class price, commission, and tutor payout values never change.
+                  Once booked, the class price, commission, and instructor payout values never change.
                 </div>
               </div>
             </div>
@@ -397,7 +397,7 @@ export default async function HomePage() {
                 How do virtual classes work on Levchary?
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                When a virtual 1-on-1 or group class is confirmed, our system automatically provisions an interactive, encrypted virtual classroom. Both tutor and authorized enrolled students can join directly from their dashboards without leaving the platform.
+                When a virtual 1-on-1 or group class is confirmed, our system automatically provisions an interactive, encrypted virtual classroom. Both instructor and authorized enrolled students can join directly from their dashboards without leaving the platform.
               </p>
             </div>
 
@@ -412,19 +412,19 @@ export default async function HomePage() {
 
             <div className="p-6 bg-white rounded-xl border border-slate-200 shadow-xs">
               <h3 className="font-semibold text-sm text-navy-950 mb-2">
-                What is the tutor verification process?
+                What is the instructor verification process?
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Tutors must complete an application, upload a valid government ID (Passport or Driver&apos;s License) and university degree certificates. Administration manually reviews and signs off on every credential before the tutor can publish classes or set availability.
+                Instructors (both freelance tutors and professional faculty) must complete an application, upload a valid government ID (Passport or Driver&apos;s License) and university degree certificates. Administration manually reviews and signs off on every credential before the instructor can publish classes or set availability.
               </p>
             </div>
 
             <div className="p-6 bg-white rounded-xl border border-slate-200 shadow-xs">
               <h3 className="font-semibold text-sm text-navy-950 mb-2">
-                How are tutor payouts handled?
+                How are instructor payouts handled?
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Tutors connect their bank account via Stripe Connect Express. Upon class completion, tutor earnings calculated in the locked booking financial snapshot are routed directly to their connected account.
+                Instructors connect their bank account via Stripe Connect Express. Upon class completion, earnings calculated in the locked booking financial snapshot are routed directly to their connected account.
               </p>
             </div>
           </div>
@@ -438,7 +438,7 @@ export default async function HomePage() {
             Ready to Accelerate Your Academic Journey?
           </h2>
           <p className="text-sm text-teal-100 leading-relaxed">
-            Join thousands of students and certified educators on Levchary LMS. Verified tutors, guaranteed quality, and seamless virtual or physical learning.
+            Join thousands of students and certified educators on Levchary LMS. Verified instructors, guaranteed quality, and seamless virtual or physical learning.
           </p>
           <div className="flex flex-wrap justify-center gap-3 pt-2">
             <Button asChild size="lg" variant="gold">

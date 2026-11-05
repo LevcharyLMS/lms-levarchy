@@ -26,16 +26,16 @@ const ROLE_OPTIONS = [
   {
     id: "STUDENT" as const,
     label: "I'm a Student",
-    desc: "Find vetted tutors, book sessions & track progress",
+    desc: "Find vetted instructors, book sessions & track progress",
     icon: GraduationCap,
     gradient: "from-blue-500 to-indigo-600",
     ring: "ring-indigo-500",
     badge: "bg-indigo-100 text-indigo-700",
-    perks: ["Browse 100+ verified tutors", "Book live virtual classrooms", "Personalized study roadmap"],
+    perks: ["Browse 100+ verified instructors", "Book live virtual classrooms", "Personalized study roadmap"],
   },
   {
     id: "TUTOR" as const,
-    label: "I'm a Tutor",
+    label: "I'm an Instructor",
     desc: "Teach students, manage your schedule & earn",
     icon: BookOpen,
     gradient: "from-teal-500 to-emerald-600",
@@ -182,7 +182,7 @@ export default function RegisterPage() {
             <p className="text-white/60 text-sm leading-relaxed max-w-xs">
               {role === "STUDENT"
                 ? "Get matched with verified educators tailored to your grade level, subjects, and learning goals."
-                : "Apply to join our verified tutor network — set your rates, manage your schedule, and teach students who need you."}
+                : "Apply to join our verified instructor network — set your rates, manage your schedule, and teach students who need you."}
             </p>
           </div>
 

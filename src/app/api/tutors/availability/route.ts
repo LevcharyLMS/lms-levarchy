@@ -5,26 +5,26 @@ import { db as memoryDb } from "@/lib/data-store";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const tutorId = searchParams.get("tutorId");
+  const tutorId = searchParams.get("instructorId") || searchParams.get("tutorId");
 
   if (!tutorId) {
-    return NextResponse.json({ error: "tutorId required" }, { status: 400 });
+    return NextResponse.json({ error: "instructorId required" }, { status: 400 });
   }
 
   try {
     const rows = await SupabaseDbService["query"](
-      `SELECT * FROM tutor_availability WHERE tutor_id = $1 AND is_active = true ORDER BY day_of_week, start_time`,
+      `SELECT * FROM instructor_availability WHERE instructor_id = $1 AND is_active = true ORDER BY day_of_week, start_time`,
       [tutorId]
     ).catch(() => null);
 
     const availability = rows && rows.length > 0
       ? rows
-      : memoryDb.state.tutor_availability.filter((a) => a.tutor_id === tutorId);
+      : memoryDb.state.instructor_availability.filter((a) => (a.instructor_id || a.tutor_id) === tutorId);
 
     return NextResponse.json({ availability });
   } catch (err) {
     console.error("Error fetching availability:", err);
-    const availability = memoryDb.state.tutor_availability.filter((a) => a.tutor_id === tutorId);
+    const availability = memoryDb.state.instructor_availability.filter((a) => (a.instructor_id || a.tutor_id) === tutorId);
     return NextResponse.json({ availability });
   }
 }
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
     // Try Supabase first
     try {
       const rows = await SupabaseDbService["query"](
-        `INSERT INTO tutor_availability (id, tutor_id, day_of_week, start_time, end_time, is_active, created_at)
+        `INSERT INTO instructor_availability (id, instructor_id, day_of_week, start_time, end_time, is_active, created_at)
          VALUES ($1, $2, $3, $4, $5, true, $6)
          RETURNING *`,
         [newId, tutorId, day_of_week, start_time, end_time, now]
@@ -78,6 +78,7 @@ export async function POST(req: NextRequest) {
     // Fallback to in-memory
     const newSlot = {
       id: newId,
+      instructor_id: tutorId,
       tutor_id: tutorId,
       day_of_week,
       start_time,
@@ -85,7 +86,7 @@ export async function POST(req: NextRequest) {
       is_active: true,
       created_at: now,
     };
-    memoryDb.state.tutor_availability.push(newSlot);
+    memoryDb.state.instructor_availability.push(newSlot);
     return NextResponse.json({ availability: newSlot }, { status: 201 });
   } catch (err: any) {
     console.error("Error creating availability slot:", err);
@@ -105,13 +106,13 @@ export async function DELETE(req: NextRequest) {
     // Try Supabase first
     try {
       await SupabaseDbService["query"](
-        `UPDATE tutor_availability SET is_active = false WHERE id = $1`,
+        `UPDATE instructor_availability SET is_active = false WHERE id = $1`,
         [slotId]
       );
     } catch {}
 
     // Always also remove from in-memory store
-    memoryDb.state.tutor_availability = memoryDb.state.tutor_availability.filter((a) => a.id !== slotId);
+    memoryDb.state.instructor_availability = memoryDb.state.instructor_availability.filter((a) => a.id !== slotId);
 
     return NextResponse.json({ success: true });
   } catch (err: any) {

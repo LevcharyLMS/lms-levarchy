@@ -29,7 +29,7 @@ export default function BecomeATutorPage() {
         </p>
         <div className="pt-2">
           <Button asChild size="lg" variant="default" className="shadow-md">
-            <Link href="/register">Start Your Tutor Application</Link>
+            <Link href="/register">Start Your Instructor Application</Link>
           </Button>
         </div>
       </div>
@@ -71,7 +71,7 @@ export default function BecomeATutorPage() {
       <div className="bg-slate-50 rounded-2xl border border-slate-200 p-8 space-y-6">
         <div className="space-y-1">
           <h2 className="text-xl font-bold text-navy-950">
-            Tutor Application & Verification Checklist
+            Instructor Application & Verification Checklist
           </h2>
           <p className="text-xs text-slate-500">
             Review the requirements before submitting your profile for administrative sign-off.

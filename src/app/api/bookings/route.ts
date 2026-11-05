@@ -5,9 +5,9 @@ import { BookingService } from "@/services/booking";
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const studentId = searchParams.get("studentId") || undefined;
-  const tutorId = searchParams.get("tutorId") || undefined;
+  const tutorId = searchParams.get("instructorId") || searchParams.get("tutorId") || undefined;
 
-  const bookings = await SupabaseDbService.getBookings({ studentId, tutorId });
+  const bookings = await SupabaseDbService.getBookings({ studentId, instructorId: tutorId, tutorId });
   return NextResponse.json({ bookings });
 }
 

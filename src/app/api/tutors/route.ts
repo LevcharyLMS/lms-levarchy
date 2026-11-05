@@ -6,8 +6,11 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const search = searchParams.get("search") || undefined;
   const format = searchParams.get("format") || undefined;
+  const instructorType = (searchParams.get("type") || searchParams.get("instructorType")) as 'ALL' | 'TUTOR' | 'FACULTY' | null;
 
-  let tutors = await SupabaseDbService.getApprovedTutors();
+  let tutors = await SupabaseDbService.getApprovedTutors({
+    instructorType: instructorType && ['TUTOR', 'FACULTY'].includes(instructorType) ? instructorType : 'ALL',
+  });
   if (tutors && tutors.length > 0) {
     if (search) {
       const q = search.toLowerCase();
@@ -24,5 +27,5 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ tutors });
+  return NextResponse.json({ tutors, instructors: tutors });
 }

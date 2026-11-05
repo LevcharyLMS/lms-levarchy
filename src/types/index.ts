@@ -3,7 +3,7 @@
 // Strict TypeScript types for all models, roles & state machines
 // ============================================================
 
-export type UserRole = 'STUDENT' | 'TUTOR' | 'ADMIN' | 'SYSTEM';
+export type UserRole = 'STUDENT' | 'INSTRUCTOR' | 'TUTOR' | 'ADMIN' | 'SYSTEM';
 
 export type AccountStatus = 'ACTIVE' | 'SUSPENDED' | 'PENDING';
 
@@ -110,8 +110,11 @@ export interface StudentProfile {
   updated_at: string;
 }
 
-export interface TutorProfile {
+export type InstructorType = 'TUTOR' | 'FACULTY' | 'BOTH';
+
+export interface InstructorProfile {
   user_id: string;
+  instructor_type?: 'TUTOR' | 'FACULTY';
   headline?: string | null;
   bio?: string | null;
   qualifications?: string | null;
@@ -132,9 +135,13 @@ export interface TutorProfile {
   grades?: Grade[];
 }
 
-export interface TutorApplication {
+// Backward-compatible type alias
+export type TutorProfile = InstructorProfile;
+
+export interface InstructorApplication {
   id: string;
-  tutor_id: string;
+  instructor_id: string;
+  tutor_id?: string; // alias
   status: VerificationStatus;
   submitted_at: string;
   reviewed_by?: string | null;
@@ -143,8 +150,11 @@ export interface TutorApplication {
   rejection_reason?: string | null;
   created_at: string;
   updated_at: string;
+  instructor?: UserProfile;
   tutor?: UserProfile;
 }
+
+export type TutorApplication = InstructorApplication;
 
 export interface VerificationDocument {
   id: string;
@@ -183,8 +193,6 @@ export interface Subject {
   category?: Category;
 }
 
-export type InstructorType = 'TUTOR' | 'FACULTY' | 'BOTH';
-
 export interface Grade {
   id: string;
   name: string;
@@ -210,9 +218,10 @@ export interface ClassLocation {
   updated_at: string;
 }
 
-export interface TutorAvailability {
+export interface InstructorAvailability {
   id: string;
-  tutor_id: string;
+  instructor_id: string;
+  tutor_id?: string; // alias
   day_of_week: number; // 0=Sunday, 6=Saturday
   start_time: string;  // "09:00"
   end_time: string;    // "12:00"
@@ -220,9 +229,12 @@ export interface TutorAvailability {
   created_at: string;
 }
 
+export type TutorAvailability = InstructorAvailability;
+
 export interface AvailabilityException {
   id: string;
-  tutor_id: string;
+  instructor_id?: string;
+  tutor_id?: string;
   start_date: string;
   end_date: string;
   start_time?: string | null;
@@ -236,7 +248,8 @@ export interface ClassItem {
   id: string;
   title: string;
   description: string;
-  tutor_id: string;
+  instructor_id?: string;
+  tutor_id?: string; // alias
   category_id: string;
   subject_id: string;
   grade_id?: string | null;
@@ -256,6 +269,7 @@ export interface ClassItem {
   created_at: string;
   updated_at: string;
   // Joined fields
+  instructor?: UserProfile & { instructor_profile?: InstructorProfile };
   tutor?: UserProfile & { tutor_profile?: TutorProfile };
   subject?: Subject;
   category?: Category;
@@ -279,7 +293,8 @@ export interface Booking {
   id: string;
   booking_number: string;
   student_id: string;
-  tutor_id: string;
+  instructor_id?: string;
+  tutor_id?: string; // alias
   class_id: string;
   session_id?: string | null;
   status: BookingStatus;
@@ -295,6 +310,7 @@ export interface Booking {
   updated_at: string;
   // Joined
   student?: UserProfile;
+  instructor?: UserProfile;
   tutor?: UserProfile;
   class_item?: ClassItem;
   location?: ClassLocation;
@@ -331,7 +347,8 @@ export interface Transaction {
   id: string;
   booking_id?: string | null;
   student_id?: string | null;
-  tutor_id?: string | null;
+  instructor_id?: string | null;
+  tutor_id?: string | null; // alias
   type: 'PAYMENT' | 'COMMISSION' | 'PAYOUT' | 'REFUND';
   gross_amount: number;
   fee_amount: number;
@@ -344,6 +361,7 @@ export interface Transaction {
   created_at: string;
   booking?: Booking;
   student?: UserProfile;
+  instructor?: UserProfile;
   tutor?: UserProfile;
 }
 
@@ -439,7 +457,8 @@ export interface Review {
   id: string;
   booking_id: string;
   student_id: string;
-  tutor_id: string;
+  instructor_id?: string;
+  tutor_id?: string; // alias
   rating: number; // 1 to 5
   comment?: string | null;
   is_moderated: boolean;
@@ -448,6 +467,7 @@ export interface Review {
   created_at: string;
   updated_at: string;
   student?: UserProfile;
+  instructor?: UserProfile;
   tutor?: UserProfile;
   class_item?: ClassItem;
 }

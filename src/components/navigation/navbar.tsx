@@ -53,7 +53,7 @@ export function Navbar() {
               pathname === "/find-tutors" ? "text-teal-600 font-semibold" : ""
             }`}
           >
-            Find Tutors
+            Find Instructors
           </Link>
           <Link
             href="/classes"
@@ -85,7 +85,7 @@ export function Navbar() {
               pathname === "/become-a-tutor" ? "text-teal-600 font-semibold" : ""
             }`}
           >
-            Become a Tutor
+            Become an Instructor
           </Link>
         </nav>
 
@@ -150,7 +150,7 @@ export function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
               className="px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
-              Find Tutors
+              Find Instructors
             </Link>
             <Link
               href="/classes"
@@ -178,7 +178,7 @@ export function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
               className="px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
-              Become a Tutor
+              Become an Instructor
             </Link>
           </div>
 

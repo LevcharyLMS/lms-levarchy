@@ -97,7 +97,7 @@ export default function LoginPage() {
           <div className="space-y-2.5">
             {[
               { label: "Live Virtual Classrooms via Jitsi", dot: "bg-teal-400" },
-              { label: "Verified & Credentialed Tutors", dot: "bg-indigo-400" },
+              { label: "Verified & Credentialed Instructors", dot: "bg-indigo-400" },
               { label: "Role-Based Dashboards for All Users", dot: "bg-purple-400" },
             ].map((item) => (
               <div key={item.label} className="flex items-center gap-2.5 text-white/70 text-xs">

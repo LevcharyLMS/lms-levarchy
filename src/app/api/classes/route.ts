@@ -6,14 +6,14 @@ import { cookies } from "next/headers";
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const tutorId = searchParams.get("tutorId") || undefined;
+    const tutorId = searchParams.get("instructorId") || searchParams.get("tutorId") || undefined;
     const format = searchParams.get("format") || undefined;
     const categoryId = searchParams.get("categoryId") || undefined;
     const status = searchParams.get("status") || undefined;
     const search = searchParams.get("search") || undefined;
 
     const [classes, commissionRate] = await Promise.all([
-      SupabaseDbService.getClasses({ tutorId, format, categoryId, status, search }),
+      SupabaseDbService.getClasses({ instructorId: tutorId, tutorId, format, categoryId, status, search }),
       SupabaseDbService.getPlatformCommissionRate(),
     ]);
 
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     // Authentication verification
     const cookieStore = cookies();
     const sessionCookie = cookieStore.get("levchary_session");
-    let authenticatedTutorId = body.tutor_id || body.tutorId;
+    let authenticatedTutorId = body.instructor_id || body.instructorId || body.tutor_id || body.tutorId;
 
     if (sessionCookie?.value) {
       try {
@@ -91,6 +91,7 @@ export async function POST(req: NextRequest) {
     const newClass = await SupabaseDbService.createClass({
       title,
       description,
+      instructor_id: authenticatedTutorId,
       tutor_id: authenticatedTutorId,
       category_id: body.category_id || body.categoryId || "11111111-1111-1111-1111-111111111001",
       subject_id: body.subject_id || body.subjectId || "22222222-2222-2222-2222-222222222001",

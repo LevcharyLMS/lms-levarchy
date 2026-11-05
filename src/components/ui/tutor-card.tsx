@@ -51,8 +51,8 @@ export function TutorCard({ tutor }: TutorCardProps) {
             </div>
 
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
-              {/* Dynamic Instructor Classification Badge */}
-              {tutor.experience_years && tutor.experience_years >= 4 ? (
+              {/* Dynamic Instructor Classification Badge: Faculty vs Tutor */}
+              {(tutor.instructor_type === "FACULTY" || (!tutor.instructor_type && tutor.experience_years && tutor.experience_years >= 4)) ? (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 text-[10px] font-bold">
                   <GraduationCap className="w-3 h-3 text-purple-600" />
                   <span>Faculty</span>
@@ -60,7 +60,7 @@ export function TutorCard({ tutor }: TutorCardProps) {
               ) : (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[10px] font-bold">
                   <ShieldCheck className="w-3 h-3 text-teal-600" />
-                  <span>Verified Tutor</span>
+                  <span>Tutor</span>
                 </span>
               )}
               <StatusBadge status={tutor.preferred_format || "VIRTUAL"} />

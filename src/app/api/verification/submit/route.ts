@@ -145,9 +145,9 @@ export async function POST(req: NextRequest) {
             ]
           );
 
-          // Update tutor_applications or tutor_profiles
+          // Update instructor_applications or instructor_profiles
           await client.query(
-            `UPDATE tutor_profiles
+            `UPDATE instructor_profiles
              SET application_status = 'PENDING_REVIEW',
                  updated_at = NOW()
              WHERE user_id = $1`,

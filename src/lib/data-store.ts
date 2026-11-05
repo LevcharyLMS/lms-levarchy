@@ -34,13 +34,16 @@ import { calculateFinancialSnapshot, generateBookingNumber } from './utils';
 export interface DatabaseState {
   profiles: UserProfile[];
   student_profiles: StudentProfile[];
-  tutor_profiles: TutorProfile[];
+  instructor_profiles: TutorProfile[];
+  tutor_profiles: TutorProfile[]; // getter/setter sync
+  instructor_applications: TutorApplication[];
   tutor_applications: TutorApplication[];
   verification_documents: VerificationDocument[];
   categories: Category[];
   subjects: Subject[];
   grades: Grade[];
   class_locations: ClassLocation[];
+  instructor_availability: TutorAvailability[];
   tutor_availability: TutorAvailability[];
   classes: ClassItem[];
   bookings: Booking[];
@@ -316,14 +319,32 @@ class DataStore {
     this.state = {
       profiles: [...initialProfiles],
       student_profiles: [],
-      tutor_profiles: [...initialTutorProfiles],
-      tutor_applications: [],
+      instructor_profiles: [...initialTutorProfiles],
+      get tutor_profiles() {
+        return this.instructor_profiles;
+      },
+      set tutor_profiles(val) {
+        this.instructor_profiles = val;
+      },
+      instructor_applications: [],
+      get tutor_applications() {
+        return this.instructor_applications;
+      },
+      set tutor_applications(val) {
+        this.instructor_applications = val;
+      },
       verification_documents: [...initialVerificationDocuments],
       categories: [...initialCategories],
       subjects: [...initialSubjects],
       grades: [...initialGrades],
       class_locations: [...initialLocations],
-      tutor_availability: [...initialAvailability],
+      instructor_availability: [...initialAvailability],
+      get tutor_availability() {
+        return this.instructor_availability;
+      },
+      set tutor_availability(val) {
+        this.instructor_availability = val;
+      },
       classes: [...initialClasses],
       bookings: [...initialBookings],
       booking_financial_snapshots: [...initialSnapshots],
@@ -410,6 +431,7 @@ class DataStore {
     if (!this.state.tutor_profiles.some((tp) => tp.user_id === 'usr-tut-1')) {
       this.state.tutor_profiles.push({
         user_id: 'usr-tut-1',
+        instructor_type: 'FACULTY',
         headline: 'Ph.D. in Applied Mathematics (MIT) | 12+ Years Teaching',
         bio: 'Coaching calculus and physics.',
         qualifications: 'Ph.D. Applied Math',
@@ -437,9 +459,19 @@ class DataStore {
     return null;
   }
 
-  // --- TUTORS ---
-  getTutors(filters?: { categoryId?: string; subjectId?: string; search?: string; format?: string }) {
-    let list = this.state.tutor_profiles.filter((t) => t.is_approved);
+  // --- INSTRUCTORS ---
+  getInstructors(filters?: {
+    categoryId?: string;
+    subjectId?: string;
+    search?: string;
+    format?: string;
+    instructorType?: "ALL" | "TUTOR" | "FACULTY";
+  }) {
+    let list = this.state.instructor_profiles.filter((t) => t.is_approved);
+
+    if (filters?.instructorType && filters.instructorType !== "ALL") {
+      list = list.filter((t) => t.instructor_type === filters.instructorType);
+    }
 
     return list.map((tp) => {
       const user = this.getProfileById(tp.user_id);
@@ -450,18 +482,27 @@ class DataStore {
     });
   }
 
-  getTutorById(userId: string) {
-    const tp = this.state.tutor_profiles.find((t) => t.user_id === userId);
+  // Alias for backward compatibility
+  getTutors(filters?: any) {
+    return this.getInstructors(filters);
+  }
+
+  getInstructorById(userId: string) {
+    const tp = this.state.instructor_profiles.find((t) => t.user_id === userId);
     if (!tp) return null;
     const user = this.getProfileById(userId);
-    const classes = this.state.classes.filter((c) => c.tutor_id === userId);
-    const reviews = this.state.reviews.filter((r) => r.tutor_id === userId && r.is_published);
+    const classes = this.state.classes.filter((c) => (c.instructor_id || c.tutor_id) === userId);
+    const reviews = this.state.reviews.filter((r) => (r.instructor_id || r.tutor_id) === userId && r.is_published);
     return {
       ...tp,
       user,
       classes,
       reviews,
     };
+  }
+
+  getTutorById(userId: string) {
+    return this.getInstructorById(userId);
   }
 
   // --- CLASSES ---
@@ -494,8 +535,9 @@ class DataStore {
   }
 
   private hydrateClass(c: ClassItem) {
-    const tutorProfile = this.state.tutor_profiles.find((t) => t.user_id === c.tutor_id);
-    const user = this.getProfileById(c.tutor_id);
+    const instructorId = c.instructor_id || c.tutor_id || '';
+    const tutorProfile = this.state.instructor_profiles.find((t) => t.user_id === instructorId);
+    const user = this.getProfileById(instructorId);
     const category = this.state.categories.find((cat) => cat.id === c.category_id);
     const subject = this.state.subjects.find((sub) => sub.id === c.subject_id);
     const grade = c.grade_id ? this.state.grades.find((g) => g.id === c.grade_id) : undefined;
@@ -503,7 +545,10 @@ class DataStore {
 
     return {
       ...c,
+      instructor_id: instructorId,
+      tutor_id: instructorId,
       tutor: user ? { ...user, tutor_profile: tutorProfile } : undefined,
+      instructor: user ? { ...user, instructor_profile: tutorProfile } : undefined,
       category,
       subject,
       grade,
@@ -723,7 +768,7 @@ class DataStore {
 
     return list.map((b) => {
       const student = this.getProfileById(b.student_id);
-      const tutor = this.getProfileById(b.tutor_id);
+      const tutor = this.getProfileById(b.instructor_id || b.tutor_id || '');
       const classItem = this.getClassById(b.class_id);
       const financial_snapshot = this.state.booking_financial_snapshots.find((s) => s.booking_id === b.id);
       const location = b.location_id ? this.state.class_locations.find((l) => l.id === b.location_id) : undefined;

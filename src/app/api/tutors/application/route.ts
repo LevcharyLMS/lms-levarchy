@@ -29,13 +29,13 @@ export async function POST(req: NextRequest) {
     try {
       await client.query("BEGIN");
 
-      // Upsert tutor_profiles with application data
+      // Upsert instructor_profiles with application data
       await client.query(
-        `INSERT INTO tutor_profiles (
+        `INSERT INTO instructor_profiles (
           user_id, headline, bio, qualifications, experience_years,
-          hourly_rate, preferred_format, is_approved, application_status
+          hourly_rate, preferred_format, is_approved, application_status, instructor_type
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, false, 'PENDING_REVIEW')
+        VALUES ($1, $2, $3, $4, $5, $6, $7, false, 'PENDING_REVIEW', $8)
         ON CONFLICT (user_id) DO UPDATE SET
           headline = EXCLUDED.headline,
           bio = EXCLUDED.bio,
@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
           hourly_rate = EXCLUDED.hourly_rate,
           preferred_format = EXCLUDED.preferred_format,
           application_status = 'PENDING_REVIEW',
+          instructor_type = EXCLUDED.instructor_type,
           updated_at = NOW()`,
         [
           userId,
@@ -53,12 +54,13 @@ export async function POST(req: NextRequest) {
           experienceYears || 0,
           Math.round(parseFloat(hourlyRate || "60") * 100), // store as cents
           preferredFormat || "VIRTUAL",
+          body.instructorType === 'FACULTY' ? 'FACULTY' : 'TUTOR',
         ]
       );
 
-      // Insert into tutor_applications table for admin review queue
+      // Insert into instructor_applications table for admin review queue
       await client.query(
-        `INSERT INTO tutor_applications (
+        `INSERT INTO instructor_applications (
           user_id, subjects, hours_per_week, id_document_ref, degree_document_ref,
           status, submitted_at
         )

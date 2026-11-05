@@ -20,11 +20,6 @@ interface TestimonialReview {
 }
 
 export function TestimonialsSection({ reviews }: { reviews: TestimonialReview[] }) {
-  // Guard condition: If no reviews are approved & featured, DO NOT render the section
-  if (!reviews || reviews.length === 0) {
-    return null;
-  }
-
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // Responsive items per page: 1 on mobile, 2 on tablet, 3 on desktop
@@ -46,7 +41,8 @@ export function TestimonialsSection({ reviews }: { reviews: TestimonialReview[] 
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const totalPages = Math.ceil(reviews.length / itemsPerPage);
+  const totalReviews = reviews?.length || 0;
+  const totalPages = Math.ceil(totalReviews / itemsPerPage);
 
   // Ensure current index is within bounds on resize
   useEffect(() => {
@@ -54,6 +50,11 @@ export function TestimonialsSection({ reviews }: { reviews: TestimonialReview[] 
       setCurrentIndex(totalPages - 1);
     }
   }, [totalPages, currentIndex]);
+
+  // Guard condition: If no reviews are approved & featured, DO NOT render the section
+  if (!reviews || reviews.length === 0) {
+    return null;
+  }
 
   const handlePrev = () => {
     setCurrentIndex((prev) => (prev > 0 ? prev - 1 : totalPages - 1));
