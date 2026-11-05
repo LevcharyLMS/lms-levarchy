@@ -7,6 +7,26 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
+ * Strict privacy name formatting: "FirstName + first letter of LastName."
+ * Under no circumstances is the full last name exposed to public or student/tutor users.
+ * Examples:
+ *   formatDisplayName("Marcus", "Chen") => "Marcus C."
+ *   formatDisplayName("Dr. Marcus", "Chen") => "Dr. Marcus C."
+ *   formatDisplayName("Lucas", "") => "Lucas"
+ *   formatDisplayName("", "") => "User"
+ */
+export function formatDisplayName(firstName?: string | null, lastName?: string | null): string {
+  const first = (firstName || "").trim();
+  const lastInitial = (lastName || "").trim().charAt(0).toUpperCase();
+
+  if (!first && !lastInitial) return "User";
+  if (!first) return `${lastInitial}.`;
+  if (!lastInitial) return first;
+
+  return `${first} ${lastInitial}.`;
+}
+
+/**
  * Format monetary amount stored in minor units (integer cents) safely.
  * Prevents floating point errors.
  * Example: 3500 cents -> "$35.00"

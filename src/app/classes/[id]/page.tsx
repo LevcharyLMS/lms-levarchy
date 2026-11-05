@@ -23,6 +23,7 @@ import {
   ArrowLeft,
   ExternalLink,
 } from "lucide-react";
+import { formatDisplayName } from "@/lib/utils";
 
 interface ClassPageProps {
   params: {
@@ -157,7 +158,7 @@ export default function ClassDetailPage({ params }: ClassPageProps) {
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Instructor:</span>
-              <span>{tutor?.first_name} {tutor?.last_name}</span>
+              <span>{formatDisplayName(tutor?.first_name, tutor?.last_name)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Format:</span>
@@ -259,11 +260,11 @@ export default function ClassDetailPage({ params }: ClassPageProps) {
                   <div className="flex items-center gap-3">
                     <Avatar className="w-12 h-12">
                       <AvatarImage src={tutor.avatar_url || ""} />
-                      <AvatarFallback>{tutor.first_name[0]}{tutor.last_name[0]}</AvatarFallback>
+                      <AvatarFallback>{tutor.first_name[0]}{tutor.last_name?.[0] || ""}</AvatarFallback>
                     </Avatar>
                     <div>
                       <h4 className="text-sm font-semibold text-navy-950">
-                        Instructor: {tutor.first_name} {tutor.last_name}
+                        Instructor: {formatDisplayName(tutor.first_name, tutor.last_name)}
                       </h4>
                       <p className="text-xs text-slate-500">{tutor.tutor_profile?.headline || "Verified Specialist"}</p>
                     </div>

@@ -7,6 +7,7 @@ import { StatusBadge } from "./status-badge";
 import { MoneyDisplay } from "./money-display";
 import { Button } from "./button";
 import { Clock, MapPin, Video, Users, ArrowRight } from "lucide-react";
+import { formatDisplayName } from "@/lib/utils";
 
 interface ClassCardProps {
   classItem: ClassItem;
@@ -17,6 +18,7 @@ export function ClassCard({ classItem }: ClassCardProps) {
   const isGroup = classItem.class_type === "GROUP";
   const seatsRemaining = classItem.capacity - classItem.enrolled_count;
   const isFull = isGroup && seatsRemaining <= 0;
+  const instructorDisplayName = tutor ? formatDisplayName(tutor.first_name, tutor.last_name) : "";
 
   return (
     <Card className="hover:border-teal-500/50 hover:shadow-md transition-all duration-200 flex flex-col justify-between overflow-hidden">
@@ -41,11 +43,11 @@ export function ClassCard({ classItem }: ClassCardProps) {
           <div className="flex items-center gap-2.5 py-2.5 px-3 bg-slate-50 rounded-lg mb-4">
             <Avatar className="w-8 h-8">
               <AvatarImage src={tutor.avatar_url || ""} />
-              <AvatarFallback>{tutor.first_name[0]}{tutor.last_name[0]}</AvatarFallback>
+              <AvatarFallback>{tutor.first_name[0]}{tutor.last_name?.[0] || ""}</AvatarFallback>
             </Avatar>
             <div className="min-w-0">
               <p className="text-xs font-medium text-navy-950 truncate">
-                {tutor.first_name} {tutor.last_name}
+                {instructorDisplayName}
               </p>
               <p className="text-[10px] text-slate-500 truncate">
                 {classItem.subject?.name || "Academic Specialist"}

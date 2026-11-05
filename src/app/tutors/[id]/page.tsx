@@ -20,6 +20,7 @@ import {
   CheckCircle,
   MessageSquare,
 } from "lucide-react";
+import { formatDisplayName } from "@/lib/utils";
 
 interface TutorPageProps {
   params: {
@@ -35,6 +36,7 @@ export default function TutorDetailPage({ params }: TutorPageProps) {
   }
 
   const { user, classes = [], reviews = [] } = tutorData;
+  const instructorDisplayName = formatDisplayName(user.first_name, user.last_name);
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 max-w-6xl">
@@ -46,7 +48,7 @@ export default function TutorDetailPage({ params }: TutorPageProps) {
               <Avatar className="w-24 h-24 border-4 border-slate-50 shadow">
                 <AvatarImage src={user.avatar_url || ""} />
                 <AvatarFallback className="text-xl">
-                  {user.first_name[0]}{user.last_name[0]}
+                  {user.first_name[0]}{user.last_name?.[0] || ""}
                 </AvatarFallback>
               </Avatar>
               {tutorData.is_approved && (
@@ -59,7 +61,7 @@ export default function TutorDetailPage({ params }: TutorPageProps) {
             <div className="space-y-1">
               <div className="flex items-center gap-3">
                 <h1 className="text-2xl font-bold text-navy-950">
-                  {user.first_name} {user.last_name}
+                  {instructorDisplayName}
                 </h1>
                 <StatusBadge status={tutorData.preferred_format} />
               </div>
@@ -148,7 +150,7 @@ export default function TutorDetailPage({ params }: TutorPageProps) {
       <div id="classes" className="mb-12">
         <div className="mb-6">
           <h2 className="text-2xl font-bold tracking-tight text-navy-950">
-            Available Classes by {user.first_name}
+            Available Classes by {instructorDisplayName}
           </h2>
           <p className="text-xs text-slate-500 mt-1">
             Choose from 1-on-1 sessions or collaborative cohorts with real-time seat availability.

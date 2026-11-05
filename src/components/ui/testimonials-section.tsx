@@ -5,6 +5,7 @@ import { RatingStars } from "@/components/ui/rating-stars";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Quote, CheckCircle2, Award, ChevronLeft, ChevronRight } from "lucide-react";
+import { formatDisplayName } from "@/lib/utils";
 
 interface TestimonialReview {
   id: string;
@@ -118,8 +119,8 @@ export function TestimonialsSection({ reviews }: { reviews: TestimonialReview[] 
         {/* Carousel Slide Cards Container */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto min-h-[260px]">
           {visibleReviews.map((rev) => {
-            const studentName = `${rev.student_first_name || "Student"} ${rev.student_last_name || ""}`.trim();
-            const instructorName = `${rev.tutor_first_name || "Instructor"} ${rev.tutor_last_name || ""}`.trim();
+            const studentName = formatDisplayName(rev.student_first_name, rev.student_last_name);
+            const instructorName = formatDisplayName(rev.tutor_first_name, rev.tutor_last_name);
 
             return (
               <div
