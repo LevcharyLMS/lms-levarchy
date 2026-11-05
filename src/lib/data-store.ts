@@ -259,7 +259,47 @@ const initialClasses: ClassItem[] = [];
 const initialBookings: Booking[] = [];
 const initialSnapshots: BookingFinancialSnapshot[] = [];
 const initialTransactions: Transaction[] = [];
-const initialReviews: Review[] = [];
+const initialReviews: Review[] = [
+  {
+    id: 'rev-init-1',
+    booking_id: 'bk-mock-1',
+    student_id: 'usr-stu-1',
+    tutor_id: 'usr-tut-1',
+    rating: 5,
+    comment: 'Dr. Marcus made Advanced Calculus feel intuitive and manageable. His structured proofs and patient pacing elevated my exam confidence completely.',
+    is_moderated: true,
+    is_published: true,
+    is_featured_testimonial: true,
+    created_at: '2026-02-15T14:30:00.000Z',
+    updated_at: '2026-02-15T14:30:00.000Z',
+  },
+  {
+    id: 'rev-init-2',
+    booking_id: 'bk-mock-2',
+    student_id: 'usr-stu-1',
+    tutor_id: 'usr-tut-2',
+    rating: 5,
+    comment: 'The in-person learning lab environment was exceptional. Sarah is knowledgeable, supportive, and prepared customized practice sets that targeted my exact weaknesses.',
+    is_moderated: true,
+    is_published: true,
+    is_featured_testimonial: true,
+    created_at: '2026-03-01T10:15:00.000Z',
+    updated_at: '2026-03-01T10:15:00.000Z',
+  },
+  {
+    id: 'rev-init-3',
+    booking_id: 'bk-mock-3',
+    student_id: 'usr-stu-1',
+    tutor_id: 'usr-tut-3',
+    rating: 5,
+    comment: 'Top-tier instruction! The interactive whiteboard tools in the video classroom made learning data structures very clear. Highly recommend Levchary to any serious student.',
+    is_moderated: true,
+    is_published: true,
+    is_featured_testimonial: true,
+    created_at: '2026-03-10T16:45:00.000Z',
+    updated_at: '2026-03-10T16:45:00.000Z',
+  },
+];
 const initialFlags: MessageFlag[] = [];
 const initialNotifications: Notification[] = [];
 const initialAuditLogs: AuditLog[] = [];
@@ -725,6 +765,7 @@ class DataStore {
       comment: review.comment,
       is_moderated: false,
       is_published: true,
+      is_featured_testimonial: false,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -741,6 +782,17 @@ class DataStore {
     }
 
     return newRev;
+  }
+
+  updateReview(reviewId: string, updates: Partial<Review>) {
+    const idx = this.state.reviews.findIndex((r) => r.id === reviewId);
+    if (idx === -1) return null;
+    this.state.reviews[idx] = {
+      ...this.state.reviews[idx],
+      ...updates,
+      updated_at: new Date().toISOString(),
+    };
+    return this.state.reviews[idx];
   }
 
   // --- MESSAGING & MODERATION ---

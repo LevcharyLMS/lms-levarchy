@@ -10,11 +10,19 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['googleapis', 'resend', 'stripe', 'pg'],
   },
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': path.resolve(__dirname, 'src'),
     };
+
+    // Improve Windows dev file watching and prevent cache lock glitches
+    if (dev) {
+      config.watchOptions = {
+        poll: 800,
+        aggregateTimeout: 300,
+      };
+    }
 
     if (!isServer) {
       config.resolve.fallback = {

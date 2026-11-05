@@ -7,6 +7,10 @@ import { ClassCard } from "@/components/ui/class-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { HeroStatsBar } from "@/components/ui/hero-stats-bar";
+import { TestimonialsSection } from "@/components/ui/testimonials-section";
+
+// Always render fresh data during development, avoiding stale in-memory cached responses
+export const dynamic = "force-dynamic";
 import {
   Search,
   ShieldCheck,
@@ -30,6 +34,8 @@ export default async function HomePage() {
   const classes = db.getClasses().slice(0, 4);
   const categories = db.getProfiles(); // or db.state.categories
   const initialStats = await SupabaseDbService.getPlatformStats();
+  // Fetch featured & moderated reviews ordered highest to lowest rating
+  const featuredReviews = await SupabaseDbService.getReviews({ featuredOnly: true });
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -370,7 +376,10 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 7. FAQ SECTION */}
+      {/* 7. VERIFIED TESTIMONIALS SECTION (Admin-Curated, Sorted Highest to Lowest) */}
+      <TestimonialsSection reviews={featuredReviews} />
+
+      {/* 8. FAQ SECTION */}
       <section className="py-20 bg-slate-50 border-t border-slate-200">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
           <div className="text-center mb-12">

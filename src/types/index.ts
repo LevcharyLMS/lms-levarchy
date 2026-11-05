@@ -444,6 +444,7 @@ export interface Review {
   comment?: string | null;
   is_moderated: boolean;
   is_published: boolean;
+  is_featured_testimonial?: boolean;
   created_at: string;
   updated_at: string;
   student?: UserProfile;

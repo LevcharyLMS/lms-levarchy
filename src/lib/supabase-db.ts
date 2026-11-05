@@ -694,7 +694,13 @@ export class SupabaseDbService {
   }
 
   // --- REVIEWS QUERY & CREATION ---
-  static async getReviews(tutorId?: string) {
+  static async getReviews(options?: {
+    tutorId?: string;
+    featuredOnly?: boolean;
+    adminView?: boolean;
+  }) {
+    const { tutorId, featuredOnly, adminView } = options || {};
+
     try {
       let sql = `
         SELECT
@@ -709,18 +715,92 @@ export class SupabaseDbService {
         JOIN profiles stu ON r.student_id = stu.id
         JOIN profiles tut ON r.tutor_id = tut.id
         JOIN bookings b ON r.booking_id = b.id
-        WHERE r.is_published = true
+        WHERE 1=1
       `;
       const params: any[] = [];
+
+      if (!adminView) {
+        sql += ` AND r.is_published = true`;
+      }
+      if (featuredOnly) {
+        sql += ` AND r.is_featured_testimonial = true`;
+      }
       if (tutorId) {
         params.push(tutorId);
         sql += ` AND r.tutor_id = $${params.length}`;
       }
-      sql += ` ORDER BY r.created_at DESC`;
+
+      // Order: highest rating to lowest rating, then newest
+      sql += ` ORDER BY r.rating DESC, r.created_at DESC`;
+
       const rows = await this.query(sql, params);
       if (rows.length > 0) return rows;
     } catch {}
-    return [];
+
+    // Fallback to in-memory store
+    let list = [...memoryDb.state.reviews];
+
+    if (!adminView) {
+      list = list.filter((r) => r.is_published);
+    }
+    if (featuredOnly) {
+      list = list.filter((r) => r.is_featured_testimonial);
+    }
+    if (tutorId) {
+      list = list.filter((r) => r.tutor_id === tutorId);
+    }
+
+    // Sort highest to lowest rating, then newest
+    list.sort((a, b) => b.rating - a.rating || new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    return list.map((r) => {
+      const student = memoryDb.getProfileById(r.student_id);
+      const tutor = memoryDb.getProfileById(r.tutor_id);
+      const booking = memoryDb.state.bookings.find((b) => b.id === r.booking_id);
+      return {
+        ...r,
+        student_first_name: student?.first_name || 'Student',
+        student_last_name: student?.last_name || '',
+        student_avatar_url: student?.avatar_url || '',
+        tutor_first_name: tutor?.first_name || 'Instructor',
+        tutor_last_name: tutor?.last_name || '',
+        booking_number: booking?.booking_number || 'BK-VERIFIED',
+      };
+    });
+  }
+
+  static async updateReview(
+    reviewId: string,
+    updates: { is_published?: boolean; is_featured_testimonial?: boolean; is_moderated?: boolean }
+  ) {
+    try {
+      const sets: string[] = ['updated_at = NOW()'];
+      const params: any[] = [reviewId];
+
+      if (updates.is_published !== undefined) {
+        params.push(updates.is_published);
+        sets.push(`is_published = $${params.length}`);
+      }
+      if (updates.is_featured_testimonial !== undefined) {
+        params.push(updates.is_featured_testimonial);
+        sets.push(`is_featured_testimonial = $${params.length}`);
+      }
+      if (updates.is_moderated !== undefined) {
+        params.push(updates.is_moderated);
+        sets.push(`is_moderated = $${params.length}`);
+      }
+
+      const rows = await this.query(
+        `UPDATE reviews SET ${sets.join(', ')} WHERE id = $1 RETURNING *`,
+        params
+      );
+      if (rows.length > 0) {
+        memoryDb.updateReview(reviewId, updates);
+        return rows[0];
+      }
+    } catch {}
+
+    return memoryDb.updateReview(reviewId, updates);
   }
 
   static async createReview(bookingId: string, studentId: string, tutorId: string, rating: number, comment: string) {
