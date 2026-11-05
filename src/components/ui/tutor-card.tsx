@@ -95,7 +95,7 @@ export function TutorCard({ tutor }: TutorCardProps) {
           Location: <strong className="text-slate-700">{location}</strong>
         </span>
         <Button asChild size="sm" variant="default" className="gap-1">
-          <Link href={`/tutors/${tutor.user_id}`}>
+          <Link href={`/instructors/${tutor.user_id}`}>
             View Profile <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </Button>

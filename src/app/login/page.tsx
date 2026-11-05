@@ -44,8 +44,8 @@ export default function LoginPage() {
     if (user.role === "STUDENT") {
       const isOnboarded = (studentProfile?.preferences as any)?.onboarding_completed;
       router.push(isOnboarded ? "/student/dashboard" : "/student/onboarding");
-    } else if (user.role === "TUTOR") {
-      router.push("/tutor/dashboard");
+    } else if (user.role === "TUTOR" || user.role === "INSTRUCTOR") {
+      router.push("/instructor/dashboard");
     } else {
       router.push("/admin/dashboard");
     }

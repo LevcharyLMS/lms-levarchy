@@ -30,8 +30,10 @@ export function Navbar() {
     "/login",
     "/register",
     "/tutor/application",
+    "/instructor/application",
     "/student",
     "/tutor",
+    "/instructor",
     "/admin",
     "/classroom",
   ];
@@ -48,9 +50,9 @@ export function Navbar() {
         {/* Desktop Navigation Links */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
           <Link
-            href="/find-tutors"
+            href="/find-instructors"
             className={`transition-colors hover:text-teal-600 ${
-              pathname === "/find-tutors" ? "text-teal-600 font-semibold" : ""
+              pathname === "/find-instructors" || pathname === "/find-tutors" ? "text-teal-600 font-semibold" : ""
             }`}
           >
             Find Instructors
@@ -80,9 +82,9 @@ export function Navbar() {
             Pricing
           </Link>
           <Link
-            href="/become-a-tutor"
+            href="/become-an-instructor"
             className={`transition-colors hover:text-teal-600 ${
-              pathname === "/become-a-tutor" ? "text-teal-600 font-semibold" : ""
+              pathname === "/become-an-instructor" || pathname === "/become-a-tutor" ? "text-teal-600 font-semibold" : ""
             }`}
           >
             Become an Instructor
@@ -98,8 +100,8 @@ export function Navbar() {
                   href={
                     user.role === "STUDENT"
                       ? "/student/dashboard"
-                      : user.role === "TUTOR"
-                      ? "/tutor/dashboard"
+                      : user.role === "TUTOR" || user.role === "INSTRUCTOR"
+                      ? "/instructor/dashboard"
                       : "/admin/dashboard"
                   }
                 >
@@ -146,7 +148,7 @@ export function Navbar() {
         <div className="md:hidden border-b border-slate-200 bg-white px-4 pt-2 pb-6 space-y-4 shadow-lg animate-accordion-down">
           <div className="flex flex-col space-y-2 pt-2">
             <Link
-              href="/find-tutors"
+              href="/find-instructors"
               onClick={() => setMobileMenuOpen(false)}
               className="px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
@@ -174,7 +176,7 @@ export function Navbar() {
               Pricing
             </Link>
             <Link
-              href="/become-a-tutor"
+              href="/become-an-instructor"
               onClick={() => setMobileMenuOpen(false)}
               className="px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50"
             >

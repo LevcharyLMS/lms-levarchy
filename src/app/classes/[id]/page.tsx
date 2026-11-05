@@ -270,7 +270,7 @@ export default function ClassDetailPage({ params }: ClassPageProps) {
                     </div>
                   </div>
                   <Button asChild variant="outline" size="sm">
-                    <Link href={`/tutors/${tutor.id}`}>Instructor Profile</Link>
+                    <Link href={`/instructors/${tutor.id}`}>Instructor Profile</Link>
                   </Button>
                 </div>
               )}

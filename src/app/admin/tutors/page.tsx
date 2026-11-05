@@ -88,7 +88,7 @@ export default function AdminTutorsPage() {
                   <td className="p-4 text-right">
                     <div className="flex items-center justify-end gap-1.5">
                       <Button asChild variant="outline" size="sm" className="h-8 text-xs">
-                        <Link href={`/tutors/${t.user_id}`}>View</Link>
+                        <Link href={`/instructors/${t.user_id}`}>View</Link>
                       </Button>
                       <Button
                         variant={t.is_approved ? "destructive" : "default"}

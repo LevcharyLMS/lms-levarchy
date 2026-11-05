@@ -216,7 +216,7 @@ export default function StudentCalendarPage() {
             title="No sessions scheduled for this week"
             description="Book a new session with an approved instructor or join an upcoming group cohort."
             actionLabel="Browse Available Tutors"
-            actionHref="/find-tutors"
+            actionHref="/find-instructors"
           />
         )}
       </div>

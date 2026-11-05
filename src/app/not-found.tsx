@@ -11,7 +11,7 @@ export default function NotFound() {
         Page Not Found
       </h1>
       <p className="max-w-md text-base text-slate-600 mb-8 leading-relaxed">
-        The page you are looking for doesn&apos;t exist or has been moved. Explore our verified tutors or head back to the homepage.
+        The page you are looking for doesn&apos;t exist or has been moved. Explore our verified instructors or head back to the homepage.
       </p>
       <div className="flex flex-wrap items-center justify-center gap-3">
         <Link href="/">
@@ -19,9 +19,9 @@ export default function NotFound() {
             Return Home
           </Button>
         </Link>
-        <Link href="/find-tutors">
+        <Link href="/find-instructors">
           <Button variant="outline" className="border-slate-300 text-slate-700 hover:bg-slate-50">
-            Browse Tutors
+            Browse Instructors
           </Button>
         </Link>
         <Link href="/contact">

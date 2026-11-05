@@ -58,7 +58,7 @@ export class BookingService {
       title: 'New Student Booking Received',
       message: `A student has booked a session (${booking.booking_number}) with you.`,
       type: 'BOOKING',
-      link: `/tutor/classes`,
+      link: `/instructor/classes`,
       idempotencyKey: `notif-bk-tutor-${booking.id}`,
     });
 

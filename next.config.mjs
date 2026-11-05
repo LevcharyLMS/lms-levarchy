@@ -10,6 +10,45 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['googleapis', 'resend', 'stripe', 'pg'],
   },
+  async redirects() {
+    return [
+      {
+        source: '/find-tutors',
+        destination: '/find-instructors',
+        permanent: false,
+      },
+      {
+        source: '/become-a-tutor',
+        destination: '/become-an-instructor',
+        permanent: false,
+      },
+      {
+        source: '/tutors/:id',
+        destination: '/instructors/:id',
+        permanent: false,
+      },
+      {
+        source: '/admin/tutors',
+        destination: '/admin/instructors',
+        permanent: false,
+      },
+      {
+        source: '/admin/tutor-applications',
+        destination: '/admin/instructor-applications',
+        permanent: false,
+      },
+      {
+        source: '/student/tutors',
+        destination: '/student/instructors',
+        permanent: false,
+      },
+      {
+        source: '/tutor/:path*',
+        destination: '/instructor/:path*',
+        permanent: false,
+      },
+    ];
+  },
   webpack: (config, { isServer, dev }) => {
     config.resolve.alias = {
       ...config.resolve.alias,

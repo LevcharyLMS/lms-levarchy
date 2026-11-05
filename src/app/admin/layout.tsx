@@ -65,8 +65,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       items: [
         { label: "Users", href: "/admin/users", icon: Users },
         { label: "Students", href: "/admin/students", icon: GraduationCap },
-        { label: "Instructors", href: "/admin/tutors", icon: UserCheck },
-        { label: "Instructor Applications", href: "/admin/tutor-applications", icon: FileCheck },
+        { label: "Instructors", href: "/admin/instructors", icon: UserCheck },
+        { label: "Instructor Applications", href: "/admin/instructor-applications", icon: FileCheck },
         { label: "Verification", href: "/admin/verifications", icon: ShieldCheck, badge: "1" },
       ],
     },

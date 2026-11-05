@@ -26,7 +26,7 @@ export default function ClassroomPage() {
   const email = user?.email;
 
   const returnPath = user?.role === "TUTOR"
-    ? "/tutor/dashboard"
+    ? "/instructor/dashboard"
     : user?.role === "ADMIN"
     ? "/admin/dashboard"
     : "/student/bookings";

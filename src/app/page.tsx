@@ -62,7 +62,7 @@ export default async function HomePage() {
             {/* Quick Action CTAs */}
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               <Button asChild size="lg" variant="default" className="gap-2 shadow-lg shadow-teal-900/30">
-                <Link href="/find-tutors">
+                <Link href="/find-instructors">
                   <Search className="w-4 h-4" /> Find an Instructor
                 </Link>
               </Button>
@@ -72,7 +72,7 @@ export default async function HomePage() {
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="bg-transparent text-slate-200 border-slate-700 hover:bg-slate-800/80">
-                <Link href="/become-a-tutor">
+                <Link href="/become-an-instructor">
                   Become an Instructor
                 </Link>
               </Button>
@@ -213,7 +213,7 @@ export default async function HomePage() {
               </p>
             </div>
             <Button asChild variant="outline" className="mt-4 md:mt-0 gap-1.5">
-              <Link href="/find-tutors">
+              <Link href="/find-instructors">
                 Browse All Instructors <ArrowRight className="w-4 h-4" />
               </Link>
             </Button>
@@ -445,7 +445,7 @@ export default async function HomePage() {
               <Link href="/register">Sign Up as a Student</Link>
             </Button>
             <Button asChild size="lg" variant="navy" className="border border-teal-500/50 hover:bg-navy-800">
-              <Link href="/become-a-tutor">Apply to Teach</Link>
+              <Link href="/become-an-instructor">Apply to Teach</Link>
             </Button>
           </div>
         </div>

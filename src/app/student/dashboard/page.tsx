@@ -102,9 +102,9 @@ export default async function StudentDashboardPage() {
         {/* Quick Actions (Section 24) */}
         <div className="flex items-center gap-2 flex-wrap">
           <Button asChild variant="outline" size="sm" className="h-8 text-xs border-slate-200 gap-1.5">
-            <Link href="/student/tutors">
+            <Link href="/student/instructors">
               <Users className="w-3.5 h-3.5 text-indigo-600" />
-              <span>Find a Tutor</span>
+              <span>Find an Instructor</span>
             </Link>
           </Button>
           <Button asChild variant="outline" size="sm" className="h-8 text-xs border-slate-200 gap-1.5">
@@ -202,7 +202,7 @@ export default async function StudentDashboardPage() {
             title="Your learning journey starts here"
             description="Find a verified instructor or explore available classes to schedule your first 1-on-1 session or cohort workshop."
             actionLabel="Find Tutors"
-            actionHref="/student/tutors"
+            actionHref="/student/instructors"
           />
         </FadeUp>
       )}
@@ -299,7 +299,7 @@ export default async function StudentDashboardPage() {
                 <h3 className="font-bold text-sm text-navy-950">Recommended Verified Instructors</h3>
                 <p className="text-xs text-slate-500">Verified academic faculty available for 1-on-1 mentorship</p>
               </div>
-              <Link href="/student/tutors" className="text-xs text-primary font-semibold hover:underline flex items-center gap-1">
+              <Link href="/student/instructors" className="text-xs text-primary font-semibold hover:underline flex items-center gap-1">
                 <span>Explore All Tutors</span>
                 <ArrowRight className="w-3 h-3" />
               </Link>
@@ -345,7 +345,7 @@ export default async function StudentDashboardPage() {
                         ${((t.hourly_rate || 7500) / 100).toFixed(2)}/hr
                       </span>
                       <Button asChild size="sm" variant="ghost" className="h-7 text-xs text-primary hover:text-primary p-0">
-                        <Link href={`/tutors/${t.user_id}`}>Profile →</Link>
+                        <Link href={`/instructors/${t.user_id}`}>Profile →</Link>
                       </Button>
                     </div>
                   </AnimatedCard>

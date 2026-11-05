@@ -76,7 +76,7 @@ export default function PricingPage() {
 
           <div className="p-6 pt-0">
             <Button asChild className="w-full" size="lg">
-              <Link href="/find-tutors">Find an Instructor</Link>
+              <Link href="/find-instructors">Find an Instructor</Link>
             </Button>
           </div>
         </Card>
@@ -131,7 +131,7 @@ export default function PricingPage() {
 
           <div className="p-6 pt-0">
             <Button asChild variant="navy" className="w-full" size="lg">
-              <Link href="/become-a-tutor">Apply as an Instructor</Link>
+              <Link href="/become-an-instructor">Apply as an Instructor</Link>
             </Button>
           </div>
         </Card>

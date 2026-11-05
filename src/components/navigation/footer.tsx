@@ -38,8 +38,10 @@ const PORTAL_OR_AUTH_PREFIXES = [
   "/login",
   "/register",
   "/tutor/application",
+  "/instructor/application",
   "/student",
   "/tutor",
+  "/instructor",
   "/admin",
   "/classroom",
 ];
@@ -103,7 +105,7 @@ export function Footer() {
             </h4>
             <ul className="space-y-2.5 text-sm">
               <li>
-                <Link href="/find-tutors" className="hover:text-teal-400 transition-colors">
+                <Link href="/find-instructors" className="hover:text-teal-400 transition-colors">
                   Find Verified Instructors
                 </Link>
               </li>
@@ -123,7 +125,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/become-a-tutor" className="hover:text-teal-400 transition-colors">
+                <Link href="/become-an-instructor" className="hover:text-teal-400 transition-colors">
                   Apply as an Instructor
                 </Link>
               </li>
@@ -157,7 +159,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/tutor/dashboard" className="hover:text-teal-400 transition-colors">
+                <Link href="/instructor/dashboard" className="hover:text-teal-400 transition-colors">
                   Instructor Portal
                 </Link>
               </li>

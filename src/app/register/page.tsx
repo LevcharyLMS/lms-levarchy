@@ -138,7 +138,7 @@ export default function RegisterPage() {
     if (role === "STUDENT") {
       router.push("/student/onboarding");
     } else {
-      router.push("/tutor/application");
+      router.push("/instructor/application");
     }
   };
 
