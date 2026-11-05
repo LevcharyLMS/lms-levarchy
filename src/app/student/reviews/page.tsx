@@ -159,7 +159,7 @@ export default function StudentReviewsPage() {
                 >
                   {completedBookings.map((b) => (
                     <option key={b.id} value={b.id}>
-                      {b.class_item?.title || "Class Session"} • Tutor: {b.tutor?.first_name}{" "}
+                      {b.class_item?.title || "Class Session"} • Instructor: {b.tutor?.first_name}{" "}
                       {b.tutor?.last_name} (#{b.booking_number})
                     </option>
                   ))}
@@ -223,7 +223,7 @@ export default function StudentReviewsPage() {
         <EmptyState
           icon={Award}
           title="No completed sessions available to review yet"
-          description="Once you finish a scheduled 1-on-1 tutoring session or group class cohort, you'll be able to leave verified feedback here."
+          description="Once you finish a scheduled 1-on-1 session or group class cohort, you'll be able to leave verified feedback here."
           actionLabel="View My Bookings"
           actionHref="/student/bookings"
         />

@@ -50,7 +50,7 @@ export default function AdminVerificationsPage() {
 
     db.updateVerificationDocumentStatus(activeDoc.id, status, adminNotes);
     setDocuments([...db.state.verification_documents]);
-    setActionSuccess(`Document marked as ${status}. Tutor record updated.`);
+    setActionSuccess(`Document marked as ${status}. Instructor record updated.`);
     setIsDrawerOpen(false);
     setActiveDoc(null);
     setSignedUrl(null);
@@ -120,7 +120,7 @@ export default function AdminVerificationsPage() {
       {/* Page Header */}
       <div>
         <h1 className="text-xl font-bold tracking-tight text-navy-950">
-          Tutor Verification Center
+          Instructor Verification Center
         </h1>
         <p className="text-xs text-slate-500 mt-0.5">
           Review government photo IDs and university degrees with 15-minute expiring signed URLs before granting teaching authority.

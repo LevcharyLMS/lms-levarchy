@@ -24,6 +24,7 @@ export default function StudentTutorsPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFormat, setSelectedFormat] = useState<string>("ALL");
+  const [instructorType, setInstructorType] = useState<"ALL" | "TUTOR" | "FACULTY">("ALL");
   const [maxRate, setMaxRate] = useState<number>(15000); // in cents ($150)
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
@@ -33,13 +34,13 @@ export default function StudentTutorsPage() {
       try {
         setLoading(true);
         const res = await fetch("/api/tutors");
-        if (!res.ok) throw new Error("Failed to load tutors");
+        if (!res.ok) throw new Error("Failed to load instructors");
         const data = await res.json();
         if (isMounted) {
-          setAllTutors(data.tutors || []);
+          setAllTutors(data.instructors || data.tutors || []);
         }
       } catch (err) {
-        console.error("Failed to load tutors:", err);
+        console.error("Failed to load instructors:", err);
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -55,6 +56,11 @@ export default function StudentTutorsPage() {
   const filteredTutors = useMemo(() => {
     return allTutors.filter((t) => {
       const user = t?.user;
+
+      // Instructor subtype filter
+      const isFaculty = t.instructor_type === "FACULTY" || (!t.instructor_type && t.experience_years && t.experience_years >= 4);
+      if (instructorType === "FACULTY" && !isFaculty) return false;
+      if (instructorType === "TUTOR" && isFaculty) return false;
 
       // Format filter
       if (selectedFormat !== "ALL") {
@@ -78,7 +84,7 @@ export default function StudentTutorsPage() {
 
       return true;
     });
-  }, [allTutors, searchQuery, selectedFormat, maxRate]);
+  }, [allTutors, searchQuery, selectedFormat, instructorType, maxRate]);
 
   return (
     <div className="space-y-6 max-w-7xl">
@@ -156,6 +162,20 @@ export default function StudentTutorsPage() {
               <option value="VIRTUAL">Virtual / Online Classroom</option>
               <option value="PHYSICAL">Physical / In-Person</option>
               <option value="HYBRID">Hybrid (Both)</option>
+            </select>
+          </div>
+
+          {/* Instructor Type Filter */}
+          <div className="relative">
+            <select
+              aria-label="Instructor type"
+              className="w-full h-9 px-3 text-xs bg-slate-50/70 border border-slate-200 rounded-md text-slate-700 focus:outline-none focus:ring-1 focus:ring-primary"
+              value={instructorType}
+              onChange={(e) => setInstructorType(e.target.value as any)}
+            >
+              <option value="ALL">All Instructors</option>
+              <option value="TUTOR">Tutors</option>
+              <option value="FACULTY">Faculty</option>
             </select>
           </div>
 

@@ -142,7 +142,7 @@ export default async function AdminDashboardPage() {
           <StatCard
             title="Verified Faculty"
             value={stats.approvedTutors}
-            subtitle={`Out of ${stats.totalTutors} registered tutors`}
+            subtitle={`Out of ${stats.totalTutors} registered instructors`}
             icon={ShieldCheck}
             variant="emerald"
           />
@@ -160,7 +160,7 @@ export default async function AdminDashboardPage() {
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs space-y-1">
-          <span className="text-[11px] font-semibold uppercase text-slate-400">Tutor Earnings Allocated</span>
+          <span className="text-[11px] font-semibold uppercase text-slate-400">Instructor Earnings Allocated</span>
           <div className="text-xl font-bold text-navy-950">
             <MoneyDisplay cents={stats.tutorEarningsCents} />
           </div>
@@ -209,7 +209,7 @@ export default async function AdminDashboardPage() {
                     </div>
                     <p className="font-semibold text-slate-800 truncate">{b.class_item?.title || "Class Session"}</p>
                     <p className="text-[11px] text-slate-500">
-                      Student: {b.student?.first_name} {b.student?.last_name} • Tutor: {b.tutor?.first_name} {b.tutor?.last_name}
+                      Student: {b.student?.first_name} {b.student?.last_name} • Instructor: {b.tutor?.first_name} {b.tutor?.last_name}
                     </p>
                   </div>
 

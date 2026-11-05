@@ -25,7 +25,7 @@ export default function HowItWorksPage() {
           How Levchary Works
         </h1>
         <p className="text-sm text-slate-500 leading-relaxed">
-          Levchary operates as a company-controlled education marketplace. We manage tutor credential verification, classroom facilities, and payment escrow to guarantee an uncompromising standard of learning.
+          Levchary operates as a company-controlled education marketplace. We manage instructor credential verification, classroom facilities, and payment escrow to guarantee an uncompromising standard of learning.
         </p>
       </div>
 
@@ -41,7 +41,7 @@ export default function HowItWorksPage() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="space-y-2 border-l-2 border-teal-500 pl-4">
             <span className="text-xs font-bold text-teal-600">Step 1</span>
-            <h3 className="text-sm font-semibold text-navy-950">Discover Tutors & Classes</h3>
+            <h3 className="text-sm font-semibold text-navy-950">Discover Instructors & Classes</h3>
             <p className="text-xs text-slate-500 leading-relaxed">
               Filter by subject, grade level, and choose between private 1-on-1 sessions or small group cohorts.
             </p>
@@ -51,7 +51,7 @@ export default function HowItWorksPage() {
             <span className="text-xs font-bold text-teal-600">Step 2</span>
             <h3 className="text-sm font-semibold text-navy-950">Select Time & Book</h3>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Our scheduling engine atomically locks tutor availability or group seats, eliminating double-booking risks.
+              Our scheduling engine atomically locks instructor availability or group seats, eliminating double-booking risks.
             </p>
           </div>
 
@@ -73,13 +73,13 @@ export default function HowItWorksPage() {
         </div>
       </div>
 
-      {/* Tutor Journey */}
+      {/* Instructor Journey */}
       <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-xs space-y-8">
         <div>
           <h2 className="text-xl font-bold text-navy-950 flex items-center gap-2">
-            <FileCheck2 className="w-5 h-5 text-teal-600" /> The Tutor Journey
+            <FileCheck2 className="w-5 h-5 text-teal-600" /> The Instructor Journey
           </h2>
-          <p className="text-xs text-slate-500 mt-1">Institutional verification and seamless payouts.</p>
+          <p className="text-xs text-slate-500 mt-1">Institutional verification and seamless payouts for tutors and faculty.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

@@ -32,10 +32,10 @@ export default function AdminTutorsPage() {
     <div className="space-y-8 max-w-6xl">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-navy-950">
-          Certified Tutor Management
+          Instructor Management
         </h1>
         <p className="text-xs text-slate-500 mt-0.5">
-          Faculty directory, verification oversight, and teaching authorization.
+          Directory of all instructors (tutors &amp; faculty), verification oversight, and teaching authorization.
         </p>
       </div>
 

@@ -143,7 +143,7 @@ export default function StudentOnboardingPage() {
       return;
     }
     if (currentStep === 2 && selectedSubjects.length === 0) {
-      setError("Please select at least one subject you want tutoring support in.");
+      setError("Please select at least one subject you want academic support in.");
       return;
     }
     if (currentStep < 5) {
@@ -280,7 +280,7 @@ export default function StudentOnboardingPage() {
                   <span>Question 2 of 4</span>
                 </div>
                 <h2 className="text-lg font-bold text-navy-950">
-                  Which subjects do you need tutoring support in?
+                  Which subjects do you need academic support in?
                 </h2>
                 <p className="text-xs text-slate-500">
                   Select all subjects you are currently studying or preparing for (select multiple).
@@ -431,7 +431,7 @@ export default function StudentOnboardingPage() {
                   Location & Contact Preferences
                 </h2>
                 <p className="text-xs text-slate-500">
-                  Your city and state help us suggest local tutors and nearby learning centers.
+                  Your city and state help us suggest local instructors and nearby learning centers.
                 </p>
               </div>
 

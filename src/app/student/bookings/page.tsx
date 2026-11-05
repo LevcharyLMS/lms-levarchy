@@ -327,7 +327,7 @@ export default function StudentBookingsPage() {
         <EmptyState
           icon={Calendar}
           title="No bookings in this tab"
-          description="Ready to accelerate your learning? Browse approved tutors and reserve a session."
+          description="Ready to accelerate your learning? Browse approved instructors and reserve a session."
           actionLabel="Explore Classes"
           actionHref="/classes"
         />

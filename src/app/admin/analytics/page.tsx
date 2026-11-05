@@ -191,7 +191,7 @@ export default async function AdminAnalyticsPage() {
             </div>
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
               <p className="text-lg font-bold text-navy-950">{stats.approvedTutors ?? 0}</p>
-              <p className="text-[10px] text-slate-500 mt-0.5">Active Tutors</p>
+              <p className="text-[10px] text-slate-500 mt-0.5">Active Instructors</p>
             </div>
           </div>
         </div>

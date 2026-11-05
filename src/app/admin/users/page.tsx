@@ -166,7 +166,7 @@ export default function AdminUsersPage() {
         onSearchChange={setSearchQuery}
         categories={[
           { id: "STUDENT", label: "Students" },
-          { id: "TUTOR", label: "Tutors" },
+          { id: "TUTOR", label: "Instructors" },
           { id: "ADMIN", label: "Admins" },
         ]}
         selectedCategory={roleFilter}

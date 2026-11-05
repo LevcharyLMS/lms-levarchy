@@ -86,7 +86,7 @@ export default function AdminCommissionsPage() {
         <Lock className="w-5 h-5 text-purple-700 shrink-0 mt-0.5" />
         <div>
           <strong className="block font-bold">Rule 12 Integrity Architecture:</strong>
-          Any change saved below applies exclusively to FUTURE bookings. Past bookings retain their immutable locked gross, fee, and tutor payout values forever.
+          Any change saved below applies exclusively to FUTURE bookings. Past bookings retain their immutable locked gross, fee, and instructor payout values forever.
         </div>
       </div>
 
@@ -128,7 +128,7 @@ export default function AdminCommissionsPage() {
 
             <div className="flex items-center justify-between pt-2">
               <span className="text-xs text-slate-500">
-                Tutor receives: <strong>{(100 - parseFloat(currentTier || "0")).toFixed(1)}%</strong> of gross class tuition
+                Instructor receives: <strong>{(100 - parseFloat(currentTier || "0")).toFixed(1)}%</strong> of gross class tuition
               </span>
               <Button type="submit" variant="default" className="font-semibold bg-purple-900 hover:bg-purple-800">
                 Publish Versioned Rule
@@ -151,7 +151,7 @@ export default function AdminCommissionsPage() {
               <tr>
                 <th className="p-4">Version / Tier Name</th>
                 <th className="p-4">Platform Fee</th>
-                <th className="p-4">Tutor Share</th>
+                <th className="p-4">Instructor Share</th>
                 <th className="p-4">Effective Date</th>
                 <th className="p-4">Published By</th>
                 <th className="p-4">Status</th>

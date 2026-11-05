@@ -77,7 +77,7 @@ export default function StudentCalendarPage() {
             </span>
           </div>
           <p className="text-xs text-slate-500">
-            Real-time schedule of your confirmed 1-on-1 tutoring sessions and cohort classes.
+            Real-time schedule of your confirmed 1-on-1 sessions and cohort classes.
           </p>
         </div>
 
@@ -214,7 +214,7 @@ export default function StudentCalendarPage() {
           <EmptyState
             icon={CalendarIcon}
             title="No sessions scheduled for this week"
-            description="Book a new session with an approved tutor or join an upcoming group cohort."
+            description="Book a new session with an approved instructor or join an upcoming group cohort."
             actionLabel="Browse Available Tutors"
             actionHref="/find-tutors"
           />

@@ -30,7 +30,7 @@ export default async function StudentClassesPage() {
         <EmptyState
           icon={BookOpen}
           title="No classes available yet"
-          description="Classes published by approved tutors will appear here for you to browse and book."
+          description="Classes published by approved instructors will appear here for you to browse and book."
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

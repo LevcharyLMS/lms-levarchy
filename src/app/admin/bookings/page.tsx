@@ -111,7 +111,7 @@ export default function AdminBookingsPage() {
     },
     {
       key: "tutor",
-      header: "Tutor",
+      header: "Instructor",
       render: (b) => (
         <div>
           <p className="font-medium text-slate-900 text-xs">
@@ -228,7 +228,7 @@ export default function AdminBookingsPage() {
         <StatCard
           title="Completed Classes"
           value={completedCount}
-          subtitle="Tutor payout eligible"
+          subtitle="Instructor payout eligible"
           icon={CheckCircle2}
           variant="emerald"
         />
@@ -280,7 +280,7 @@ export default function AdminBookingsPage() {
           <div className="w-full sm:w-64">
             <input
               type="text"
-              placeholder="Search reference, student, or tutor..."
+              placeholder="Search reference, student, or instructor..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full h-8 px-3 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-primary"
@@ -356,7 +356,7 @@ export default function AdminBookingsPage() {
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-600">Net Tutor Payout (80%):</span>
+                    <span className="text-slate-600">Net Instructor Payout (80%):</span>
                     <span className="font-bold text-emerald-700">
                       <MoneyDisplay cents={selectedBooking.financial_snapshot.tutor_earnings} />
                     </span>
@@ -378,7 +378,7 @@ export default function AdminBookingsPage() {
               </div>
 
               <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-1">
-                <span className="text-[10px] uppercase font-bold text-slate-400">Tutor</span>
+                <span className="text-[10px] uppercase font-bold text-slate-400">Instructor</span>
                 <p className="font-bold text-navy-950">
                   {selectedBooking.tutor?.first_name} {selectedBooking.tutor?.last_name}
                 </p>

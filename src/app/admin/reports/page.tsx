@@ -122,7 +122,7 @@ export default function AdminReportsPage() {
               <FileSpreadsheet className="w-4 h-4 text-purple-700" />
             </div>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Itemized ledger of student tuition payments, 20% platform commissions, and 80% tutor payouts disbursed through Stripe Connect.
+              Itemized ledger of student tuition payments, 20% platform commissions, and 80% instructor payouts disbursed through Stripe Connect.
             </p>
             <Button
               variant="default"

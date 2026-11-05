@@ -21,7 +21,7 @@ export default function AboutPage() {
       <div className="bg-white rounded-2xl border border-slate-200 p-8 space-y-6 text-sm text-slate-700 leading-relaxed shadow-xs">
         <h2 className="text-xl font-bold text-navy-950">Our Mission</h2>
         <p>
-          Levchary was established to bridge the gap between unvetted online tutor listings and rigid academic institutions. We believe that true learning occurs when students are paired with verified subject experts in structured environments—whether virtually in interactive online classrooms or in-person at supervised physical learning laboratories.
+          Levchary was established to bridge the gap between unvetted online instructor listings and rigid academic institutions. We believe that true learning occurs when students are paired with verified subject experts in structured environments—whether virtually in interactive online classrooms or in-person at supervised physical learning laboratories.
         </p>
         <p>
           Unlike open ad boards where anyone can market themselves without qualification checks, Levchary acts as the ultimate guarantor of quality. We personally review educator government IDs, university diplomas, and criminal background checks before granting teaching privileges.
@@ -34,7 +34,7 @@ export default function AboutPage() {
               <ShieldCheck className="w-4 h-4 text-teal-600" /> Complete Platform Authority
             </h3>
             <p className="text-xs text-slate-500">
-              The company retains ultimate control over pricing fairness, commissions, cancellation policies, and tutor verification.
+              The company retains ultimate control over pricing fairness, commissions, cancellation policies, and instructor verification.
             </p>
           </div>
           <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80">

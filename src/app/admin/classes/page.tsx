@@ -111,7 +111,7 @@ export default function AdminClassesPage() {
             {c.tutor?.first_name} {c.tutor?.last_name}
           </p>
           <p className="text-[10px] text-slate-400 truncate max-w-[140px]">
-            {c.tutor?.tutor_profile?.headline || "Verified Tutor"}
+            {c.tutor?.tutor_profile?.headline || "Verified Instructor"}
           </p>
         </div>
       ),
@@ -374,7 +374,7 @@ export default function AdminClassesPage() {
                 {selectedClass.tutor?.first_name} {selectedClass.tutor?.last_name}
               </p>
               <p className="text-[11px] text-slate-500">
-                {selectedClass.tutor?.tutor_profile?.headline || "Verified Academic Tutor"}
+                {selectedClass.tutor?.tutor_profile?.headline || "Verified Academic Instructor"}
               </p>
             </div>
 

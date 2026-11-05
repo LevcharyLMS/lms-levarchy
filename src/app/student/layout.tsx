@@ -37,7 +37,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   // Exact 11 items specified in Section 8 of PRD
   const studentNav = [
     { label: "Dashboard", href: "/student/dashboard", icon: LayoutDashboard },
-    { label: "Find Tutors", href: "/student/tutors", icon: Users },
+    { label: "Find Instructors", href: "/student/tutors", icon: Users },
     { label: "Classes", href: "/student/classes", icon: Search },
     { label: "Bookings", href: "/student/bookings", icon: Calendar },
     { label: "Calendar", href: "/student/calendar", icon: BookOpen },

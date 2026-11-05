@@ -13,10 +13,10 @@ export default function AdminTutorApplicationsPage() {
     <div className="space-y-8 max-w-5xl">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-navy-950">
-          Incoming Tutor Applications
+          Incoming Instructor Applications
         </h1>
         <p className="text-xs text-slate-500 mt-0.5">
-          Review application submissions and inspect credential verification documents.
+          Review application submissions and inspect credential verification documents for new instructors.
         </p>
       </div>
 

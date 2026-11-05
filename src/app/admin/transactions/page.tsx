@@ -103,7 +103,7 @@ export default function AdminTransactionsPage() {
     },
     {
       key: "net_amount",
-      header: "Tutor Share (80%)",
+      header: "Instructor Share (80%)",
       sortable: true,
       render: (tx) => (
         <span className="font-bold text-emerald-700 text-xs">
@@ -190,7 +190,7 @@ export default function AdminTransactionsPage() {
           variant="purple"
         />
         <StatCard
-          title="Tutor Earnings Disbursed"
+          title="Instructor Earnings Disbursed"
           value={<MoneyDisplay cents={totalNetCents} />}
           subtitle="80% net instructor volume"
           icon={CreditCard}
@@ -319,7 +319,7 @@ export default function AdminTransactionsPage() {
 
                 <div className="flex items-center justify-between p-2.5 bg-emerald-50 rounded-lg border border-emerald-100">
                   <div>
-                    <span className="font-semibold text-emerald-900">Tutor Net Disbursed (80%)</span>
+                    <span className="font-semibold text-emerald-900">Instructor Net Disbursed (80%)</span>
                     <p className="text-[10px] text-emerald-700">Stripe Connect transfer allocation</p>
                   </div>
                   <span className="font-bold text-emerald-900 text-sm">

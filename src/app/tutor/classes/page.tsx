@@ -785,7 +785,7 @@ export default function TutorClassesPage() {
                 </span>
               </div>
               <div className="flex items-center justify-between pt-1 border-t border-emerald-200 font-bold text-emerald-800">
-                <span>Net Tutor Payout ({commissionRate.tutorShareRate}%):</span>
+                <span>Net Instructor Payout ({commissionRate.tutorShareRate}%):</span>
                 <span>
                   ${((selectedClass.price * (commissionRate.tutorShareRate / 100)) / 100).toFixed(2)}
                 </span>

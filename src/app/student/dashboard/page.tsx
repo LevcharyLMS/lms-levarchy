@@ -200,7 +200,7 @@ export default async function StudentDashboardPage() {
           <EmptyState
             icon={Calendar}
             title="Your learning journey starts here"
-            description="Find a verified tutor or explore available classes to schedule your first 1-on-1 session or cohort workshop."
+            description="Find a verified instructor or explore available classes to schedule your first 1-on-1 session or cohort workshop."
             actionLabel="Find Tutors"
             actionHref="/student/tutors"
           />
@@ -308,7 +308,7 @@ export default async function StudentDashboardPage() {
             {recommendedTutors.length === 0 ? (
               <EmptyState
                 icon={Users}
-                title="No tutors currently available"
+                title="No instructors currently available"
                 description="New faculty applications are undergoing administrative credential verification."
                 actionLabel="Explore Classes"
                 actionHref="/student/classes"

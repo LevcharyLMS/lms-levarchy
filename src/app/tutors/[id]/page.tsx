@@ -97,7 +97,7 @@ export default function TutorDetailPage({ params }: TutorPageProps) {
               </Button>
               <Button asChild variant="outline" size="sm">
                 <Link href="/student/messages">
-                  <MessageSquare className="w-3.5 h-3.5 mr-1" /> Contact Tutor
+                  <MessageSquare className="w-3.5 h-3.5 mr-1" /> Contact Instructor
                 </Link>
               </Button>
             </div>
@@ -146,7 +146,7 @@ export default function TutorDetailPage({ params }: TutorPageProps) {
         </div>
       </div>
 
-      {/* Available Classes Taught by Tutor */}
+      {/* Available Classes Taught by Instructor */}
       <div id="classes" className="mb-12">
         <div className="mb-6">
           <h2 className="text-2xl font-bold tracking-tight text-navy-950">

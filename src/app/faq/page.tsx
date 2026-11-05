@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 export default function FAQPage() {
   const faqs = [
     {
-      q: "How does Levchary verify tutor credentials?",
-      a: "Every tutor must upload a government-issued photo ID (passport or driver's license) and verified university diploma or teaching certification. Our compliance team manually audits each document before approving tutor profiles.",
+      q: "How does Levchary verify instructor credentials?",
+      a: "Every instructor (both freelance tutors and academic faculty) must upload a government-issued photo ID (passport or driver's license) and verified university diploma or teaching certification. Our compliance team manually audits each document before approving instructor profiles.",
     },
     {
       q: "How are virtual classes conducted?",
-      a: "Virtual classes run through our embedded, encrypted video classroom player. Upon booking confirmation, a dedicated classroom room is automatically provisioned and attached to the session. Students and tutors join directly from their dashboards without needing external video accounts.",
+      a: "Virtual classes run through our embedded, encrypted video classroom player. Upon booking confirmation, a dedicated classroom room is automatically provisioned and attached to the session. Students and instructors join directly from their dashboards without needing external video accounts.",
     },
     {
       q: "Where are in-person physical classes hosted?",
@@ -18,15 +18,15 @@ export default function FAQPage() {
     },
     {
       q: "Can class pricing or commissions change after I book?",
-      a: "No. When a booking occurs, the system generates an immutable financial snapshot locking the tuition, platform commission, and tutor payout values. Even if administration updates marketplace pricing later, existing historical bookings remain permanently unaffected.",
+      a: "No. When a booking occurs, the system generates an immutable financial snapshot locking the tuition, platform commission, and instructor payout values. Even if administration updates marketplace pricing later, existing historical bookings remain permanently unaffected.",
     },
     {
       q: "What is the cancellation and refund policy?",
       a: "Students can cancel up to 24 hours prior to class start time for a 100% full refund back to their payment card via Stripe. Requests inside the 24-hour window are subject to administrative review.",
     },
     {
-      q: "How do tutor payouts work?",
-      a: "Tutors receive payouts directly into their bank accounts via Stripe Connect Express. Payouts are triggered automatically following the successful completion of each class session.",
+      q: "How do instructor payouts work?",
+      a: "Instructors receive payouts directly into their bank accounts via Stripe Connect Express. Payouts are triggered automatically following the successful completion of each class session.",
     },
     {
       q: "What happens if a group class reaches capacity?",
@@ -44,7 +44,7 @@ export default function FAQPage() {
           Frequently Asked Questions
         </h1>
         <p className="text-sm text-slate-500 leading-relaxed">
-          Comprehensive answers regarding student enrollment, tutor verification, scheduling, and payments.
+          Comprehensive answers regarding student enrollment, instructor verification, scheduling, and payments.
         </p>
       </div>
 

@@ -80,7 +80,7 @@ export default function StudentPaymentsPage() {
             {p.class_item?.title || "Mentorship Session"}
           </p>
           <p className="text-[11px] text-slate-500">
-            Tutor: {p.tutor?.first_name} {p.tutor?.last_name}
+            Instructor: {p.tutor?.first_name} {p.tutor?.last_name}
           </p>
         </div>
       ),
@@ -186,7 +186,7 @@ export default function StudentPaymentsPage() {
         searchKey="booking_number"
         searchPlaceholder="Search invoice reference or instructor..."
         emptyTitle="No payment records found"
-        emptyDescription="When you book a tutoring session or class cohort, your official receipt will appear here."
+        emptyDescription="When you book a class session or cohort, your official receipt will appear here."
       />
 
       {/* Detail Drawer - Official Receipt */}
