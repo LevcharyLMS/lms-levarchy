@@ -1,10 +1,12 @@
 import React from "react";
 import Link from "next/link";
 import { db } from "@/lib/data-store";
+import { SupabaseDbService } from "@/lib/supabase-db";
 import { TutorCard } from "@/components/ui/tutor-card";
 import { ClassCard } from "@/components/ui/class-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { HeroStatsBar } from "@/components/ui/hero-stats-bar";
 import {
   Search,
   ShieldCheck,
@@ -23,15 +25,16 @@ import {
   Sparkles,
 } from "lucide-react";
 
-export default function HomePage() {
+export default async function HomePage() {
   const tutors = db.getTutors().slice(0, 4);
   const classes = db.getClasses().slice(0, 4);
   const categories = db.getProfiles(); // or db.state.categories
+  const initialStats = await SupabaseDbService.getPlatformStats();
 
   return (
     <div className="flex flex-col min-h-screen">
       {/* 1. HERO SECTION */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-navy-950 via-navy-900 to-navy-950 text-white pt-20 pb-24 lg:pt-28 lg:pb-32">
+      <section className="relative overflow-hidden bg-gradient-to-b from-navy-950 via-navy-900 to-navy-950 text-white pt-20 pb-28 lg:pt-28 lg:pb-36">
         {/* Subtle decorative grid */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b15_1px,transparent_1px),linear-gradient(to_bottom,#1e293b15_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
 
@@ -43,7 +46,7 @@ export default function HomePage() {
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight">
-              Connect with <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-teal-200 to-gold-400">verified tutors</span> for virtual & physical learning.
+              Connect with <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-teal-200 to-gold-400">verified instructors</span> for virtual & physical learning.
             </h1>
 
             <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
@@ -54,7 +57,7 @@ export default function HomePage() {
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               <Button asChild size="lg" variant="default" className="gap-2 shadow-lg shadow-teal-900/30">
                 <Link href="/find-tutors">
-                  <Search className="w-4 h-4" /> Find a Tutor
+                  <Search className="w-4 h-4" /> Find an Instructor
                 </Link>
               </Button>
               <Button asChild size="lg" variant="navy" className="border border-slate-700 hover:bg-slate-800 gap-2">
@@ -64,7 +67,7 @@ export default function HomePage() {
               </Button>
               <Button asChild size="lg" variant="outline" className="bg-transparent text-slate-200 border-slate-700 hover:bg-slate-800/80">
                 <Link href="/become-a-tutor">
-                  Become a Tutor
+                  Become an Instructor
                 </Link>
               </Button>
             </div>
@@ -87,6 +90,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* FLOATING STATS BADGES BAR */}
+      <HeroStatsBar initialStats={initialStats} />
 
       {/* 2. FOUR CLASS FORMATS SHOWCASE */}
       <section className="py-20 bg-white border-b border-slate-200">
