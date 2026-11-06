@@ -188,7 +188,7 @@ export default function StudentMessagesPage() {
                 </Link>
                 <Link href="/find-instructors">
                   <Button size="sm" variant="outline" className="text-xs border-slate-200">
-                    Find a Tutor
+                    Find an Instructor
                   </Button>
                 </Link>
               </div>

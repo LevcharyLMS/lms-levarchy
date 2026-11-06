@@ -181,7 +181,7 @@ export default function StudentCalendarPage() {
                         })}
                       </span>
                       <span>
-                        Tutor:{" "}
+                        Instructor:{" "}
                         <strong className="text-slate-800">
                           {bk.tutor?.first_name} {bk.tutor?.last_name}
                         </strong>
@@ -215,7 +215,7 @@ export default function StudentCalendarPage() {
             icon={CalendarIcon}
             title="No sessions scheduled for this week"
             description="Book a new session with an approved instructor or join an upcoming group cohort."
-            actionLabel="Browse Available Tutors"
+            actionLabel="Browse Available Instructors"
             actionHref="/find-instructors"
           />
         )}

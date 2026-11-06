@@ -94,7 +94,12 @@ export default function StudentNotificationsPage() {
         </div>
 
         {/* Content */}
-        {!loading && notifications.length === 0 ? (
+        {loading ? (
+          <div className="p-12 text-center bg-white border border-slate-200/80 rounded-xl">
+            <div className="w-8 h-8 border-2 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+            <p className="text-xs text-slate-400">Loading notifications...</p>
+          </div>
+        ) : notifications.length === 0 ? (
           <FadeIn>
             <Card className="p-12 text-center bg-white border-slate-200/80 shadow-xs">
               <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3 text-slate-400">

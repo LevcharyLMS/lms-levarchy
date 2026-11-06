@@ -22,6 +22,7 @@ import {
   Bell,
   ShieldCheck,
 } from "lucide-react";
+import { formatDisplayName } from "@/lib/utils";
 import { cookies } from "next/headers";
 import {
   PageTransition,
@@ -166,7 +167,7 @@ export default async function StudentDashboardPage() {
                   </div>
                   {nextClass.tutor && (
                     <div className="text-xs text-indigo-300">
-                      Instructor: <span className="font-semibold text-white">{nextClass.tutor.first_name} {nextClass.tutor.last_name}</span>
+                      Instructor: <span className="font-semibold text-white">{formatDisplayName(nextClass.tutor.first_name, nextClass.tutor.last_name)}</span>
                     </div>
                   )}
                 </div>
@@ -201,7 +202,7 @@ export default async function StudentDashboardPage() {
             icon={Calendar}
             title="Your learning journey starts here"
             description="Find a verified instructor or explore available classes to schedule your first 1-on-1 session or cohort workshop."
-            actionLabel="Find Tutors"
+            actionLabel="Find Instructors"
             actionHref="/student/instructors"
           />
         </FadeUp>
@@ -300,7 +301,7 @@ export default async function StudentDashboardPage() {
                 <p className="text-xs text-slate-500">Verified academic faculty available for 1-on-1 mentorship</p>
               </div>
               <Link href="/student/instructors" className="text-xs text-primary font-semibold hover:underline flex items-center gap-1">
-                <span>Explore All Tutors</span>
+                <span>Explore All Instructors</span>
                 <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
@@ -328,7 +329,7 @@ export default async function StudentDashboardPage() {
                         </Avatar>
                         <div className="min-w-0">
                           <p className="text-xs font-bold text-navy-950 truncate">
-                            {t.user?.first_name || t.first_name} {t.user?.last_name || t.last_name}
+                            {formatDisplayName(t.user?.first_name || t.first_name, t.user?.last_name || t.last_name)}
                           </p>
                           <p className="text-[10px] text-emerald-700 font-semibold">
                             ★ {t.rating_avg || "5.0"} • Verified

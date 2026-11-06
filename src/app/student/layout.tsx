@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -29,23 +29,59 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [unreadMessages, setUnreadMessages] = useState(0);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   const displayName = user ? `${user.first_name} ${user.last_name}` : "Student Account";
   const firstName = user?.first_name || "Student";
   const initials = user ? `${user.first_name?.[0] || "S"}${user.last_name?.[0] || "T"}` : "ST";
 
-  // Exact 11 items specified in Section 8 of PRD
+  // Fetch real unread counts for messages and notifications
+  useEffect(() => {
+    if (!user?.id) return;
+
+    // 1. Check real messages
+    fetch(`/api/messages?userId=${user.id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        const convs = data.conversations || [];
+        const totalUnread = convs.reduce((acc: number, c: any) => acc + (c.unread_count || 0), 0);
+        setUnreadMessages(totalUnread);
+      })
+      .catch(() => {});
+
+    // 2. Check real notifications
+    fetch(`/api/notifications?userId=${user.id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        const notifs = data.notifications || [];
+        const unreadCount = notifs.filter((n: any) => !n.is_read).length;
+        setUnreadNotifications(unreadCount);
+      })
+      .catch(() => {});
+  }, [user?.id, pathname]);
+
+  // Student Navigation Items
   const studentNav = [
     { label: "Dashboard", href: "/student/dashboard", icon: LayoutDashboard },
     { label: "Find Instructors", href: "/student/instructors", icon: Users },
     { label: "Classes", href: "/student/classes", icon: Search },
     { label: "Bookings", href: "/student/bookings", icon: Calendar },
     { label: "Calendar", href: "/student/calendar", icon: BookOpen },
-    { label: "Messages", href: "/student/messages", icon: MessageSquare, badge: 1 },
+    {
+      label: "Messages",
+      href: "/student/messages",
+      icon: MessageSquare,
+      badge: unreadMessages > 0 ? unreadMessages : undefined,
+    },
     { label: "Payments", href: "/student/payments", icon: CreditCard },
     { label: "Reviews", href: "/student/reviews", icon: Star },
-    { label: "Notifications", href: "/student/notifications", icon: Bell, badge: 2 },
-    { label: "Profile", href: "/student/profile", icon: User },
+    {
+      label: "Notifications",
+      href: "/student/notifications",
+      icon: Bell,
+      badge: unreadNotifications > 0 ? unreadNotifications : undefined,
+    },
     { label: "Verification", href: "/student/verification", icon: ShieldCheck },
     { label: "Settings", href: "/student/settings", icon: Settings },
   ];
@@ -101,7 +137,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
 
         {/* User Footer Profile */}
         <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-          <Link href="/student/profile" className="flex items-center gap-2.5 min-w-0 hover:opacity-80 transition-opacity">
+          <Link href="/student/settings" className="flex items-center gap-2.5 min-w-0 hover:opacity-80 transition-opacity">
             <Avatar className="w-8 h-8 ring-2 ring-indigo-50">
               {user?.avatar_url && <AvatarImage src={user.avatar_url} />}
               <AvatarFallback>{initials}</AvatarFallback>
@@ -142,7 +178,9 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
               title="Messages"
             >
               <MessageSquare className="w-4 h-4" />
-              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-primary" />
+              {unreadMessages > 0 && (
+                <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-teal-500" />
+              )}
             </Link>
 
             <Link
@@ -151,12 +189,14 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
               title="Notifications"
             >
               <Bell className="w-4 h-4" />
-              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-amber-500" />
+              {unreadNotifications > 0 && (
+                <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-amber-500" />
+              )}
             </Link>
 
             <div className="h-4 w-px bg-slate-200" />
 
-            <Link href="/student/profile" className="flex items-center gap-2">
+            <Link href="/student/settings" className="flex items-center gap-2">
               <Avatar className="w-7 h-7">
                 {user?.avatar_url && <AvatarImage src={user.avatar_url} />}
                 <AvatarFallback>{initials}</AvatarFallback>

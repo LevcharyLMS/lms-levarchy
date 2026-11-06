@@ -314,7 +314,7 @@ export default function StudentBookingsPage() {
                       )}
 
                       <Button asChild variant="outline" size="sm" className="h-8 text-xs border-slate-200">
-                        <Link href="/student/messages">Message Tutor</Link>
+                        <Link href="/student/messages">Message Instructor</Link>
                       </Button>
                     </div>
                   </div>

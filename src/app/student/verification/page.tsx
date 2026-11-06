@@ -443,7 +443,7 @@ export default function StudentVerificationPage() {
             Strict Document Privacy &amp; Data Isolation Guarantee
           </h2>
           <p className="text-xs text-slate-600 leading-relaxed">
-            All verification documents and residential addresses are stored in isolated private cloud infrastructure with full audit trails. Tutors and marketplace visitors can never view your identification documents. Access is strictly limited to verified compliance personnel via short-lived signed URLs (15-minute expiration).
+            All verification documents and residential addresses are stored in isolated private cloud infrastructure with full audit trails. Instructors and marketplace visitors can never view your identification documents. Access is strictly limited to verified compliance personnel via short-lived signed URLs (15-minute expiration).
           </p>
         </CardContent>
       </Card>

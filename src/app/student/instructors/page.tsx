@@ -91,16 +91,10 @@ export default function StudentTutorsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-2xl font-bold tracking-tight text-navy-950">
-              Verified Instructors
-            </h1>
-            <span className="px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200/60 text-primary text-[11px] font-semibold flex items-center gap-1">
-              <Sparkles className="w-3 h-3" />
-              <span>Vetted &amp; Approved</span>
-            </span>
-          </div>
-          <p className="text-xs text-slate-500">
+          <h1 className="text-2xl font-bold tracking-tight text-navy-950">
+            Verified Instructors
+          </h1>
+          <p className="text-xs text-slate-500 mt-0.5">
             Browse verified university faculty, certified educators, and experienced mentors for 1-on-1 sessions.
           </p>
         </div>
@@ -189,7 +183,7 @@ export default function StudentTutorsPage() {
               step="500"
               value={maxRate}
               onChange={(e) => setMaxRate(Number(e.target.value))}
-              className="w-full accent-primary h-1.5 bg-slate-200 rounded-lg cursor-pointer"
+              className="w-full accent-teal-600 h-1.5 bg-slate-200 rounded-lg cursor-pointer"
             />
             <span className="text-xs font-semibold text-navy-950 whitespace-nowrap">
               ${(maxRate / 100).toFixed(0)}/hr
@@ -197,53 +191,11 @@ export default function StudentTutorsPage() {
           </div>
         </div>
 
-        {/* Quick Format Pills */}
-        <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-100 text-xs">
-          <span className="text-slate-400 text-[11px] font-medium mr-1 flex items-center gap-1">
-            <Filter className="w-3 h-3" /> Quick filters:
-          </span>
-          <button
-            onClick={() => setSelectedFormat("ALL")}
-            className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
-              selectedFormat === "ALL"
-                ? "bg-navy-950 text-white"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-            }`}
-          >
-            All ({allTutors.length})
-          </button>
-          <button
-            onClick={() => setSelectedFormat("VIRTUAL")}
-            className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all flex items-center gap-1 ${
-              selectedFormat === "VIRTUAL"
-                ? "bg-teal-600 text-white"
-                : "bg-teal-50 text-teal-700 hover:bg-teal-100 border border-teal-200/50"
-            }`}
-          >
-            <Video className="w-3 h-3" /> Virtual
-          </button>
-          <button
-            onClick={() => setSelectedFormat("PHYSICAL")}
-            className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all flex items-center gap-1 ${
-              selectedFormat === "PHYSICAL"
-                ? "bg-amber-600 text-white"
-                : "bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200/50"
-            }`}
-          >
-            <MapPin className="w-3 h-3" /> Physical
-          </button>
-          <button
-            onClick={() => setSelectedFormat("HYBRID")}
-            className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all flex items-center gap-1 ${
-              selectedFormat === "HYBRID"
-                ? "bg-indigo-600 text-white"
-                : "bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200/50"
-            }`}
-          >
-            <GraduationCap className="w-3 h-3" /> Hybrid
-          </button>
-          <span className="ml-auto text-[11px] text-slate-500 font-medium">
-            Showing {filteredTutors.length} instructors
+        {/* Results Count Footer */}
+        <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
+          <span>Active catalog</span>
+          <span className="font-semibold text-navy-950">
+            Showing {filteredTutors.length} verified {filteredTutors.length === 1 ? "instructor" : "instructors"}
           </span>
         </div>
       </div>
