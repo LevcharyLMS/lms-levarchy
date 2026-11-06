@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { HeroStatsBar } from "@/components/ui/hero-stats-bar";
 import { TestimonialsSection } from "@/components/ui/testimonials-section";
+import { ArcAdvertDock } from "@/components/ui/arc-advert-dock";
 
 // Always render fresh data during development, avoiding stale in-memory cached responses
 export const dynamic = "force-dynamic";
@@ -34,6 +35,8 @@ export default async function HomePage() {
   const classes = db.getClasses().slice(0, 4);
   const categories = db.getProfiles(); // or db.state.categories
   const initialStats = await SupabaseDbService.getPlatformStats();
+  // Fetch active adverts for the curved arc dock
+  const activeAdverts = await SupabaseDbService.getActiveAdverts();
   // Fetch featured & moderated reviews ordered highest to lowest rating
   const featuredReviews = await SupabaseDbService.getReviews({ featuredOnly: true });
 
@@ -450,6 +453,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Floating Instagram-Style Arc Advert Dock with Booking Note */}
+      <ArcAdvertDock initialAdverts={activeAdverts} />
     </div>
   );
 }

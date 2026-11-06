@@ -28,6 +28,7 @@ import {
   TutorAvailability,
   TutorApplication,
   VerificationDocument,
+  AdvertItem,
 } from '@/types';
 import { calculateFinancialSnapshot, generateBookingNumber } from './utils';
 
@@ -58,6 +59,7 @@ export interface DatabaseState {
   audit_logs: AuditLog[];
   support_tickets: SupportTicket[];
   platform_settings: PlatformSettings[];
+  adverts: AdvertItem[];
 }
 
 // Initial rich seed data
@@ -357,6 +359,7 @@ class DataStore {
       reviews: [...initialReviews],
       audit_logs: [...initialAuditLogs],
       support_tickets: [],
+      adverts: [],
       platform_settings: [
         {
           key: 'platform_info',
@@ -1077,6 +1080,74 @@ class DataStore {
     if (!item?.value) return 0;
     const count = item.value.count;
     return typeof count === 'number' ? count : 0;
+  }
+
+  // --- ADVERTS ENGINE ---
+  getActiveAdverts(): AdvertItem[] {
+    const now = new Date().getTime();
+    return (this.state.adverts || [])
+      .filter((ad) => {
+        if (!ad.is_active) return false;
+        if (ad.start_date && new Date(ad.start_date).getTime() > now) return false;
+        if (ad.end_date && new Date(ad.end_date).getTime() < now) return false;
+        return true;
+      })
+      .sort((a, b) => a.display_order - b.display_order || new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }
+
+  getAllAdverts(): AdvertItem[] {
+    return (this.state.adverts || []).sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+  }
+
+  createAdvert(data: Omit<AdvertItem, 'id' | 'view_count' | 'download_count' | 'created_at' | 'updated_at'>): AdvertItem {
+    const newAdvert: AdvertItem = {
+      ...data,
+      id: `adv-${Date.now()}`,
+      view_count: 0,
+      download_count: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    if (!this.state.adverts) this.state.adverts = [];
+    this.state.adverts.unshift(newAdvert);
+    return newAdvert;
+  }
+
+  updateAdvert(id: string, updates: Partial<AdvertItem>): AdvertItem | null {
+    const idx = (this.state.adverts || []).findIndex((ad) => ad.id === id);
+    if (idx === -1) return null;
+    this.state.adverts[idx] = {
+      ...this.state.adverts[idx],
+      ...updates,
+      updated_at: new Date().toISOString(),
+    };
+    return this.state.adverts[idx];
+  }
+
+  deleteAdvert(id: string): boolean {
+    const lenBefore = (this.state.adverts || []).length;
+    this.state.adverts = (this.state.adverts || []).filter((ad) => ad.id !== id);
+    return this.state.adverts.length < lenBefore;
+  }
+
+  incrementAdvertView(id: string): number {
+    const ad = (this.state.adverts || []).find((a) => a.id === id);
+    if (ad) {
+      ad.view_count = (ad.view_count || 0) + 1;
+      return ad.view_count;
+    }
+    return 0;
+  }
+
+  incrementAdvertDownload(id: string): number {
+    const ad = (this.state.adverts || []).find((a) => a.id === id);
+    if (ad) {
+      ad.download_count = (ad.download_count || 0) + 1;
+      return ad.download_count;
+    }
+    return 0;
   }
 }
 

@@ -37,6 +37,7 @@ import {
   ChevronRight,
   LogOut,
   Shield,
+  Megaphone,
 } from "lucide-react";
 
 import { useAuth } from "@/context/auth-context";
@@ -84,6 +85,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       title: "OPERATIONS & FINANCIALS",
       items: [
         { label: "Bookings", href: "/admin/bookings", icon: Calendar },
+        { label: "Adverts", href: "/admin/adverts", icon: Megaphone },
         { label: "Payments", href: "/admin/payments", icon: CreditCard },
         { label: "Transactions", href: "/admin/transactions", icon: Receipt },
         { label: "Refunds", href: "/admin/refunds", icon: RotateCcw },

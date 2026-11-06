@@ -1377,6 +1377,136 @@ export class SupabaseDbService {
 
     return memoryDb.incrementMonthlyVisitor();
   }
+
+  // --- ADVERTS DATABASE QUERIES ---
+  static async getActiveAdverts(): Promise<any[]> {
+    try {
+      const rows = await this.query(`
+        SELECT *
+        FROM adverts
+        WHERE is_active = true
+          AND (start_date IS NULL OR start_date <= NOW())
+          AND (end_date IS NULL OR end_date > NOW())
+        ORDER BY display_order ASC, created_at DESC
+      `);
+      if (rows && rows.length > 0) {
+        return rows;
+      }
+    } catch {
+      // Fallback to memory store
+    }
+    return memoryDb.getActiveAdverts();
+  }
+
+  static async getAllAdverts(): Promise<any[]> {
+    try {
+      const rows = await this.query(`
+        SELECT *
+        FROM adverts
+        ORDER BY created_at DESC
+      `);
+      if (rows && rows.length > 0) {
+        return rows;
+      }
+    } catch {
+      // Fallback
+    }
+    return memoryDb.getAllAdverts();
+  }
+
+  static async createAdvert(data: {
+    title: string;
+    description?: string;
+    media_type: 'IMAGE' | 'VIDEO';
+    media_url: string;
+    thumbnail_url?: string;
+    target_url?: string;
+    downloadable?: boolean;
+    start_date?: string;
+    end_date?: string | null;
+    is_active?: boolean;
+    display_order?: number;
+  }): Promise<any> {
+    try {
+      const sql = `
+        INSERT INTO adverts (
+          title, description, media_type, media_url, thumbnail_url,
+          target_url, downloadable, start_date, end_date, is_active, display_order, created_at, updated_at
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7,
+          COALESCE($8::timestamptz, NOW()), $9::timestamptz, COALESCE($10, true), COALESCE($11, 0), NOW(), NOW()
+        )
+        RETURNING *;
+      `;
+      const params = [
+        data.title,
+        data.description || null,
+        data.media_type,
+        data.media_url,
+        data.thumbnail_url || null,
+        data.target_url || null,
+        data.downloadable ?? true,
+        data.start_date || null,
+        data.end_date || null,
+        data.is_active ?? true,
+        data.display_order ?? 0,
+      ];
+      const rows = await this.query(sql, params);
+      if (rows && rows.length > 0) {
+        return rows[0];
+      }
+    } catch (err) {
+      console.warn('DB advert creation fallback to memory store:', err);
+    }
+    return memoryDb.createAdvert({
+      ...data,
+      downloadable: data.downloadable ?? true,
+      start_date: data.start_date || new Date().toISOString(),
+      end_date: data.end_date || null,
+      is_active: data.is_active ?? true,
+      display_order: data.display_order ?? 0,
+    });
+  }
+
+  static async updateAdvert(id: string, updates: Record<string, any>): Promise<any> {
+    try {
+      const setClauses: string[] = [];
+      const params: any[] = [id];
+      Object.entries(updates).forEach(([key, val]) => {
+        params.push(val);
+        setClauses.push(`${key} = $${params.length}`);
+      });
+      if (setClauses.length > 0) {
+        setClauses.push(`updated_at = NOW()`);
+        const sql = `UPDATE adverts SET ${setClauses.join(', ')} WHERE id = $1 RETURNING *;`;
+        const rows = await this.query(sql, params);
+        if (rows && rows.length > 0) return rows[0];
+      }
+    } catch (err) {
+      console.warn('DB advert update fallback to memory store:', err);
+    }
+    return memoryDb.updateAdvert(id, updates);
+  }
+
+  static async deleteAdvert(id: string): Promise<boolean> {
+    try {
+      await this.query(`DELETE FROM adverts WHERE id = $1`, [id]);
+      memoryDb.deleteAdvert(id);
+      return true;
+    } catch {
+      return memoryDb.deleteAdvert(id);
+    }
+  }
+
+  static async incrementAdvertDownload(id: string): Promise<number> {
+    try {
+      const rows = await this.query(`SELECT increment_advert_download($1::uuid) AS count`, [id]);
+      if (rows && rows.length > 0 && rows[0].count) {
+        return Number(rows[0].count);
+      }
+    } catch {}
+    return memoryDb.incrementAdvertDownload(id);
+  }
 }
 
 export const supabaseDb = SupabaseDbService;

@@ -507,3 +507,24 @@ export interface PlatformSettings {
   updated_at: string;
   updated_by?: string | null;
 }
+
+export type AdvertMediaType = 'IMAGE' | 'VIDEO';
+
+export interface AdvertItem {
+  id: string;
+  title: string;
+  description?: string | null;
+  media_type: AdvertMediaType;
+  media_url: string;
+  thumbnail_url?: string | null;
+  target_url?: string | null;
+  downloadable: boolean;
+  start_date: string;
+  end_date?: string | null; // null means does not expire
+  is_active: boolean;
+  display_order: number;
+  view_count: number;
+  download_count: number;
+  created_at: string;
+  updated_at: string;
+}
