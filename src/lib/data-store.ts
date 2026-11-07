@@ -264,47 +264,7 @@ const initialClasses: ClassItem[] = [];
 const initialBookings: Booking[] = [];
 const initialSnapshots: BookingFinancialSnapshot[] = [];
 const initialTransactions: Transaction[] = [];
-const initialReviews: Review[] = [
-  {
-    id: 'rev-init-1',
-    booking_id: 'bk-mock-1',
-    student_id: 'usr-stu-1',
-    tutor_id: 'usr-tut-1',
-    rating: 5,
-    comment: 'Dr. Marcus made Advanced Calculus feel intuitive and manageable. His structured proofs and patient pacing elevated my exam confidence completely.',
-    is_moderated: true,
-    is_published: true,
-    is_featured_testimonial: true,
-    created_at: '2026-02-15T14:30:00.000Z',
-    updated_at: '2026-02-15T14:30:00.000Z',
-  },
-  {
-    id: 'rev-init-2',
-    booking_id: 'bk-mock-2',
-    student_id: 'usr-stu-1',
-    tutor_id: 'usr-tut-2',
-    rating: 5,
-    comment: 'The in-person learning lab environment was exceptional. Sarah is knowledgeable, supportive, and prepared customized practice sets that targeted my exact weaknesses.',
-    is_moderated: true,
-    is_published: true,
-    is_featured_testimonial: true,
-    created_at: '2026-03-01T10:15:00.000Z',
-    updated_at: '2026-03-01T10:15:00.000Z',
-  },
-  {
-    id: 'rev-init-3',
-    booking_id: 'bk-mock-3',
-    student_id: 'usr-stu-1',
-    tutor_id: 'usr-tut-3',
-    rating: 5,
-    comment: 'Top-tier instruction! The interactive whiteboard tools in the video classroom made learning data structures very clear. Highly recommend Levchary to any serious student.',
-    is_moderated: true,
-    is_published: true,
-    is_featured_testimonial: true,
-    created_at: '2026-03-10T16:45:00.000Z',
-    updated_at: '2026-03-10T16:45:00.000Z',
-  },
-];
+const initialReviews: Review[] = [];
 const initialFlags: MessageFlag[] = [];
 const initialNotifications: Notification[] = [];
 const initialAuditLogs: AuditLog[] = [];
@@ -393,63 +353,66 @@ class DataStore {
   }
 
   seedTestFixtures() {
-    if (!this.state.profiles.some((p) => p.id === 'usr-tut-1')) {
-      this.state.profiles.push({
-        id: 'usr-tut-1',
-        email: 'marcus.chen@tutor.levchary.local',
-        role: 'TUTOR',
-        first_name: 'Dr. Marcus',
-        last_name: 'Chen',
-        avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-        phone: '+1 (617) 555-0102',
-        country: 'US',
-        city: 'Cambridge',
-        state: 'MA',
-        account_status: 'ACTIVE',
-        verification_status: 'APPROVED',
-        email_verified: true,
-        created_at: '2026-01-10T00:00:00.000Z',
-        updated_at: '2026-01-10T00:00:00.000Z',
-      });
-    }
-    if (!this.state.profiles.some((p) => p.id === 'usr-stu-1')) {
-      this.state.profiles.push({
-        id: 'usr-stu-1',
-        email: 'student@levchary.local',
-        role: 'STUDENT',
-        first_name: 'Lucas',
-        last_name: 'Miller',
-        avatar_url: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150',
-        phone: '+1 (617) 555-0201',
-        country: 'US',
-        city: 'Boston',
-        state: 'MA',
-        account_status: 'ACTIVE',
-        verification_status: 'APPROVED',
-        email_verified: true,
-        created_at: '2026-02-01T00:00:00.000Z',
-        updated_at: '2026-02-01T00:00:00.000Z',
-      });
-    }
-    if (!this.state.tutor_profiles.some((tp) => tp.user_id === 'usr-tut-1')) {
-      this.state.tutor_profiles.push({
-        user_id: 'usr-tut-1',
-        instructor_type: 'FACULTY',
-        headline: 'Ph.D. in Applied Mathematics (MIT) | 12+ Years Teaching',
-        bio: 'Coaching calculus and physics.',
-        qualifications: 'Ph.D. Applied Math',
-        experience_years: 12,
-        hourly_rate: 6500,
-        stripe_account_id: 'acct_1MarcusChenMIT',
-        stripe_onboarding_completed: true,
-        rating_avg: 4.96,
-        reviews_count: 48,
-        is_approved: true,
-        preferred_format: 'BOTH',
-        timezone: 'America/New_York',
-        created_at: '2026-01-10T00:00:00.000Z',
-        updated_at: '2026-01-10T00:00:00.000Z',
-      });
+    // Only used in isolated unit test environments (vitest) to verify RBAC & double-booking logic
+    if (process.env.NODE_ENV === 'test' || process.env.VITEST) {
+      if (!this.state.profiles.some((p) => p.id === 'usr-test-tut')) {
+        this.state.profiles.push({
+          id: 'usr-test-tut',
+          email: 'test.instructor@levchary.test',
+          role: 'INSTRUCTOR',
+          first_name: 'Test',
+          last_name: 'Instructor',
+          avatar_url: '',
+          phone: '+1 555-0100',
+          country: 'US',
+          city: 'Boston',
+          state: 'MA',
+          account_status: 'ACTIVE',
+          verification_status: 'APPROVED',
+          email_verified: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+      }
+      if (!this.state.profiles.some((p) => p.id === 'usr-stu-1')) {
+        this.state.profiles.push({
+          id: 'usr-stu-1',
+          email: 'student.test@levchary.test',
+          role: 'STUDENT',
+          first_name: 'Test',
+          last_name: 'Student',
+          avatar_url: '',
+          phone: '+1 555-0200',
+          country: 'US',
+          city: 'Boston',
+          state: 'MA',
+          account_status: 'ACTIVE',
+          verification_status: 'APPROVED',
+          email_verified: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+      }
+      if (!this.state.instructor_profiles.some((tp) => tp.user_id === 'usr-test-tut')) {
+        this.state.instructor_profiles.push({
+          user_id: 'usr-test-tut',
+          instructor_type: 'FACULTY',
+          headline: 'Mathematics Faculty',
+          bio: 'Test faculty educator.',
+          qualifications: 'Ph.D. Mathematics',
+          experience_years: 10,
+          hourly_rate: 6500,
+          stripe_account_id: 'acct_test',
+          stripe_onboarding_completed: true,
+          rating_avg: 5.0,
+          reviews_count: 10,
+          is_approved: true,
+          preferred_format: 'BOTH',
+          timezone: 'America/New_York',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+      }
     }
   }
 
