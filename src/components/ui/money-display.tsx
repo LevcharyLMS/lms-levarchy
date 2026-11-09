@@ -13,8 +13,8 @@ export function MoneyDisplay({ cents, currency = "USD", className = "", label }:
 
   return (
     <div className={`inline-flex items-baseline gap-1 ${className}`}>
-      {label && <span className="text-xs text-slate-500 font-normal">{label}</span>}
       <span className="font-bold tracking-tight text-slate-900">{formatted}</span>
+      {label && <span className="text-xs text-slate-500 font-normal">{label}</span>}
     </div>
   );
 }

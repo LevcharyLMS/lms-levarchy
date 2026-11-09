@@ -11,6 +11,17 @@ interface RatingStarsProps {
 
 export function RatingStars({ rating, max = 5, showNumber = true, count, size = "sm" }: RatingStarsProps) {
   const iconSize = size === "sm" ? "w-3.5 h-3.5" : size === "md" ? "w-4 h-4" : "w-5 h-5";
+  const hasReviews = count !== undefined && count > 0;
+
+  if (!hasReviews) {
+    return (
+      <div className="inline-flex items-center gap-1.5">
+        <span className="text-[11px] font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+          New Instructor
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="inline-flex items-center gap-1.5">

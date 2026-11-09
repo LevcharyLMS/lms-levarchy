@@ -332,7 +332,7 @@ export default async function StudentDashboardPage() {
                             {formatDisplayName(t.user?.first_name || t.first_name, t.user?.last_name || t.last_name)}
                           </p>
                           <p className="text-[10px] text-emerald-700 font-semibold">
-                            ★ {t.rating_avg || "5.0"} • Verified
+                            {t.reviews_count > 0 ? `★ ${t.rating_avg} (${t.reviews_count}) • Verified` : "New Instructor • Verified"}
                           </p>
                         </div>
                       </div>
