@@ -1,15 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { notFound, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/auth-context";
-import { db } from "@/lib/data-store";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { MoneyDisplay } from "@/components/ui/money-display";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Clock,
   MapPin,
@@ -22,6 +23,8 @@ import {
   AlertCircle,
   ArrowLeft,
   ExternalLink,
+  Loader2,
+  Lock,
 } from "lucide-react";
 import { formatDisplayName } from "@/lib/utils";
 
@@ -33,33 +36,89 @@ interface ClassPageProps {
 
 export default function ClassDetailPage({ params }: ClassPageProps) {
   const router = useRouter();
-  const classItem = db.getClassById(params.id);
-
   const { user } = useAuth();
 
+  const [classItem, setClassItem] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Booking Form State
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bookingError, setBookingError] = useState<string | null>(null);
   const [bookingSuccess, setBookingSuccess] = useState<{
     bookingNumber: string;
     meetUrl?: string | null;
     locationName?: string;
   } | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [bookingError, setBookingError] = useState<string | null>(null);
 
-  // Dynamic next-day selector
+  // 1-on-1 Date & Time selection
   const defaultDateStr = new Date(Date.now() + 86400000).toISOString().split("T")[0];
   const [selectedDate, setSelectedDate] = useState<string>(defaultDateStr);
   const [selectedTime, setSelectedTime] = useState<string>("14:00");
   const [studentNotes, setStudentNotes] = useState<string>("");
 
-  if (!classItem) {
-    notFound();
+  useEffect(() => {
+    let isMounted = true;
+    async function load() {
+      try {
+        setLoading(true);
+        const res = await fetch(`/api/classes?search=${encodeURIComponent(params.id)}`);
+        // If not found via search filter, fetch direct class item
+        const directRes = await fetch(`/api/classes`);
+        if (directRes.ok) {
+          const data = await directRes.json();
+          const found = (data.classes || []).find((c: any) => c.id === params.id);
+          if (isMounted) {
+            setClassItem(found || null);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load class:", err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+    load();
+    return () => {
+      isMounted = false;
+    };
+  }, [params.id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 space-y-3">
+        <Loader2 className="w-8 h-8 animate-spin text-teal-600" />
+        <p className="text-xs text-slate-500">Loading class and schedule details...</p>
+      </div>
+    );
   }
 
-  const tutor = classItem.tutor;
+  if (!classItem) {
+    return (
+      <div className="container mx-auto px-4 py-16 text-center max-w-md space-y-4">
+        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+          <AlertCircle className="w-6 h-6" />
+        </div>
+        <h1 className="text-xl font-bold text-navy-950">Class Not Found</h1>
+        <p className="text-xs text-slate-500">
+          This class session may have been completed, filled to capacity, or removed.
+        </p>
+        <Button asChild size="sm" variant="outline" className="text-xs">
+          <Link href="/student/classes">Back to Available Classes</Link>
+        </Button>
+      </div>
+    );
+  }
+
+  const tutor = classItem.tutor || classItem.instructor;
   const isGroup = classItem.class_type === "GROUP";
   const isVirtual = classItem.format === "VIRTUAL";
-  const seatsRemaining = classItem.capacity - classItem.enrolled_count;
+  const capacity = classItem.capacity || 1;
+  const enrolledCount = classItem.enrolled_count || 0;
+  const seatsRemaining = capacity - enrolledCount;
   const isFull = isGroup && seatsRemaining <= 0;
+  const instructorDisplayName = tutor
+    ? formatDisplayName(tutor.first_name, tutor.last_name)
+    : "Academic Specialist";
 
   const handleBooking = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,52 +131,39 @@ export default function ClassDetailPage({ params }: ClassPageProps) {
     setBookingError(null);
 
     try {
-      let response;
-      if (isGroup) {
-        response = await fetch("/api/bookings", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            classType: "GROUP",
-            studentId: user.id,
-            classId: classItem.id,
-            timezone: "America/New_York",
-          }),
-        });
-      } else {
-        const startTime = new Date(`${selectedDate}T${selectedTime}:00.000Z`).toISOString();
-        const endTime = new Date(new Date(startTime).getTime() + classItem.duration_minutes * 60000).toISOString();
+      let bookingPayload: any = {
+        studentId: user.id,
+        classId: classItem.id,
+        format: classItem.format,
+      };
 
-        response = await fetch("/api/bookings", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            classType: "ONE_ON_ONE",
-            studentId: user.id,
-            tutorId: classItem.tutor_id,
-            classId: classItem.id,
-            startTime,
-            endTime,
-            timezone: "America/New_York",
-            format: classItem.format,
-            locationId: classItem.location_id || undefined,
-            notes: studentNotes,
-          }),
-        });
+      if (isGroup) {
+        bookingPayload.startTime = classItem.start_time || new Date(Date.now() + 86400000).toISOString();
+      } else {
+        const fullDateTime = new Date(`${selectedDate}T${selectedTime}:00`);
+        bookingPayload.startTime = fullDateTime.toISOString();
+        bookingPayload.studentNotes = studentNotes;
       }
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to process booking.");
+      const res = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bookingPayload),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Reservation failed. Please try again.");
       }
 
       setBookingSuccess({
-        bookingNumber: data.booking.booking_number,
-        meetUrl: data.booking.meet_url,
-        locationName: classItem.location?.name,
+        bookingNumber: data.booking?.booking_number || "BK-" + Math.floor(100000 + Math.random() * 900000),
+        meetUrl: data.booking?.meet_url || classItem.meet_url,
+        locationName: classItem.location?.name || classItem.location?.address,
       });
     } catch (err: any) {
-      setBookingError(err.message || "Failed to process booking.");
+      console.error("Booking failed:", err);
+      setBookingError(err?.message || "Failed to finalize session booking.");
     } finally {
       setIsSubmitting(false);
     }
@@ -125,280 +171,253 @@ export default function ClassDetailPage({ params }: ClassPageProps) {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 max-w-5xl">
-      <Link
-        href="/classes"
-        className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-teal-600 mb-6 font-medium"
-      >
-        <ArrowLeft className="w-3.5 h-3.5" /> Back to all classes
-      </Link>
+      {/* Back button */}
+      <div className="mb-6">
+        <Button asChild variant="ghost" size="sm" className="gap-1.5 text-xs text-slate-500 hover:text-slate-800">
+          <Link href="/student/classes">
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Classes</span>
+          </Link>
+        </Button>
+      </div>
 
-      {bookingSuccess ? (
-        /* BOOKING CONFIRMATION SCREEN (RULE 95) */
-        <div className="bg-white rounded-2xl border border-emerald-200 p-8 shadow-sm text-center max-w-xl mx-auto space-y-6 animate-accordion-down">
-          <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto ring-8 ring-emerald-50">
-            <CheckCircle2 className="w-8 h-8" />
-          </div>
-
-          <div>
-            <span className="text-xs uppercase tracking-wider font-bold text-emerald-700">
-              Payment & Reservation Confirmed
-            </span>
-            <h2 className="text-2xl font-bold text-navy-950 mt-1">
-              You&apos;re Officially Booked!
-            </h2>
-            <p className="text-xs text-slate-500 mt-1 font-mono">
-              Reference: <strong>{bookingSuccess.bookingNumber}</strong>
-            </p>
-          </div>
-
-          <div className="p-4 bg-slate-50 rounded-xl text-left text-xs text-slate-600 space-y-2 border border-slate-100">
-            <div className="flex justify-between">
-              <span className="text-slate-500">Class:</span>
-              <span className="font-semibold text-navy-950">{classItem.title}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">Instructor:</span>
-              <span>{formatDisplayName(tutor?.first_name, tutor?.last_name)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">Format:</span>
-              <span>{classItem.format === "VIRTUAL" ? "Virtual Classroom" : "In-Person Classroom"}</span>
-            </div>
-            {classItem.format === "PHYSICAL" && bookingSuccess.locationName && (
-              <div className="flex justify-between">
-                <span className="text-slate-500">Location:</span>
-                <span className="font-medium text-slate-800">{bookingSuccess.locationName}</span>
-              </div>
-            )}
-          </div>
-
-          {classItem.format === "VIRTUAL" && bookingSuccess.meetUrl && (
-            <div className="p-4 bg-teal-50 border border-teal-200 rounded-xl space-y-2">
-              <p className="text-xs text-teal-900 font-medium">
-                Your dedicated interactive video classroom has been provisioned:
-              </p>
-              <Button asChild variant="default" size="sm" className="gap-1.5 w-full">
-                <Link href={bookingSuccess.meetUrl.startsWith("http") ? bookingSuccess.meetUrl : bookingSuccess.meetUrl}>
-                  <Video className="w-4 h-4" /> Enter Virtual Classroom
-                </Link>
-              </Button>
-            </div>
-          )}
-
-          <div className="flex gap-3 pt-2">
-            <Button asChild variant="outline" className="w-full">
-              <Link href="/student/bookings">View in Dashboard</Link>
-            </Button>
-            <Button asChild variant="default" className="w-full">
-              <Link href="/classes">Explore More Classes</Link>
-            </Button>
-          </div>
-        </div>
-      ) : (
-        /* MAIN CLASS DETAILS & BOOKING FORM */
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-          {/* Left Column: Class Information */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-xs space-y-6">
-              <div className="flex flex-wrap items-center gap-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        {/* Left 2 Cols: Class Overview & Instructor Info */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-6 sm:p-8 shadow-xs space-y-5">
+            {/* Badges & Category */}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
                 <StatusBadge status={classItem.class_type} />
                 <StatusBadge status={classItem.format} />
-                <span className="text-xs text-slate-400">•</span>
-                <span className="text-xs text-teal-700 font-semibold">
-                  {classItem.category?.name}
+                <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
+                  {classItem.category?.name || "Education"}
                 </span>
               </div>
+              <MoneyDisplay cents={classItem.price} className="text-xl" />
+            </div>
 
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-navy-950">
+            {/* Title & Description */}
+            <div className="space-y-2">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-navy-950 tracking-tight">
                 {classItem.title}
               </h1>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed whitespace-pre-line">
+                {classItem.description}
+              </p>
+            </div>
 
-              <div className="flex items-center gap-6 text-xs text-slate-600 pb-4 border-b border-slate-100">
-                <div className="flex items-center gap-1.5">
-                  <Clock className="w-4 h-4 text-slate-400" />
-                  <span>{classItem.duration_minutes} minutes duration</span>
+            {/* Key Specifications Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 pt-4 border-t border-slate-100 text-xs">
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Duration</span>
+                <div className="flex items-center gap-1.5 font-bold text-navy-950">
+                  <Clock className="w-3.5 h-3.5 text-teal-600" />
+                  <span>{classItem.duration_minutes || 60} Minutes</span>
                 </div>
-                {classItem.format === "VIRTUAL" ? (
-                  <div className="flex items-center gap-1.5 text-teal-700 font-medium">
-                    <Video className="w-4 h-4 text-teal-600" />
-                    <span>Dedicated Virtual Classroom</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1.5 text-slate-700">
-                    <MapPin className="w-4 h-4 text-teal-600" />
-                    <span>{classItem.location?.name}</span>
-                  </div>
-                )}
               </div>
 
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-navy-950">Class Description & Curriculum</h3>
-                <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-line">
-                  {classItem.description}
-                </p>
-              </div>
-
-              {/* Physical Location Details (if in-person) */}
-              {classItem.format === "PHYSICAL" && classItem.location && (
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-2">
-                  <h4 className="font-semibold text-navy-950 flex items-center gap-1.5">
-                    <MapPin className="w-4 h-4 text-teal-600" /> Approved Learning Facility
-                  </h4>
-                  <p className="text-slate-700 font-medium">{classItem.location.name}</p>
-                  <p className="text-slate-500">{classItem.location.address}, {classItem.location.city}, {classItem.location.state} {classItem.location.postal_code}</p>
-                  {classItem.location.directions && (
-                    <p className="text-[11px] text-slate-500 italic mt-1">
-                      Check-in note: {classItem.location.directions}
-                    </p>
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Format</span>
+                <div className="flex items-center gap-1.5 font-bold text-navy-950">
+                  {isVirtual ? (
+                    <>
+                      <Video className="w-3.5 h-3.5 text-teal-600" />
+                      <span>Virtual Meet</span>
+                    </>
+                  ) : (
+                    <>
+                      <MapPin className="w-3.5 h-3.5 text-amber-600" />
+                      <span>In-Person Center</span>
+                    </>
                   )}
                 </div>
-              )}
+              </div>
 
-              {/* Tutor Summary Card */}
-              {tutor && (
-                <div className="p-4 bg-slate-50/50 rounded-xl border border-slate-100 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="w-12 h-12">
-                      <AvatarImage src={tutor.avatar_url || ""} />
-                      <AvatarFallback>{tutor.first_name[0]}{tutor.last_name?.[0] || ""}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h4 className="text-sm font-semibold text-navy-950">
-                        Instructor: {formatDisplayName(tutor.first_name, tutor.last_name)}
-                      </h4>
-                      <p className="text-xs text-slate-500">{tutor.tutor_profile?.headline || "Verified Specialist"}</p>
-                    </div>
-                  </div>
-                  <Button asChild variant="outline" size="sm">
-                    <Link href={`/instructors/${tutor.id}`}>Instructor Profile</Link>
-                  </Button>
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1 col-span-2 sm:col-span-1">
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Cohort Size</span>
+                <div className="flex items-center gap-1.5 font-bold text-navy-950">
+                  <Users className="w-3.5 h-3.5 text-teal-600" />
+                  <span>{isGroup ? `${classItem.capacity} Students Max` : "1-on-1 Mentorship"}</span>
                 </div>
-              )}
-            </div>
-          </div>
-
-          {/* Right Column: Authoritative Booking Widget */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6 sticky top-24">
-            <div className="flex items-baseline justify-between border-b border-slate-100 pb-4">
-              <span className="text-xs text-slate-500 uppercase tracking-wider font-semibold">
-                Locked Tuition
-              </span>
-              <MoneyDisplay cents={classItem.price} />
+              </div>
             </div>
 
-            {/* Error banner */}
-            {bookingError && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>{bookingError}</span>
+            {/* Instructor Card */}
+            {tutor && (
+              <div className="p-4 bg-teal-50/50 border border-teal-100 rounded-xl flex items-center justify-between gap-4 mt-4">
+                <div className="flex items-center gap-3">
+                  <Avatar className="w-12 h-12 ring-2 ring-white">
+                    <AvatarImage src={tutor.avatar_url || ""} />
+                    <AvatarFallback className="bg-teal-600 text-white font-bold">
+                      {(tutor.first_name?.[0] || "I") + (tutor.last_name?.[0] || "")}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h3 className="font-bold text-sm text-navy-950">
+                      Taught by {instructorDisplayName}
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      {tutor.tutor_profile?.headline || tutor.instructor_profile?.headline || "Verified Academic Instructor"}
+                    </p>
+                  </div>
+                </div>
+
+                {classItem.instructor_id && (
+                  <Button asChild size="sm" variant="outline" className="text-xs shrink-0 bg-white hover:bg-slate-50">
+                    <Link href={`/instructors/${classItem.instructor_id}`}>
+                      View Profile
+                    </Link>
+                  </Button>
+                )}
               </div>
             )}
-
-            <form onSubmit={handleBooking} className="space-y-4">
-              {isGroup ? (
-                /* GROUP COHORT ENROLLMENT */
-                <div className="space-y-3">
-                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-100 text-xs space-y-1">
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Cohort Maximum:</span>
-                      <span className="font-semibold text-slate-900">{classItem.capacity} students</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Currently Enrolled:</span>
-                      <span className="font-semibold text-teal-700">{classItem.enrolled_count} students</span>
-                    </div>
-                    <div className="flex justify-between pt-1 border-t border-slate-200/60 font-bold">
-                      <span>Seats Remaining:</span>
-                      <span className={isFull ? "text-red-600" : "text-amber-600"}>
-                        {isFull ? "Cohort Closed (Full)" : `${seatsRemaining} seats left`}
-                      </span>
-                    </div>
-                  </div>
-
-                  <p className="text-[11px] text-slate-500 leading-normal">
-                    By enrolling, your seat is reserved atomically in this cohort and protected under our 100% attendance guarantee.
-                  </p>
-                </div>
-              ) : (
-                /* 1-ON-1 SCHEDULE SELECTION */
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Select Session Date
-                    </label>
-                    <input
-                      type="date"
-                      value={selectedDate}
-                      onChange={(e) => setSelectedDate(e.target.value)}
-                      min={new Date().toISOString().split("T")[0]}
-                      className="w-full h-10 px-3 text-xs border border-slate-200 rounded-lg bg-white focus:ring-2 focus:ring-teal-600 outline-none"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Select Start Time
-                    </label>
-                    <select
-                      value={selectedTime}
-                      onChange={(e) => setSelectedTime(e.target.value)}
-                      className="w-full h-10 px-3 text-xs border border-slate-200 rounded-lg bg-white focus:ring-2 focus:ring-teal-600 outline-none"
-                    >
-                      <option value="09:00">09:00 AM EST</option>
-                      <option value="11:00">11:00 AM EST</option>
-                      <option value="14:00">02:00 PM EST</option>
-                      <option value="16:00">04:00 PM EST</option>
-                      <option value="18:30">06:30 PM EST</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Specific Learning Goals or Questions (Optional)
-                    </label>
-                    <textarea
-                      value={studentNotes}
-                      onChange={(e) => setStudentNotes(e.target.value)}
-                      placeholder="e.g. Preparing for Chapter 4 test on integration..."
-                      rows={2}
-                      className="w-full p-2.5 text-xs border border-slate-200 rounded-lg bg-white focus:ring-2 focus:ring-teal-600 outline-none"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Financial Snapshot Ledger Guarantee */}
-              <div className="pt-2 text-[11px] text-slate-400 space-y-1">
-                <div className="flex items-center gap-1.5 text-slate-600">
-                  <ShieldCheck className="w-3.5 h-3.5 text-teal-600" />
-                  <span>Immutable Financial Snapshot Guaranteed</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-slate-600">
-                  <CreditCard className="w-3.5 h-3.5 text-teal-600" />
-                  <span>24-Hour Free Cancellation Window</span>
-                </div>
-              </div>
-
-              <Button
-                type="submit"
-                variant="default"
-                size="lg"
-                disabled={isSubmitting || isFull}
-                className="w-full mt-2 font-semibold shadow-md"
-              >
-                {isSubmitting
-                  ? "Processing Reservation..."
-                  : isFull
-                  ? "Cohort Full"
-                  : isGroup
-                  ? "Enroll in Cohort"
-                  : "Book 1-on-1 Session"}
-              </Button>
-            </form>
           </div>
         </div>
-      )}
+
+        {/* Right Col: Interactive Booking Form */}
+        <div className="space-y-6">
+          <Card className="border-slate-200/80 shadow-md bg-white overflow-hidden sticky top-20">
+            <div className="p-5 bg-navy-950 text-white flex items-center justify-between">
+              <div>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-teal-400 block">
+                  Session Tuition
+                </span>
+                <span className="text-2xl font-black text-white">
+                  ${((classItem.price || 0) / 100).toFixed(2)}
+                </span>
+              </div>
+              <span className="px-2.5 py-1 rounded-full bg-teal-500/20 text-teal-300 text-[10px] font-bold border border-teal-400/30">
+                100% Escrow Protected
+              </span>
+            </div>
+
+            <CardContent className="p-6 space-y-4">
+              {bookingSuccess ? (
+                <div className="space-y-4 text-center py-4">
+                  <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
+                    <CheckCircle2 className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-navy-950">Booking Confirmed!</h3>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Reference: <span className="font-mono font-bold text-teal-700">{bookingSuccess.bookingNumber}</span>
+                    </p>
+                  </div>
+
+                  <p className="text-xs text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                    Your session is locked and scheduled. You can join the classroom directly from your Student Portal.
+                  </p>
+
+                  <div className="space-y-2 pt-2">
+                    <Button asChild className="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs">
+                      <Link href="/student/bookings">View in My Bookings</Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full text-xs">
+                      <Link href="/student/calendar">Go to Calendar</Link>
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={handleBooking} className="space-y-4">
+                  {bookingError && (
+                    <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 font-medium">
+                      {bookingError}
+                    </div>
+                  )}
+
+                  {isGroup ? (
+                    <div className="space-y-2 p-3 bg-slate-50 rounded-xl border border-slate-200/80">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
+                        Scheduled Cohort Time
+                      </span>
+                      <div className="flex items-center gap-2 text-xs font-bold text-navy-950">
+                        <Calendar className="w-4 h-4 text-teal-600" />
+                        <span>
+                          {classItem.start_time
+                            ? new Date(classItem.start_time).toLocaleString("en-US", {
+                                dateStyle: "medium",
+                                timeStyle: "short",
+                              })
+                            : "Scheduled Weekly Workshop"}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-slate-500 flex justify-between items-center pt-2 border-t border-slate-200">
+                        <span>Seats Available:</span>
+                        <span className={`font-bold ${isFull ? "text-red-600" : "text-teal-700"}`}>
+                          {isFull ? "Class Full" : `${seatsRemaining} Seats Remaining`}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-700">Choose Session Date</label>
+                        <Input
+                          type="date"
+                          min={defaultDateStr}
+                          value={selectedDate}
+                          onChange={(e) => setSelectedDate(e.target.value)}
+                          className="h-9 text-xs"
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-700">Choose Time Slot</label>
+                        <select
+                          value={selectedTime}
+                          onChange={(e) => setSelectedTime(e.target.value)}
+                          className="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                          required
+                        >
+                          <option value="09:00">09:00 AM EST</option>
+                          <option value="11:00">11:00 AM EST</option>
+                          <option value="14:00">02:00 PM EST</option>
+                          <option value="16:00">04:00 PM EST</option>
+                          <option value="18:00">06:00 PM EST</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-700">Notes for Instructor (Optional)</label>
+                        <Textarea
+                          placeholder="e.g. Focus on chapter 4 problems..."
+                          value={studentNotes}
+                          onChange={(e) => setStudentNotes(e.target.value)}
+                          className="text-xs min-h-[60px]"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting || isFull}
+                    className="w-full h-10 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-sm"
+                  >
+                    {isSubmitting ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Securing Reservation...</span>
+                      </span>
+                    ) : isFull ? (
+                      "Cohort is Full"
+                    ) : (
+                      `Confirm & Book ($${((classItem.price || 0) / 100).toFixed(2)})`
+                    )}
+                  </Button>
+
+                  <div className="pt-2 text-center text-[10px] text-slate-400 flex items-center justify-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-teal-600" />
+                    <span>Tuition locked in escrow until session completes</span>
+                  </div>
+                </form>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

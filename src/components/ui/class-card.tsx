@@ -11,14 +11,16 @@ import { formatDisplayName } from "@/lib/utils";
 
 interface ClassCardProps {
   classItem: ClassItem;
+  basePath?: string;
 }
 
-export function ClassCard({ classItem }: ClassCardProps) {
+export function ClassCard({ classItem, basePath = "/student/classes" }: ClassCardProps) {
   const tutor = classItem.tutor;
   const isGroup = classItem.class_type === "GROUP";
   const seatsRemaining = classItem.capacity - classItem.enrolled_count;
   const isFull = isGroup && seatsRemaining <= 0;
   const instructorDisplayName = tutor ? formatDisplayName(tutor.first_name, tutor.last_name) : "";
+  const bookHref = `${basePath}/${classItem.id}`;
 
   return (
     <Card className="hover:border-teal-500/50 hover:shadow-md transition-all duration-200 flex flex-col justify-between overflow-hidden">
@@ -93,7 +95,7 @@ export function ClassCard({ classItem }: ClassCardProps) {
           {classItem.category?.name || "Education"}
         </span>
         <Button asChild size="sm" variant={isFull ? "secondary" : "default"} disabled={isFull} className="gap-1">
-          <Link href={`/classes/${classItem.id}`}>
+          <Link href={bookHref}>
             {isFull ? "Full" : "View & Book"} <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </Button>

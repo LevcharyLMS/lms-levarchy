@@ -262,6 +262,275 @@ export class SupabaseDbService {
     return memProfile ? memProfile.is_approved === true : false;
   }
 
+  // --- SINGLE CLASS BY ID QUERY ---
+  static async getClassById(classId: string) {
+    try {
+      const { data: c, error } = await supabaseAdmin
+        .from('classes')
+        .select(`
+          *,
+          categories:category_id ( id, name, slug ),
+          subjects:subject_id ( id, name, slug ),
+          profiles:instructor_id (
+            id,
+            first_name,
+            last_name,
+            avatar_url,
+            city,
+            state,
+            instructor_profiles:user_id (
+              headline,
+              bio,
+              hourly_rate,
+              experience_years,
+              rating_avg,
+              reviews_count,
+              is_approved,
+              preferred_format,
+              timezone
+            )
+          ),
+          class_locations:location_id ( id, name, address, city, state, postal_code )
+        `)
+        .eq('id', classId)
+        .maybeSingle();
+
+      if (!error && c) {
+        const ip = Array.isArray(c.profiles?.instructor_profiles)
+          ? c.profiles?.instructor_profiles[0]
+          : c.profiles?.instructor_profiles;
+
+        return {
+          ...c,
+          instructor_id: c.instructor_id,
+          tutor_id: c.instructor_id,
+          category: c.categories ? { id: c.categories.id, name: c.categories.name, slug: c.categories.slug } : undefined,
+          subject: c.subjects ? { id: c.subjects.id, name: c.subjects.name, slug: c.subjects.slug } : undefined,
+          instructor: {
+            id: c.profiles?.id,
+            first_name: c.profiles?.first_name,
+            last_name: c.profiles?.last_name,
+            avatar_url: c.profiles?.avatar_url,
+            city: c.profiles?.city,
+            state: c.profiles?.state,
+            instructor_profile: ip || {},
+          },
+          tutor: {
+            id: c.profiles?.id,
+            first_name: c.profiles?.first_name,
+            last_name: c.profiles?.last_name,
+            avatar_url: c.profiles?.avatar_url,
+            city: c.profiles?.city,
+            state: c.profiles?.state,
+            tutor_profile: ip || {},
+          },
+          location: c.class_locations
+            ? {
+                id: c.class_locations.id,
+                name: c.class_locations.name,
+                address: c.class_locations.address,
+                city: c.class_locations.city,
+                state: c.class_locations.state,
+              }
+            : undefined,
+        };
+      }
+
+      // SQL Fallback
+      const rows = await this.query(
+        `SELECT
+           c.*,
+           cat.name as category_name,
+           sub.name as subject_name,
+           p.id as tutor_user_id,
+           p.first_name as tutor_first_name,
+           p.last_name as tutor_last_name,
+           p.avatar_url as tutor_avatar_url,
+           p.city as tutor_city,
+           p.state as tutor_state,
+           tp.headline as tutor_headline,
+           tp.bio as tutor_bio,
+           tp.hourly_rate as tutor_hourly_rate,
+           tp.experience_years as tutor_experience_years,
+           tp.rating_avg as tutor_rating_avg,
+           tp.reviews_count as tutor_reviews_count,
+           tp.is_approved as tutor_is_approved,
+           loc.name as location_name,
+           loc.address as location_address,
+           loc.city as location_city
+         FROM classes c
+         LEFT JOIN categories cat ON c.category_id = cat.id
+         LEFT JOIN subjects sub ON c.subject_id = sub.id
+         LEFT JOIN profiles p ON c.instructor_id = p.id
+         LEFT JOIN instructor_profiles tp ON p.id = tp.user_id
+         LEFT JOIN class_locations loc ON c.location_id = loc.id
+         WHERE c.id = $1`,
+        [classId]
+      );
+
+      if (rows && rows.length > 0) {
+        const r = rows[0];
+        return {
+          ...r,
+          instructor_id: r.instructor_id,
+          tutor_id: r.instructor_id,
+          category: r.category_name ? { name: r.category_name } : undefined,
+          subject: r.subject_name ? { name: r.subject_name } : undefined,
+          instructor: {
+            id: r.tutor_user_id,
+            first_name: r.tutor_first_name,
+            last_name: r.tutor_last_name,
+            avatar_url: r.tutor_avatar_url,
+            city: r.tutor_city,
+            state: r.tutor_state,
+            instructor_profile: {
+              headline: r.tutor_headline,
+              bio: r.tutor_bio,
+              hourly_rate: r.tutor_hourly_rate,
+              experience_years: r.tutor_experience_years,
+              rating_avg: r.tutor_rating_avg,
+              reviews_count: r.tutor_reviews_count,
+              is_approved: r.tutor_is_approved,
+            },
+          },
+          tutor: {
+            id: r.tutor_user_id,
+            first_name: r.tutor_first_name,
+            last_name: r.tutor_last_name,
+            avatar_url: r.tutor_avatar_url,
+            city: r.tutor_city,
+            state: r.tutor_state,
+            tutor_profile: {
+              headline: r.tutor_headline,
+              bio: r.tutor_bio,
+              hourly_rate: r.tutor_hourly_rate,
+              experience_years: r.tutor_experience_years,
+              rating_avg: r.tutor_rating_avg,
+              reviews_count: r.tutor_reviews_count,
+              is_approved: r.tutor_is_approved,
+            },
+          },
+          location: r.location_name
+            ? { name: r.location_name, address: r.location_address, city: r.location_city }
+            : undefined,
+        };
+      }
+    } catch (err) {
+      console.error('Error in getClassById:', err);
+    }
+
+    return memoryDb.getClassById(classId);
+  }
+
+  // --- SINGLE INSTRUCTOR BY USER ID QUERY ---
+  static async getInstructorById(userId: string) {
+    try {
+      const { data: inst, error } = await supabaseAdmin
+        .from('instructor_profiles')
+        .select(`
+          *,
+          profiles:user_id (
+            id,
+            first_name,
+            last_name,
+            email,
+            avatar_url,
+            city,
+            state,
+            country,
+            account_status
+          )
+        `)
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (!error && inst && inst.profiles) {
+        // Fetch classes taught by this instructor
+        const classes = await this.getClasses({ instructorId: userId });
+
+        return {
+          user_id: inst.user_id,
+          hourly_rate: inst.hourly_rate || 3500,
+          preferred_format: inst.preferred_format || 'BOTH',
+          headline: inst.headline || 'Verified Academic Instructor & Mentor',
+          bio: inst.bio || 'Dedicated educator committed to individualized instruction and student success.',
+          qualifications: inst.qualifications || 'Certified Academic Specialist',
+          experience_years: inst.experience_years || 0,
+          rating_avg: inst.rating_avg || 5,
+          reviews_count: inst.reviews_count || 0,
+          is_approved: inst.is_approved,
+          instructor_type: inst.instructor_type || 'TUTOR',
+          timezone: inst.timezone || 'UTC',
+          user: {
+            id: inst.profiles.id,
+            first_name: inst.profiles.first_name,
+            last_name: inst.profiles.last_name,
+            email: inst.profiles.email,
+            avatar_url: inst.profiles.avatar_url,
+            city: inst.profiles.city || 'Remote',
+            state: inst.profiles.state || '',
+            country: inst.profiles.country || 'US',
+          },
+          classes: classes || [],
+          reviews: [],
+        };
+      }
+
+      // SQL Fallback
+      const rows = await this.query(
+        `SELECT
+           tp.*,
+           p.first_name,
+           p.last_name,
+           p.email,
+           p.avatar_url,
+           p.city,
+           p.state,
+           p.country
+         FROM instructor_profiles tp
+         JOIN profiles p ON tp.user_id = p.id
+         WHERE tp.user_id = $1`,
+        [userId]
+      );
+
+      if (rows && rows.length > 0) {
+        const r = rows[0];
+        const classes = await this.getClasses({ instructorId: userId });
+
+        return {
+          user_id: r.user_id,
+          hourly_rate: r.hourly_rate || 3500,
+          preferred_format: r.preferred_format || 'BOTH',
+          headline: r.headline || 'Verified Academic Instructor & Mentor',
+          bio: r.bio || 'Dedicated educator committed to individualized instruction and student success.',
+          qualifications: r.qualifications || 'Certified Academic Specialist',
+          experience_years: r.experience_years || 0,
+          rating_avg: r.rating_avg || 5,
+          reviews_count: r.reviews_count || 0,
+          is_approved: r.is_approved,
+          instructor_type: r.instructor_type || 'TUTOR',
+          timezone: r.timezone || 'UTC',
+          user: {
+            id: r.user_id,
+            first_name: r.first_name,
+            last_name: r.last_name,
+            email: r.email,
+            avatar_url: r.avatar_url,
+            city: r.city || 'Remote',
+            state: r.state || '',
+            country: r.country || 'US',
+          },
+          classes: classes || [],
+          reviews: [],
+        };
+      }
+    } catch (err) {
+      console.error('Error in getInstructorById:', err);
+    }
+
+    return memoryDb.getInstructorById(userId) || memoryDb.getTutorById(userId);
+  }
+
   // --- CLASSES QUERY ---
   static async getClasses(filters?: {
     format?: string;

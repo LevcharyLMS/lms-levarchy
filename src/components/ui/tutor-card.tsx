@@ -12,15 +12,17 @@ import { formatDisplayName } from "@/lib/utils";
 
 interface TutorCardProps {
   tutor: TutorProfile & { user?: UserProfile };
+  basePath?: string;
 }
 
-export function TutorCard({ tutor }: TutorCardProps) {
+export function TutorCard({ tutor, basePath = "/student/instructors" }: TutorCardProps) {
   const user = tutor?.user;
   if (!tutor) return null;
 
   const displayName = formatDisplayName(user?.first_name, user?.last_name);
   const initials = `${user?.first_name?.[0] || "I"}${user?.last_name?.[0] || ""}`;
   const location = [user?.city, user?.state].filter(Boolean).join(", ") || "Remote / Verified";
+  const profileHref = `${basePath}/${tutor.user_id}`;
 
   return (
     <Card className="hover:border-teal-500/50 hover:shadow-md transition-all duration-200 flex flex-col justify-between overflow-hidden">
@@ -95,7 +97,7 @@ export function TutorCard({ tutor }: TutorCardProps) {
           Location: <strong className="text-slate-700">{location}</strong>
         </span>
         <Button asChild size="sm" variant="default" className="gap-1">
-          <Link href={`/instructors/${tutor.user_id}`}>
+          <Link href={profileHref}>
             View Profile <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </Button>
