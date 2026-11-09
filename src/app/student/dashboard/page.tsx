@@ -52,6 +52,13 @@ export default async function StudentDashboardPage() {
 
   let allBookings: any[] = [];
   let tutors: any[] = [];
+  let studentUser: any = null;
+
+  if (studentId) {
+    try {
+      studentUser = await SupabaseDbService.getUserById(studentId);
+    } catch {}
+  }
 
   try {
     allBookings = await SupabaseDbService.getBookings(studentId ? { studentId } : undefined);
@@ -410,13 +417,29 @@ export default async function StudentDashboardPage() {
             <div className="space-y-3">
               <div className="p-3 bg-slate-50 rounded-lg space-y-1.5 border border-slate-100">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-500 font-medium">Identity & Eligibility</span>
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                    Active
+                  <span className="text-slate-500 font-medium">Student ID Status</span>
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      studentUser?.verification_status === "APPROVED"
+                        ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                        : studentUser?.verification_status === "REJECTED"
+                        ? "bg-red-100 text-red-800 border border-red-200"
+                        : "bg-amber-100 text-amber-800 border border-amber-200"
+                    }`}
+                  >
+                    {studentUser?.verification_status === "APPROVED"
+                      ? "Verified Student"
+                      : studentUser?.verification_status === "REJECTED"
+                      ? "Verification Rejected"
+                      : "Pending Review"}
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-500 leading-relaxed">
-                  Your student account is authorized to enroll in both interactive virtual classrooms and in-person learning centers.
+                  {studentUser?.verification_status === "APPROVED"
+                    ? "Your student identity documents have been approved by the academic committee."
+                    : studentUser?.verification_status === "REJECTED"
+                    ? "Your student ID was rejected. Please contact support or update your profile."
+                    : "Your student ID is under review by administration. You can browse and enroll with standard escrow protection."}
                 </p>
               </div>
 

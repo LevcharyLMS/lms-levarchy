@@ -88,6 +88,11 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   // Derive breadcrumb title
   const currentItem = studentNav.find((item) => pathname.startsWith(item.href)) || { label: "Portal" };
 
+  // When on onboarding, render focused full-screen wizard without sidebar or headers
+  if (pathname === "/student/onboarding") {
+    return <div className="min-h-screen bg-slate-50">{children}</div>;
+  }
+
   return (
     <div className="flex min-h-screen bg-[#F8FAFC]">
       {/* Desktop Persistent Sidebar (250px) */}
