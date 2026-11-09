@@ -234,6 +234,34 @@ export class SupabaseDbService {
     return this.getApprovedTutors(filters);
   }
 
+  // --- INSTRUCTOR VERIFICATION CHECK ---
+  static async isInstructorApproved(userId: string): Promise<boolean> {
+    try {
+      const { data, error } = await supabaseAdmin
+        .from('instructor_profiles')
+        .select('is_approved')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (!error && data) {
+        return data.is_approved === true;
+      }
+
+      const rows = await this.query(
+        `SELECT is_approved FROM instructor_profiles WHERE user_id = $1`,
+        [userId]
+      );
+      if (rows && rows.length > 0) {
+        return rows[0].is_approved === true;
+      }
+    } catch {
+      // fallback
+    }
+
+    const memProfile = memoryDb.getInstructorById(userId);
+    return memProfile ? memProfile.is_approved === true : false;
+  }
+
   // --- CLASSES QUERY ---
   static async getClasses(filters?: {
     format?: string;
@@ -256,12 +284,14 @@ export class SupabaseDbService {
             first_name,
             last_name,
             avatar_url,
-            instructor_profiles:user_id ( headline )
+            instructor_profiles:user_id ( headline, is_approved )
           ),
           class_locations:location_id ( name, address )
         `);
 
-      if (instructorFilterId) query = query.eq('instructor_id', instructorFilterId);
+      if (instructorFilterId) {
+        query = query.eq('instructor_id', instructorFilterId);
+      }
       if (filters?.status) {
         query = query.eq('status', filters.status);
       } else if (!instructorFilterId) {
@@ -274,7 +304,16 @@ export class SupabaseDbService {
 
       const { data: sdkClasses, error: sdkErr } = await query;
       if (!sdkErr && sdkClasses && sdkClasses.length > 0) {
-        let list = sdkClasses.map((r: any) => ({
+        let list = sdkClasses
+          .filter((r: any) => {
+            // If querying on behalf of a specific instructor, let them see their own classes.
+            if (instructorFilterId) return true;
+            // Otherwise, for public/student view, ONLY allow classes from vetted & approved instructors.
+            const ip = r.profiles?.instructor_profiles;
+            const isApproved = Array.isArray(ip) ? ip[0]?.is_approved : ip?.is_approved;
+            return isApproved === true;
+          })
+          .map((r: any) => ({
           ...r,
           instructor_id: r.instructor_id,
           tutor_id: r.instructor_id, // alias
@@ -330,6 +369,9 @@ export class SupabaseDbService {
       if (instructorFilterId) {
         params.push(instructorFilterId);
         sql += ` AND c.instructor_id = $${params.length}`;
+      } else {
+        // Enforce approval gate for public/student catalog
+        sql += ` AND tp.is_approved = true AND p.account_status = 'ACTIVE'`;
       }
       if (filters?.status) {
         params.push(filters.status);

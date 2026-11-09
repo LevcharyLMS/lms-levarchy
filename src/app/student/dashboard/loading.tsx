@@ -1,6 +1,6 @@
 export default function Loading() {
   return (
-    <div className="space-y-6 max-w-7xl">
+    <div className="space-y-6 max-w-7xl mx-auto">
       <div className="h-28 w-full bg-slate-200/70 rounded-2xl animate-pulse" />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         {[1, 2, 3, 4].map((i) => (

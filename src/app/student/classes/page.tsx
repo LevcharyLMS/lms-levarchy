@@ -16,7 +16,7 @@ export default async function StudentClassesPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-6xl">
+    <div className="space-y-6 max-w-7xl mx-auto">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-navy-950">
           Available Classes &amp; Cohorts

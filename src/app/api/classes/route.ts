@@ -46,6 +46,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Authentication required to publish classes" }, { status: 401 });
     }
 
+    // Security Gate: Instructor must be formally vetted and approved
+    const isApproved = await SupabaseDbService.isInstructorApproved(authenticatedTutorId);
+    if (!isApproved) {
+      return NextResponse.json(
+        {
+          error:
+            "Your instructor profile is currently under review. Only verified and approved instructors can publish classes.",
+        },
+        { status: 403 }
+      );
+    }
+
     // Validation
     const title = (body.title || "").trim();
     const description = (body.description || "").trim();
