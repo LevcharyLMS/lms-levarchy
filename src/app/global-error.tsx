@@ -30,7 +30,7 @@ export default function GlobalError({
           <Button
             onClick={() => reset()}
             variant="default"
-            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm"
+            className="bg-teal-600 hover:bg-teal-700 text-white shadow-sm"
           >
             Reload
           </Button>
