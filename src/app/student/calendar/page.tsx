@@ -72,7 +72,7 @@ export default function StudentCalendarPage() {
             <h1 className="text-xl font-bold tracking-tight text-navy-950">
               Class Schedule & Agenda
             </h1>
-            <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 text-[10px] font-bold">
+            <span className="px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[10px] font-bold">
               EST (UTC-5)
             </span>
           </div>
@@ -122,7 +122,7 @@ export default function StudentCalendarPage() {
             key={i}
             className={`p-3 rounded-xl text-center border transition-all ${
               d.isToday
-                ? "bg-indigo-50/80 border-primary/50 shadow-xs ring-1 ring-primary/30"
+                ? "bg-teal-50/80 border-primary/50 shadow-xs ring-1 ring-primary/30"
                 : "bg-white border-slate-200/80"
             }`}
           >
@@ -153,7 +153,12 @@ export default function StudentCalendarPage() {
           Scheduled Sessions This Week ({bookings.length})
         </h2>
 
-        {bookings.length > 0 ? (
+        {loading ? (
+          <div className="p-12 text-center bg-white border border-slate-200/80 rounded-xl">
+            <div className="w-8 h-8 border-2 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+            <p className="text-xs text-slate-400">Loading your schedule...</p>
+          </div>
+        ) : bookings.length > 0 ? (
           <div className="space-y-3">
             {bookings.map((bk) => (
               <Card key={bk.id} className="border-slate-200/80 shadow-xs bg-white hover:border-slate-300 transition-all">

@@ -82,7 +82,7 @@ export default async function AdminAnalyticsPage() {
           value={stats.activeClasses ?? 0}
           subtitle="Published & open enrolment"
           icon={BookOpen}
-          variant="indigo"
+          variant="teal"
         />
       </div>
 

@@ -64,7 +64,7 @@ export default function AdminVerificationsPage() {
       header: "Credential Document",
       render: (doc) => (
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 border border-teal-100 flex items-center justify-center shrink-0">
             <FileText className="w-4 h-4" />
           </div>
           <div>
@@ -160,9 +160,9 @@ export default function AdminVerificationsPage() {
         {activeDoc && (
           <div className="space-y-5 text-xs">
             {/* Signed URL Callout */}
-            <div className="p-4 bg-indigo-50/70 border border-indigo-200/80 rounded-xl space-y-2.5">
-              <div className="flex items-center gap-2 text-indigo-900 font-bold">
-                <Lock className="w-4 h-4 text-indigo-600" />
+            <div className="p-4 bg-teal-50/70 border border-teal-200/80 rounded-xl space-y-2.5">
+              <div className="flex items-center gap-2 text-teal-900 font-bold">
+                <Lock className="w-4 h-4 text-teal-600" />
                 <span>Expiring Signed Token Generated (Rule 2)</span>
               </div>
               <p className="text-slate-600 text-[11px] leading-relaxed">

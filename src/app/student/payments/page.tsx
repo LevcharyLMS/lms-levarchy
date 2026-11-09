@@ -161,7 +161,7 @@ export default function StudentPaymentsPage() {
           value={<MoneyDisplay cents={totalTuitionCents} />}
           subtitle="Processed via Stripe"
           icon={DollarSign}
-          variant="indigo"
+          variant="teal"
         />
         <StatCard
           title="Settled Invoices"
@@ -180,14 +180,21 @@ export default function StudentPaymentsPage() {
       </div>
 
       {/* Data Table */}
-      <DataTable
-        data={filtered}
-        columns={columns}
-        searchKey="booking_number"
-        searchPlaceholder="Search invoice reference or instructor..."
-        emptyTitle="No payment records found"
-        emptyDescription="When you book a class session or cohort, your official receipt will appear here."
-      />
+      {loading ? (
+        <div className="p-12 text-center bg-white border border-slate-200/80 rounded-xl">
+          <div className="w-8 h-8 border-2 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+          <p className="text-xs text-slate-400">Loading payment history...</p>
+        </div>
+      ) : (
+        <DataTable
+          data={filtered}
+          columns={columns}
+          searchKey="booking_number"
+          searchPlaceholder="Search invoice reference or instructor..."
+          emptyTitle="No payment records found"
+          emptyDescription="When you book a class session or cohort, your official receipt will appear here."
+        />
+      )}
 
       {/* Detail Drawer - Official Receipt */}
       <DetailDrawer

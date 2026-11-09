@@ -124,13 +124,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Scrollable Nav Area */}
         <div className="p-4 overflow-y-auto space-y-5">
           {/* Workspace Pill */}
-          <div className="p-3 bg-indigo-50/70 border border-indigo-100/80 rounded-xl flex items-center justify-between">
+          <div className="p-3 bg-teal-50/70 border border-teal-100/80 rounded-xl flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md bg-indigo-600 text-white flex items-center justify-center">
+              <div className="w-6 h-6 rounded-md bg-teal-600 text-white flex items-center justify-center">
                 <Shield className="w-3.5 h-3.5" />
               </div>
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-teal-700">
                   Authority
                 </span>
                 <h2 className="text-xs font-bold text-navy-950">Company Admin</h2>
@@ -181,7 +181,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Admin User Footer */}
         <div className="p-3 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
           <div className="flex items-center gap-2 min-w-0">
-            <Avatar className="w-7 h-7 ring-2 ring-indigo-50">
+            <Avatar className="w-7 h-7 ring-2 ring-teal-50">
               {user?.avatar_url && <AvatarImage src={user.avatar_url} />}
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>

@@ -50,7 +50,7 @@ export default async function AdminDashboardPage() {
             <h1 className="text-xl font-bold tracking-tight text-navy-950">
               Operations Command Center
             </h1>
-            <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 text-[10px] font-bold">
+            <span className="px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[10px] font-bold">
               Marketplace Authority
             </span>
           </div>
@@ -123,7 +123,7 @@ export default async function AdminDashboardPage() {
             value={<MoneyDisplay cents={stats.grossRevenueCents} />}
             subtitle={stats.grossRevenueCents > 0 ? "Locked transaction snapshots" : "No payments processed yet"}
             icon={DollarSign}
-            variant="indigo"
+            variant="teal"
           />
           <StatCard
             title="Total Bookings"
@@ -267,7 +267,7 @@ export default async function AdminDashboardPage() {
 
             <Button asChild variant="outline" className="w-full justify-start text-xs h-9 border-slate-200">
               <Link href="/admin/commissions" className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-indigo-600" />
+                <TrendingUp className="w-4 h-4 text-teal-600" />
                 <span>Adjust Commission Tier</span>
               </Link>
             </Button>

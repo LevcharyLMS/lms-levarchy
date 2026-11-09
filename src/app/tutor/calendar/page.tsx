@@ -97,7 +97,7 @@ export default function TutorCalendarPage() {
               key={i}
               className={`p-3 rounded-xl text-center border transition-all ${
                 isToday
-                  ? "bg-indigo-50/90 border-primary text-primary font-bold shadow-xs"
+                  ? "bg-teal-50/90 border-primary text-primary font-bold shadow-xs"
                   : dayBookings.length > 0
                   ? "bg-teal-50/70 border-teal-300 text-teal-950"
                   : "bg-white border-slate-200 text-slate-700"

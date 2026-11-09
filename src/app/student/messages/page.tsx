@@ -209,7 +209,7 @@ export default function StudentMessagesPage() {
                   onClick={() => setActiveConvId(conv.id)}
                   className={`w-full text-left p-2.5 rounded-lg flex items-center gap-3 transition-colors ${
                     activeConvId === conv.id
-                      ? "bg-indigo-50/80 border border-primary/20"
+                      ? "bg-teal-50/80 border border-primary/20"
                       : "hover:bg-slate-50"
                   }`}
                 >

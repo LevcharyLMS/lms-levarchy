@@ -167,7 +167,7 @@ export default function AdminRefundsPage() {
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 text-xs text-primary hover:bg-indigo-50 flex items-center gap-1"
+            className="h-7 text-xs text-primary hover:bg-teal-50 flex items-center gap-1"
             onClick={() => setSelectedRefund(r)}
           >
             <Eye className="w-3 h-3" />
@@ -237,7 +237,7 @@ export default function AdminRefundsPage() {
           value={<MoneyDisplay cents={totalRefundedCents} />}
           subtitle="Processed via Stripe"
           icon={DollarSign}
-          variant="indigo"
+          variant="teal"
         />
         <StatCard
           title="Pending Review"

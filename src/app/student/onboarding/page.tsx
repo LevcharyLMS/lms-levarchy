@@ -213,7 +213,7 @@ export default function StudentOnboardingPage() {
           </div>
           <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-teal-500 to-indigo-600 transition-all duration-300"
+              className="h-full bg-gradient-to-r from-teal-500 to-teal-700 transition-all duration-300"
               style={{ width: `${(currentStep / 5) * 100}%` }}
             />
           </div>
@@ -231,7 +231,7 @@ export default function StudentOnboardingPage() {
           <Card className="border-slate-200/80 shadow-sm">
             <CardContent className="p-6 sm:p-8 space-y-6">
               <div className="space-y-1">
-                <div className="flex items-center gap-2 text-indigo-700 font-bold text-xs uppercase tracking-wider">
+                <div className="flex items-center gap-2 text-teal-700 font-bold text-xs uppercase tracking-wider">
                   <GraduationCap className="w-4 h-4" />
                   <span>Question 1 of 4</span>
                 </div>
@@ -253,7 +253,7 @@ export default function StudentOnboardingPage() {
                       onClick={() => setGradeLevel(g.id)}
                       className={`p-4 rounded-xl border text-left transition-all flex flex-col justify-between ${
                         isSelected
-                          ? "border-primary bg-indigo-50/50 shadow-xs ring-2 ring-primary/20"
+                          ? "border-primary bg-teal-50/50 shadow-xs ring-2 ring-primary/20"
                           : "border-slate-200 hover:border-slate-300 bg-white"
                       }`}
                     >
@@ -275,7 +275,7 @@ export default function StudentOnboardingPage() {
           <Card className="border-slate-200/80 shadow-sm">
             <CardContent className="p-6 sm:p-8 space-y-6">
               <div className="space-y-1">
-                <div className="flex items-center gap-2 text-indigo-700 font-bold text-xs uppercase tracking-wider">
+                <div className="flex items-center gap-2 text-teal-700 font-bold text-xs uppercase tracking-wider">
                   <BookOpen className="w-4 h-4" />
                   <span>Question 2 of 4</span>
                 </div>
@@ -320,7 +320,7 @@ export default function StudentOnboardingPage() {
           <Card className="border-slate-200/80 shadow-sm">
             <CardContent className="p-6 sm:p-8 space-y-6">
               <div className="space-y-1">
-                <div className="flex items-center gap-2 text-indigo-700 font-bold text-xs uppercase tracking-wider">
+                <div className="flex items-center gap-2 text-teal-700 font-bold text-xs uppercase tracking-wider">
                   <Target className="w-4 h-4" />
                   <span>Question 3 of 4</span>
                 </div>
@@ -346,7 +346,7 @@ export default function StudentOnboardingPage() {
                         onClick={() => setPrimaryGoal(goal.id)}
                         className={`p-3.5 rounded-xl border text-left transition-all space-y-1 ${
                           isSelected
-                            ? "border-primary bg-indigo-50/50 shadow-xs ring-1 ring-primary"
+                            ? "border-primary bg-teal-50/50 shadow-xs ring-1 ring-primary"
                             : "border-slate-200 hover:border-slate-300 bg-white"
                         }`}
                       >
@@ -405,7 +405,7 @@ export default function StudentOnboardingPage() {
                       onClick={() => setWeeklyCommitment(opt)}
                       className={`p-2.5 rounded-lg border text-xs font-medium text-center transition-all ${
                         weeklyCommitment === opt
-                          ? "border-primary bg-indigo-50 font-bold text-primary"
+                          ? "border-primary bg-teal-50 font-bold text-primary"
                           : "border-slate-200 hover:border-slate-300 bg-white text-slate-700"
                       }`}
                     >
@@ -423,7 +423,7 @@ export default function StudentOnboardingPage() {
           <Card className="border-slate-200/80 shadow-sm">
             <CardContent className="p-6 sm:p-8 space-y-6">
               <div className="space-y-1">
-                <div className="flex items-center gap-2 text-indigo-700 font-bold text-xs uppercase tracking-wider">
+                <div className="flex items-center gap-2 text-teal-700 font-bold text-xs uppercase tracking-wider">
                   <MapPin className="w-4 h-4" />
                   <span>Question 4 of 4</span>
                 </div>

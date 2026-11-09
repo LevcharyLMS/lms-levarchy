@@ -91,7 +91,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
                     <span>{item.label}</span>
                   </div>
                   {item.badge && !isActive && (
-                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-indigo-100 text-indigo-700">
+                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-teal-100 text-teal-700">
                       {item.badge}
                     </span>
                   )}
@@ -104,7 +104,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
         {/* User Footer Profile */}
         <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
           <Link href="/tutor/profile" className="flex items-center gap-2.5 min-w-0 hover:opacity-80 transition-opacity">
-            <Avatar className="w-8 h-8 ring-2 ring-indigo-50">
+            <Avatar className="w-8 h-8 ring-2 ring-teal-50">
               {user?.avatar_url && <AvatarImage src={user.avatar_url} />}
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
@@ -188,7 +188,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
                     <span>{item.label}</span>
                   </div>
                   {item.badge && !isActive && (
-                    <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-indigo-100 text-indigo-700">
+                    <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-teal-100 text-teal-700">
                       {item.badge}
                     </span>
                   )}

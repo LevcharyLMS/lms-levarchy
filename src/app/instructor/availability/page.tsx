@@ -160,7 +160,7 @@ export default function TutorAvailabilityPage() {
           value={loading ? "—" : availability.length}
           subtitle="Recurring time blocks"
           icon={Clock}
-          variant="indigo"
+          variant="teal"
         />
         <StatCard
           title="Blackout Date Exceptions"

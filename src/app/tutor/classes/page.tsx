@@ -245,7 +245,7 @@ export default function TutorClassesPage() {
             <h1 className="text-xl font-bold tracking-tight text-navy-950">
               My Classes & Cohorts
             </h1>
-            <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 text-[10px] font-bold">
+            <span className="px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[10px] font-bold">
               Live Catalog
             </span>
           </div>
@@ -297,7 +297,7 @@ export default function TutorClassesPage() {
           value={activeClasses.length}
           subtitle={activeClasses.length > 0 ? "Currently published" : "No classes published yet"}
           icon={Layers}
-          variant="indigo"
+          variant="teal"
         />
         <StatCard
           title="Total Student Seats"
@@ -526,8 +526,8 @@ export default function TutorClassesPage() {
                       </select>
                     </div>
                   ) : (
-                    <div className="p-3 bg-indigo-50/70 border border-indigo-200 rounded-xl text-indigo-900 text-xs flex items-center gap-2">
-                      <Video className="w-4 h-4 text-indigo-600 shrink-0" />
+                    <div className="p-3 bg-teal-50/70 border border-teal-200 rounded-xl text-teal-900 text-xs flex items-center gap-2">
+                      <Video className="w-4 h-4 text-teal-600 shrink-0" />
                       <span>
                         An interactive Jitsi virtual classroom will be provisioned automatically for this session.
                       </span>
@@ -648,7 +648,7 @@ export default function TutorClassesPage() {
                             </span>
                           )}
                           {c.format === "VIRTUAL" ? (
-                            <span className="flex items-center gap-1 text-indigo-700 font-medium">
+                            <span className="flex items-center gap-1 text-teal-700 font-medium">
                               <Video className="w-3.5 h-3.5" />
                               <span>{c.meet_url ? "Virtual Classroom Ready" : "Virtual Classroom Auto-Provisioned"}</span>
                             </span>
@@ -674,7 +674,7 @@ export default function TutorClassesPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 text-xs text-primary hover:bg-indigo-50 flex items-center gap-1"
+                            className="h-8 text-xs text-primary hover:bg-teal-50 flex items-center gap-1"
                             onClick={() => loadClassDetails(c)}
                           >
                             <Eye className="w-3 h-3" />
@@ -747,9 +747,9 @@ export default function TutorClassesPage() {
             </div>
 
             {selectedClass.format === "VIRTUAL" && (
-              <div className="p-3.5 bg-indigo-50/70 border border-indigo-200 rounded-xl text-indigo-950 space-y-1">
+              <div className="p-3.5 bg-teal-50/70 border border-teal-200 rounded-xl text-teal-950 space-y-1">
                 <span className="font-bold block flex items-center gap-1.5">
-                  <Video className="w-3.5 h-3.5 text-indigo-600" />
+                  <Video className="w-3.5 h-3.5 text-teal-600" />
                   <span>Google Meet Integration</span>
                 </span>
                 {selectedClass.meet_url ? (

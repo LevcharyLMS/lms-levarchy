@@ -155,7 +155,7 @@ export default function AdminMessageFlagsPage() {
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 text-xs text-primary hover:bg-indigo-50 flex items-center gap-1"
+            className="h-7 text-xs text-primary hover:bg-teal-50 flex items-center gap-1"
             onClick={() => setSelectedFlag(f)}
           >
             <Eye className="w-3 h-3" />
@@ -234,7 +234,7 @@ export default function AdminMessageFlagsPage() {
           value={pendingCount}
           subtitle="Requires compliance review"
           icon={ShieldAlert}
-          variant="indigo"
+          variant="teal"
         />
         <StatCard
           title="High Severity Alerts"

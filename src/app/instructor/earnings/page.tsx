@@ -156,7 +156,7 @@ export default function TutorEarningsPage() {
         <Button
           variant="ghost"
           size="sm"
-          className="h-7 text-xs text-primary hover:bg-indigo-50 flex items-center gap-1 ml-auto"
+          className="h-7 text-xs text-primary hover:bg-teal-50 flex items-center gap-1 ml-auto"
           onClick={() => setSelectedBooking(b)}
         >
           <Eye className="w-3 h-3" />
@@ -193,7 +193,7 @@ export default function TutorEarningsPage() {
           value={<MoneyDisplay cents={totalGrossCents} />}
           subtitle="Total enrollment revenue"
           icon={DollarSign}
-          variant="indigo"
+          variant="teal"
         />
         <StatCard
           title="Platform Deductions (20%)"

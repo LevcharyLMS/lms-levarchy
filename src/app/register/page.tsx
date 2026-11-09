@@ -29,8 +29,8 @@ const ROLE_OPTIONS = [
     desc: "Find vetted instructors, book sessions & track progress",
     icon: GraduationCap,
     gradient: "from-blue-500 to-indigo-600",
-    ring: "ring-indigo-500",
-    badge: "bg-indigo-100 text-indigo-700",
+    ring: "ring-teal-500",
+    badge: "bg-teal-100 text-teal-700",
     perks: ["Browse 100+ verified instructors", "Book live virtual classrooms", "Personalized study roadmap"],
   },
   {
@@ -223,7 +223,7 @@ export default function RegisterPage() {
             </h1>
             <p className="text-sm text-slate-500">
               Already registered?{" "}
-              <Link href="/login" className="text-indigo-600 font-semibold hover:underline">
+              <Link href="/login" className="text-teal-600 font-semibold hover:underline">
                 Sign in
               </Link>
             </p>
@@ -247,7 +247,7 @@ export default function RegisterPage() {
                 >
                   {isActive && (
                     <span className="absolute top-2.5 right-2.5">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-indigo-500" />
+                      <CheckCircle2 className="w-3.5 h-3.5 text-teal-500" />
                     </span>
                   )}
                   <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${opt.gradient} flex items-center justify-center mb-2.5`}>
@@ -273,7 +273,7 @@ export default function RegisterPage() {
             {[1, 2].map((s) => (
               <React.Fragment key={s}>
                 <div className={`flex items-center justify-center w-6 h-6 rounded-full text-[11px] font-bold transition-all ${
-                  step >= s ? "bg-indigo-600 text-white" : "bg-slate-200 text-slate-500"
+                  step >= s ? "bg-teal-600 text-white" : "bg-slate-200 text-slate-500"
                 }`}>
                   {step > s ? <CheckCircle2 className="w-3.5 h-3.5" /> : s}
                 </div>
@@ -300,7 +300,7 @@ export default function RegisterPage() {
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
                         required
-                        className="w-full pl-8 pr-3 h-10 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+                        className="w-full pl-8 pr-3 h-10 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
                       />
                     </div>
                   </div>
@@ -312,7 +312,7 @@ export default function RegisterPage() {
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
                       required
-                      className="w-full px-3 h-10 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+                      className="w-full px-3 h-10 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
                     />
                   </div>
                 </div>
@@ -327,7 +327,7 @@ export default function RegisterPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="w-full pl-9 pr-3.5 h-10 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+                      className="w-full pl-9 pr-3.5 h-10 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
                     />
                   </div>
                 </div>
@@ -354,7 +354,7 @@ export default function RegisterPage() {
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       minLength={8}
-                      className="w-full pl-9 pr-10 h-10 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+                      className="w-full pl-9 pr-10 h-10 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
                     />
                     <button type="button" onClick={() => setShowPassword((v) => !v)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600" tabIndex={-1}>
@@ -384,7 +384,7 @@ export default function RegisterPage() {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       required
-                      className="w-full pl-9 pr-10 h-10 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+                      className="w-full pl-9 pr-10 h-10 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
                     />
                     <button type="button" onClick={() => setShowConfirm((v) => !v)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600" tabIndex={-1}>
@@ -400,12 +400,12 @@ export default function RegisterPage() {
                 <div className={`p-3 rounded-xl border text-xs leading-relaxed ${
                   role === "TUTOR"
                     ? "bg-teal-50 border-teal-200 text-teal-800"
-                    : "bg-indigo-50 border-indigo-200 text-indigo-800"
+                    : "bg-teal-50 border-teal-200 text-teal-800"
                 }`}>
                   {role === "TUTOR" ? (
                     <><strong>Tutor Verification:</strong> After registration, you&apos;ll submit your credentials and government ID for review by our compliance team (24h turnaround).</>
                   ) : (
-                    <><CheckCircle2 className="inline w-3.5 h-3.5 mr-1 text-indigo-500" /><strong>Student Onboarding:</strong> You&apos;ll complete a 5-step questionnaire to personalize your learning experience.</>
+                    <><CheckCircle2 className="inline w-3.5 h-3.5 mr-1 text-teal-500" /><strong>Student Onboarding:</strong> You&apos;ll complete a 5-step questionnaire to personalize your learning experience.</>
                   )}
                 </div>
 
@@ -420,7 +420,7 @@ export default function RegisterPage() {
                         setAgreeUserTerms(e.target.checked);
                         setError(null);
                       }}
-                      className="mt-0.5 w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer shrink-0"
+                      className="mt-0.5 w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 cursor-pointer shrink-0"
                     />
                     <span className="leading-relaxed">
                       I have read and agree to the{" "}
@@ -430,7 +430,7 @@ export default function RegisterPage() {
                           e.preventDefault();
                           openLegalDoc("userAgreement");
                         }}
-                        className="font-semibold text-indigo-600 hover:text-indigo-800 underline inline cursor-pointer"
+                        className="font-semibold text-teal-600 hover:text-teal-800 underline inline cursor-pointer"
                       >
                         User Agreement
                       </button>{" "}
@@ -441,7 +441,7 @@ export default function RegisterPage() {
                           e.preventDefault();
                           openLegalDoc("privacyPolicy");
                         }}
-                        className="font-semibold text-indigo-600 hover:text-indigo-800 underline inline cursor-pointer"
+                        className="font-semibold text-teal-600 hover:text-teal-800 underline inline cursor-pointer"
                       >
                         Privacy Policy
                       </button>.

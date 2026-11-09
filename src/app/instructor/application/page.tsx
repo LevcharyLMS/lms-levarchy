@@ -205,7 +205,7 @@ export default function TutorApplicationPage() {
                 <div key={s.id} className="relative flex flex-col items-center gap-1.5 z-10">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all border-2 ${
                     isDone
-                      ? "bg-indigo-600 border-indigo-600"
+                      ? "bg-teal-600 border-indigo-600"
                       : isActive
                       ? "bg-white border-indigo-500"
                       : "bg-white border-slate-200"
@@ -213,10 +213,10 @@ export default function TutorApplicationPage() {
                     {isDone ? (
                       <CheckCircle2 className="w-4 h-4 text-white" />
                     ) : (
-                      <Icon className={`w-3.5 h-3.5 ${isActive ? "text-indigo-600" : "text-slate-400"}`} />
+                      <Icon className={`w-3.5 h-3.5 ${isActive ? "text-teal-600" : "text-slate-400"}`} />
                     )}
                   </div>
-                  <span className={`text-[10px] font-semibold text-center leading-tight ${isActive ? "text-indigo-600" : isDone ? "text-slate-600" : "text-slate-400"}`}>
+                  <span className={`text-[10px] font-semibold text-center leading-tight ${isActive ? "text-teal-600" : isDone ? "text-slate-600" : "text-slate-400"}`}>
                     {s.label}
                   </span>
                 </div>
@@ -241,7 +241,7 @@ export default function TutorApplicationPage() {
         {/* STEP 1 */}
         {step === 1 && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
-            <div className="flex items-center gap-2 text-indigo-600 font-bold text-xs uppercase tracking-wide">
+            <div className="flex items-center gap-2 text-teal-600 font-bold text-xs uppercase tracking-wide">
               <User className="w-4 h-4" />
               Step 1 — Professional Info
             </div>
@@ -255,7 +255,7 @@ export default function TutorApplicationPage() {
                   placeholder="e.g. Stanford M.S. Computer Science — AP Calculus & Physics Specialist"
                   value={headline}
                   onChange={(e) => setHeadline(e.target.value)}
-                  className="w-full px-3.5 h-10 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+                  className="w-full px-3.5 h-10 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
                 />
               </div>
 
@@ -268,7 +268,7 @@ export default function TutorApplicationPage() {
                   placeholder="e.g. Ph.D. Applied Mathematics (MIT), B.S. Physics (Caltech)"
                   value={qualifications}
                   onChange={(e) => setQualifications(e.target.value)}
-                  className="w-full px-3.5 h-10 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+                  className="w-full px-3.5 h-10 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
                 />
               </div>
 
@@ -282,7 +282,7 @@ export default function TutorApplicationPage() {
                   max={50}
                   value={experienceYears}
                   onChange={(e) => setExperienceYears(e.target.value)}
-                  className="w-full px-3.5 h-10 rounded-lg border border-slate-200 text-sm text-slate-800 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+                  className="w-full px-3.5 h-10 rounded-lg border border-slate-200 text-sm text-slate-800 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
                 />
               </div>
 
@@ -295,7 +295,7 @@ export default function TutorApplicationPage() {
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   rows={4}
-                  className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all resize-none"
+                  className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all resize-none"
                 />
               </div>
             </div>
@@ -305,7 +305,7 @@ export default function TutorApplicationPage() {
         {/* STEP 2 */}
         {step === 2 && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
-            <div className="flex items-center gap-2 text-indigo-600 font-bold text-xs uppercase tracking-wide">
+            <div className="flex items-center gap-2 text-teal-600 font-bold text-xs uppercase tracking-wide">
               <BookOpen className="w-4 h-4" />
               Step 2 — Subjects & Format
             </div>
@@ -352,11 +352,11 @@ export default function TutorApplicationPage() {
                       onClick={() => setFormat(f.id as any)}
                       className={`p-3.5 rounded-xl border text-left flex flex-col gap-1.5 transition-all ${
                         format === f.id
-                          ? "border-indigo-500 bg-indigo-50"
+                          ? "border-indigo-500 bg-teal-50"
                           : "border-slate-200 bg-white hover:border-slate-300"
                       }`}
                     >
-                      <Icon className={`w-4 h-4 ${format === f.id ? "text-indigo-600" : "text-slate-400"}`} />
+                      <Icon className={`w-4 h-4 ${format === f.id ? "text-teal-600" : "text-slate-400"}`} />
                       <p className="text-xs font-bold text-slate-800">{f.label}</p>
                       <p className="text-[10px] text-slate-500 leading-tight">{f.desc}</p>
                     </button>
@@ -370,7 +370,7 @@ export default function TutorApplicationPage() {
         {/* STEP 3 */}
         {step === 3 && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
-            <div className="flex items-center gap-2 text-indigo-600 font-bold text-xs uppercase tracking-wide">
+            <div className="flex items-center gap-2 text-teal-600 font-bold text-xs uppercase tracking-wide">
               <DollarSign className="w-4 h-4" />
               Step 3 — Rates & Availability
             </div>
@@ -388,7 +388,7 @@ export default function TutorApplicationPage() {
                     max={500}
                     value={hourlyRate}
                     onChange={(e) => setHourlyRate(e.target.value)}
-                    className="w-full pl-7 pr-3.5 h-10 rounded-lg border border-slate-200 text-sm text-slate-800 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+                    className="w-full pl-7 pr-3.5 h-10 rounded-lg border border-slate-200 text-sm text-slate-800 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
                   />
                 </div>
                 <p className="text-[11px] text-slate-400">Minimum $25/hr · Platform takes 20%</p>
@@ -406,20 +406,20 @@ export default function TutorApplicationPage() {
                     max={60}
                     value={hoursPerWeek}
                     onChange={(e) => setHoursPerWeek(e.target.value)}
-                    className="w-full pl-8 pr-3.5 h-10 rounded-lg border border-slate-200 text-sm text-slate-800 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+                    className="w-full pl-8 pr-3.5 h-10 rounded-lg border border-slate-200 text-sm text-slate-800 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
                   />
                 </div>
               </div>
             </div>
 
             {/* Earnings preview */}
-            <div className="p-4 rounded-xl border border-indigo-100 bg-indigo-50 space-y-2">
-              <p className="text-xs font-bold text-indigo-800">Estimated Monthly Earnings</p>
-              <div className="flex items-center justify-between text-xs text-indigo-700">
+            <div className="p-4 rounded-xl border border-teal-100 bg-teal-50 space-y-2">
+              <p className="text-xs font-bold text-teal-800">Estimated Monthly Earnings</p>
+              <div className="flex items-center justify-between text-xs text-teal-700">
                 <span>Gross (${hourlyRate}/hr × {hoursPerWeek}hrs/wk × 4)</span>
                 <span className="font-bold">${(parseFloat(hourlyRate || "0") * parseInt(hoursPerWeek || "0") * 4).toLocaleString()}</span>
               </div>
-              <div className="flex items-center justify-between text-xs text-indigo-700">
+              <div className="flex items-center justify-between text-xs text-teal-700">
                 <span>After 20% platform fee</span>
                 <span className="font-bold text-green-700">${(parseFloat(hourlyRate || "0") * parseInt(hoursPerWeek || "0") * 4 * 0.8).toLocaleString()}</span>
               </div>
@@ -430,7 +430,7 @@ export default function TutorApplicationPage() {
         {/* STEP 4 */}
         {step === 4 && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
-            <div className="flex items-center gap-2 text-indigo-600 font-bold text-xs uppercase tracking-wide">
+            <div className="flex items-center gap-2 text-teal-600 font-bold text-xs uppercase tracking-wide">
               <Upload className="w-4 h-4" />
               Step 4 — Verification Documents
             </div>
@@ -449,7 +449,7 @@ export default function TutorApplicationPage() {
                   placeholder="e.g. passport_john_doe.pdf · Driver's License or Passport"
                   value={idDocument}
                   onChange={(e) => setIdDocument(e.target.value)}
-                  className="w-full px-3.5 h-10 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+                  className="w-full px-3.5 h-10 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
                 />
                 <p className="text-[11px] text-slate-400">Accepted: PDF, JPG, PNG — Max 10MB</p>
               </div>
@@ -463,7 +463,7 @@ export default function TutorApplicationPage() {
                   placeholder="e.g. mit_math_phd_transcript_2019.pdf"
                   value={degreeDocument}
                   onChange={(e) => setDegreeDocument(e.target.value)}
-                  className="w-full px-3.5 h-10 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+                  className="w-full px-3.5 h-10 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
                 />
                 <p className="text-[11px] text-slate-400">Official university transcript or diploma scan</p>
               </div>
@@ -484,8 +484,8 @@ export default function TutorApplicationPage() {
               <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
                 <p className="font-bold text-slate-600 uppercase tracking-wide text-[11px]">Applicant</p>
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
-                    <User className="w-4 h-4 text-indigo-600" />
+                  <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center">
+                    <User className="w-4 h-4 text-teal-600" />
                   </div>
                   <div>
                     <p className="font-bold text-slate-800">{user?.first_name} {user?.last_name}</p>

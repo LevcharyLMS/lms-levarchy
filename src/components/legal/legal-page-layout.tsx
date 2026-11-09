@@ -199,7 +199,7 @@ export function LegalPageLayout({
             <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <h3 className="text-xs font-bold text-navy-950 uppercase tracking-wider flex items-center gap-1.5">
-                  <FileText className="w-3.5 h-3.5 text-indigo-600" />
+                  <FileText className="w-3.5 h-3.5 text-teal-600" />
                   Table of Contents
                 </h3>
                 <span className="text-[11px] text-slate-400 font-medium">
@@ -215,7 +215,7 @@ export function LegalPageLayout({
                   placeholder="Filter clauses..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-1 focus:ring-teal-500"
                 />
               </div>
 
@@ -229,13 +229,13 @@ export function LegalPageLayout({
                       onClick={() => scrollToSection(sec.id)}
                       className={`w-full text-left px-2.5 py-1.5 rounded-lg transition-all flex items-start gap-2 leading-snug group ${
                         isActive
-                          ? "bg-indigo-50 text-indigo-900 font-semibold border-l-2 border-indigo-600"
+                          ? "bg-teal-50 text-teal-900 font-semibold border-l-2 border-indigo-600"
                           : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                       }`}
                     >
                       <span
                         className={`text-[10px] mt-0.5 shrink-0 w-1.5 h-1.5 rounded-full ${
-                          isActive ? "bg-indigo-600" : "bg-slate-300 group-hover:bg-slate-400"
+                          isActive ? "bg-teal-600" : "bg-slate-300 group-hover:bg-slate-400"
                         }`}
                       />
                       <span className="line-clamp-2">{sec.title}</span>
@@ -253,7 +253,7 @@ export function LegalPageLayout({
               </p>
               <Link
                 href="/contact"
-                className="inline-flex items-center gap-1 font-semibold text-indigo-600 hover:underline text-[11px]"
+                className="inline-flex items-center gap-1 font-semibold text-teal-600 hover:underline text-[11px]"
               >
                 <span>Contact Legal Support</span>
                 <ChevronRight className="w-3 h-3" />
@@ -287,12 +287,12 @@ export function LegalPageLayout({
               </div>
 
               {/* Enterprise Plain-Language Executive Summary (Key Takeaways) */}
-              <div className="p-5 rounded-2xl bg-indigo-50/60 border border-indigo-100/90 space-y-3">
-                <div className="flex items-center gap-2 text-indigo-950 font-bold text-xs uppercase tracking-wide">
-                  <Sparkles className="w-4 h-4 text-indigo-600" />
+              <div className="p-5 rounded-2xl bg-teal-50/60 border border-teal-100/90 space-y-3">
+                <div className="flex items-center gap-2 text-teal-950 font-bold text-xs uppercase tracking-wide">
+                  <Sparkles className="w-4 h-4 text-teal-600" />
                   <span>Summary of Key Obligations &amp; Rights</span>
                 </div>
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs text-indigo-950/80">
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs text-teal-950/80">
                   {summaryHighlights.keyPoints.map((pt, idx) => (
                     <li key={idx} className="flex items-start gap-2">
                       <CheckCircle2 className="w-3.5 h-3.5 text-teal-600 shrink-0 mt-0.5" />
@@ -312,7 +312,7 @@ export function LegalPageLayout({
                   className="scroll-mt-32 space-y-3.5 border-b border-slate-100 pb-8 last:border-b-0 last:pb-0"
                 >
                   <h2 className="text-base sm:text-lg font-bold text-navy-950 tracking-tight flex items-start gap-2.5">
-                    <span className="w-2 h-2 rounded-full bg-indigo-600 shrink-0 mt-2" />
+                    <span className="w-2 h-2 rounded-full bg-teal-600 shrink-0 mt-2" />
                     <span>{section.title}</span>
                   </h2>
 
@@ -329,7 +329,7 @@ export function LegalPageLayout({
                           key={pIdx}
                           className={
                             isList
-                              ? "pl-3 border-l-2 border-indigo-200 text-slate-800 font-medium py-0.5"
+                              ? "pl-3 border-l-2 border-teal-200 text-slate-800 font-medium py-0.5"
                               : ""
                           }
                         >

@@ -184,7 +184,12 @@ export default function StudentBookingsPage() {
       )}
 
       {/* Bookings List */}
-      {filteredBookings.length > 0 ? (
+      {loading ? (
+        <div className="p-12 text-center bg-white border border-slate-200/80 rounded-xl">
+          <div className="w-8 h-8 border-2 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+          <p className="text-xs text-slate-400">Loading your bookings...</p>
+        </div>
+      ) : filteredBookings.length > 0 ? (
         <div className="space-y-4">
           {filteredBookings.map((bk) => {
             const isConfirmed = bk.status === "CONFIRMED";
@@ -257,7 +262,7 @@ export default function StudentBookingsPage() {
                     </div>
 
                     {bk.format?.includes("ONLINE") ? (
-                      <div className="flex items-center gap-2 text-indigo-700 font-semibold">
+                      <div className="flex items-center gap-2 text-teal-700 font-semibold">
                         <Video className="w-4 h-4 shrink-0" />
                         <span>Interactive Classroom</span>
                       </div>

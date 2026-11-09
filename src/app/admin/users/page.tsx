@@ -78,7 +78,7 @@ export default function AdminUsersPage() {
               ? "bg-purple-100 text-purple-900"
               : u.role === "TUTOR"
               ? "bg-teal-100 text-teal-800"
-              : "bg-indigo-100 text-indigo-800"
+              : "bg-teal-100 text-teal-800"
           }`}
         >
           {u.role}

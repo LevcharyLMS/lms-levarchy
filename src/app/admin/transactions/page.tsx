@@ -133,7 +133,7 @@ export default function AdminTransactionsPage() {
         <Button
           variant="ghost"
           size="sm"
-          className="h-7 text-xs text-primary hover:bg-indigo-50 flex items-center gap-1 ml-auto"
+          className="h-7 text-xs text-primary hover:bg-teal-50 flex items-center gap-1 ml-auto"
           onClick={() => setSelectedTx(tx)}
         >
           <Eye className="w-3 h-3" />
@@ -180,7 +180,7 @@ export default function AdminTransactionsPage() {
           value={<MoneyDisplay cents={totalGrossCents} />}
           subtitle="Processed through gateway"
           icon={DollarSign}
-          variant="indigo"
+          variant="teal"
         />
         <StatCard
           title="Platform Commission"

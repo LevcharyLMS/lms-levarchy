@@ -158,13 +158,13 @@ export function LegalDocumentModal({
               placeholder="Search in document..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-3 py-1 text-xs border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="w-full pl-8 pr-3 py-1 text-xs border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-teal-500"
             />
           </div>
         </div>
 
         {/* Document Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6 text-slate-700 bg-white selection:bg-indigo-100">
+        <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6 text-slate-700 bg-white selection:bg-teal-100">
           {searchQuery && (
             <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-center justify-between">
               <span>Showing search results for: <strong>&quot;{searchQuery}&quot;</strong></span>
@@ -186,7 +186,7 @@ export function LegalDocumentModal({
             filteredSections.map((sec, idx) => (
               <section key={idx} className="space-y-2 border-b border-slate-100 pb-5 last:border-b-0">
                 <h3 className="text-sm font-bold text-navy-950 tracking-tight flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 inline-block"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-teal-600 inline-block"></span>
                   {sec.title}
                 </h3>
                 <div className="space-y-2.5 text-xs text-slate-600 leading-relaxed pl-3.5">

@@ -276,7 +276,7 @@ export default function AdminAdvertsPage() {
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
               Total Catalog
             </span>
-            <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center">
               <Layers className="w-4 h-4" />
             </div>
           </div>
@@ -410,7 +410,7 @@ export default function AdminAdvertsPage() {
                         <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-700">
                           {advert.media_type === "VIDEO" ? (
                             <>
-                              <Video className="w-3.5 h-3.5 text-indigo-500" />
+                              <Video className="w-3.5 h-3.5 text-teal-500" />
                               Video
                             </>
                           ) : (

@@ -139,7 +139,12 @@ export default function StudentReviewsPage() {
       )}
 
       {/* Review Submission Form */}
-      {completedBookings.length > 0 ? (
+      {loading ? (
+        <div className="p-12 text-center bg-white border border-slate-200/80 rounded-xl">
+          <div className="w-8 h-8 border-2 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+          <p className="text-xs text-slate-400">Loading evaluation records...</p>
+        </div>
+      ) : completedBookings.length > 0 ? (
         <Card className="border-slate-200/80 shadow-xs bg-white">
           <CardContent className="p-6">
             <h2 className="font-bold text-sm text-navy-950 mb-3">

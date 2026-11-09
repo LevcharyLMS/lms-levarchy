@@ -138,7 +138,7 @@ export default function LoginPage() {
             </h1>
             <p className="text-sm text-slate-500">
               Don&apos;t have an account?{" "}
-              <Link href="/register" className="text-indigo-600 font-semibold hover:underline">
+              <Link href="/register" className="text-teal-600 font-semibold hover:underline">
                 Create one free
               </Link>
             </p>
@@ -168,7 +168,7 @@ export default function LoginPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full pl-9 pr-3.5 h-10 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+                    className="w-full pl-9 pr-3.5 h-10 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
                   />
                 </div>
               </div>
@@ -179,7 +179,7 @@ export default function LoginPage() {
                   <label className="block text-xs font-semibold text-slate-700">
                     Password
                   </label>
-                  <Link href="/forgot-password" className="text-xs text-indigo-600 hover:underline font-medium">
+                  <Link href="/forgot-password" className="text-xs text-teal-600 hover:underline font-medium">
                     Forgot password?
                   </Link>
                 </div>
@@ -191,7 +191,7 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full pl-9 pr-10 h-10 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+                    className="w-full pl-9 pr-10 h-10 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
                   />
                   <button
                     type="button"

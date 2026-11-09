@@ -16,7 +16,7 @@ interface StatCardProps {
 }
 
 const variantStyles = {
-  indigo: "bg-indigo-50 text-indigo-600 border-indigo-100",
+  indigo: "bg-teal-50 text-teal-600 border-teal-100",
   teal: "bg-teal-50 text-teal-600 border-teal-100",
   gold: "bg-amber-50 text-amber-600 border-amber-100",
   amber: "bg-amber-50 text-amber-600 border-amber-100",

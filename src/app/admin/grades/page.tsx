@@ -203,9 +203,9 @@ export default function AdminGradesPage() {
       return <ChevronsUpDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 transition-colors" />;
     }
     return sortOrder === "asc" ? (
-      <ArrowUp className="w-3.5 h-3.5 text-indigo-600 font-bold" />
+      <ArrowUp className="w-3.5 h-3.5 text-teal-600 font-bold" />
     ) : (
-      <ArrowDown className="w-3.5 h-3.5 text-indigo-600 font-bold" />
+      <ArrowDown className="w-3.5 h-3.5 text-teal-600 font-bold" />
     );
   };
 
@@ -224,7 +224,7 @@ export default function AdminGradesPage() {
         <Button
           size="sm"
           onClick={handleOpenModal}
-          className="text-xs h-8 bg-indigo-600 hover:bg-indigo-700 text-white gap-1.5 shadow-xs"
+          className="text-xs h-8 bg-teal-600 hover:bg-indigo-700 text-white gap-1.5 shadow-xs"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>Add Grade Tier</span>
@@ -307,8 +307,8 @@ export default function AdminGradesPage() {
                     onDrop={(e) => handleDrop(e, actualIndex)}
                     onDragEnd={handleDragEnd}
                     className={`transition-colors select-none ${
-                      isDragging ? "opacity-30 bg-indigo-50" : "hover:bg-slate-50/80"
-                    } ${isDragOver ? "border-t-2 border-indigo-500 bg-indigo-50/30" : ""}`}
+                      isDragging ? "opacity-30 bg-teal-50" : "hover:bg-slate-50/80"
+                    } ${isDragOver ? "border-t-2 border-indigo-500 bg-teal-50/30" : ""}`}
                   >
                     {/* Drag Handle */}
                     <td
@@ -401,7 +401,7 @@ export default function AdminGradesPage() {
                         setAllowTutor(e.target.checked);
                         if (!e.target.checked && !allowFaculty) setAllowFaculty(true);
                       }}
-                      className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                      className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 cursor-pointer"
                     />
                     <span>Tutor</span>
                   </label>
@@ -414,7 +414,7 @@ export default function AdminGradesPage() {
                         setAllowFaculty(e.target.checked);
                         if (!e.target.checked && !allowTutor) setAllowTutor(true);
                       }}
-                      className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                      className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 cursor-pointer"
                     />
                     <span>Faculty</span>
                   </label>
@@ -441,7 +441,7 @@ export default function AdminGradesPage() {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" size="sm" className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-medium">
+                <Button type="submit" size="sm" className="text-xs bg-teal-600 hover:bg-indigo-700 text-white font-medium">
                   Save Tier
                 </Button>
               </div>

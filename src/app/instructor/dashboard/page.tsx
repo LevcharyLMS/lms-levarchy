@@ -117,11 +117,11 @@ export default async function TutorDashboardPage() {
       {/* Today's Teaching Schedule (Section 36) */}
       {todayClass && (
         <FadeUp>
-          <div className="bg-white p-5 rounded-xl border border-indigo-100 bg-indigo-50/20 shadow-xs space-y-3">
+          <div className="bg-white p-5 rounded-xl border border-teal-100 bg-teal-50/20 shadow-xs space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-900">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-teal-900">
                   Next Scheduled Session
                 </span>
               </div>
@@ -165,7 +165,7 @@ export default async function TutorDashboardPage() {
             value={activeBookings.length}
             subtitle={activeBookings.length > 0 ? "Upcoming on calendar" : "No sessions pending"}
             icon={Calendar}
-            variant="indigo"
+            variant="teal"
           />
         </StaggerItem>
         <StaggerItem>

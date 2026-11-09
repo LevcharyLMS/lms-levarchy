@@ -104,7 +104,7 @@ export default async function StudentDashboardPage() {
         <div className="flex items-center gap-2 flex-wrap">
           <Button asChild variant="outline" size="sm" className="h-8 text-xs border-slate-200 gap-1.5">
             <Link href="/student/instructors">
-              <Users className="w-3.5 h-3.5 text-indigo-600" />
+              <Users className="w-3.5 h-3.5 text-teal-600" />
               <span>Find an Instructor</span>
             </Link>
           </Button>
@@ -126,23 +126,23 @@ export default async function StudentDashboardPage() {
       {/* Featured NEXT CLASS Card (Section 24, 26) */}
       {nextClass ? (
         <FadeUp>
-          <div className="bg-gradient-to-r from-indigo-900 to-navy-900 text-white p-6 rounded-xl shadow-sm relative overflow-hidden">
+          <div className="bg-gradient-to-r from-teal-900 to-navy-950 text-white p-6 rounded-xl shadow-sm relative overflow-hidden">
             <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
               <div className="space-y-2 max-w-xl">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/30 text-indigo-200 text-[10px] font-bold uppercase tracking-wider border border-indigo-400/30">
+                  <span className="px-2.5 py-0.5 rounded-full bg-teal-500/30 text-teal-200 text-[10px] font-bold uppercase tracking-wider border border-teal-400/30">
                     Next Upcoming Session
                   </span>
-                  <span className="text-xs font-mono text-indigo-300">
+                  <span className="text-xs font-mono text-teal-300">
                     Ref: {nextClass.booking_number}
                   </span>
                 </div>
                 <h2 className="text-lg font-bold tracking-tight text-white">
                   {nextClass.class_item?.title || "Academic Tutorial Session"}
                 </h2>
-                <div className="flex flex-wrap items-center gap-4 text-xs text-indigo-200">
+                <div className="flex flex-wrap items-center gap-4 text-xs text-teal-100">
                   <div className="flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-indigo-300" />
+                    <Clock className="w-3.5 h-3.5 text-teal-300" />
                     <span>
                       {nextClass?.start_time
                         ? new Date(nextClass.start_time).toLocaleString("en-US", {
@@ -166,7 +166,7 @@ export default async function StudentDashboardPage() {
                     )}
                   </div>
                   {nextClass.tutor && (
-                    <div className="text-xs text-indigo-300">
+                    <div className="text-xs text-teal-200">
                       Instructor: <span className="font-semibold text-white">{formatDisplayName(nextClass.tutor.first_name, nextClass.tutor.last_name)}</span>
                     </div>
                   )}
@@ -216,7 +216,7 @@ export default async function StudentDashboardPage() {
             value={activeBookings.length}
             subtitle={activeBookings.length > 0 ? "Confirmed & on calendar" : "No sessions pending"}
             icon={Calendar}
-            variant="indigo"
+            variant="teal"
           />
         </StaggerItem>
         <StaggerItem>
@@ -323,7 +323,7 @@ export default async function StudentDashboardPage() {
                   >
                     <div className="space-y-2">
                       <div className="flex items-center gap-2.5">
-                        <Avatar className="w-9 h-9 ring-2 ring-indigo-50">
+                        <Avatar className="w-9 h-9 ring-2 ring-teal-50">
                           <AvatarImage src={t.user?.avatar_url || t.avatar_url} />
                           <AvatarFallback>{(t.user?.first_name || t.first_name || "T")[0]}</AvatarFallback>
                         </Avatar>
@@ -423,7 +423,7 @@ export default async function StudentDashboardPage() {
               <div className="p-3 bg-slate-50 rounded-lg space-y-1.5 border border-slate-100">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-500 font-medium">Stripe Payment Escrow</span>
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-teal-100 text-teal-800">
                     Protected
                   </span>
                 </div>

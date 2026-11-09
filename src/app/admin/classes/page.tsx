@@ -171,7 +171,7 @@ export default function AdminClassesPage() {
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 text-xs text-primary hover:bg-indigo-50 flex items-center gap-1"
+            className="h-7 text-xs text-primary hover:bg-teal-50 flex items-center gap-1"
             onClick={() => setSelectedClass(c)}
           >
             <Eye className="w-3 h-3" />
@@ -199,7 +199,7 @@ export default function AdminClassesPage() {
             <h1 className="text-xl font-bold tracking-tight text-navy-950">
               Marketplace Class Catalog Management
             </h1>
-            <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 text-[10px] font-bold">
+            <span className="px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[10px] font-bold">
               Multi-Format Scheduling
             </span>
           </div>
@@ -238,7 +238,7 @@ export default function AdminClassesPage() {
           value={classes.length}
           subtitle="Catalog offerings"
           icon={Layers}
-          variant="indigo"
+          variant="teal"
         />
         <StatCard
           title="Published & Open"

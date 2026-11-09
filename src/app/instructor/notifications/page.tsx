@@ -56,7 +56,7 @@ export default function TutorNotificationsPage() {
   const getIcon = (type: string) => {
     switch (type) {
       case "BOOKING":
-        return <Calendar className="w-4 h-4 text-indigo-600" />;
+        return <Calendar className="w-4 h-4 text-teal-600" />;
       case "PAYOUT":
         return <DollarSign className="w-4 h-4 text-emerald-600" />;
       case "VERIFICATION":
@@ -110,7 +110,7 @@ export default function TutorNotificationsPage() {
                 key={n.id}
                 className={`p-4 rounded-xl border transition-all flex items-start gap-3.5 bg-white ${
                   !n.is_read
-                    ? "border-primary/30 shadow-xs bg-indigo-50/20"
+                    ? "border-primary/30 shadow-xs bg-teal-50/20"
                     : "border-slate-200/70"
                 }`}
               >

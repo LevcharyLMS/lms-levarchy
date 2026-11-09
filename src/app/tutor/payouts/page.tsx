@@ -119,7 +119,7 @@ export default function TutorPayoutsPage() {
             value={<MoneyDisplay cents={totalDisbursedCents} />}
             subtitle="Direct bank deposits received"
             icon={DollarSign}
-            variant="indigo"
+            variant="teal"
           />
           <StatCard
             title="Payout Status"

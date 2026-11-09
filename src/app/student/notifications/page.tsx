@@ -57,11 +57,11 @@ export default function StudentNotificationsPage() {
   const getIcon = (type: string) => {
     switch (type) {
       case "BOOKING":
-        return <Calendar className="w-4 h-4 text-indigo-600" />;
+        return <Calendar className="w-4 h-4 text-teal-600" />;
       case "PAYMENT":
-        return <CreditCard className="w-4 h-4 text-emerald-600" />;
+        return <CreditCard className="w-4 h-4 text-teal-600" />;
       case "VERIFICATION":
-        return <ShieldCheck className="w-4 h-4 text-purple-600" />;
+        return <ShieldCheck className="w-4 h-4 text-teal-600" />;
       default:
         return <Bell className="w-4 h-4 text-slate-600" />;
     }
@@ -118,7 +118,7 @@ export default function StudentNotificationsPage() {
                 key={n.id}
                 className={`p-4 rounded-xl border transition-all flex items-start gap-3.5 bg-white ${
                   !n.is_read
-                    ? "border-primary/30 shadow-xs bg-indigo-50/20"
+                    ? "border-teal-500/30 shadow-xs bg-teal-50/20"
                     : "border-slate-200/70"
                 }`}
               >

@@ -13,11 +13,11 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    /* Brand Deep Indigo / Purple */
-    --primary: 243 75% 59%;
+    /* Brand Primary: Standardized Teal / Green */
+    --primary: 173 80% 36%;
     --primary-foreground: 0 0% 100%;
 
-    /* Brand Teal */
+    /* Brand Secondary */
     --secondary: 173 80% 36%;
     --secondary-foreground: 0 0% 100%;
 

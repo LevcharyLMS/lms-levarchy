@@ -163,7 +163,7 @@ export default function AdminBookingsPage() {
         <Button
           variant="ghost"
           size="sm"
-          className="h-7 text-xs text-primary hover:bg-indigo-50 flex items-center gap-1 ml-auto"
+          className="h-7 text-xs text-primary hover:bg-teal-50 flex items-center gap-1 ml-auto"
           onClick={() => setSelectedBooking(b)}
         >
           <Eye className="w-3 h-3" />
@@ -209,7 +209,7 @@ export default function AdminBookingsPage() {
           value={bookings.length}
           subtitle="All-time marketplace records"
           icon={BookOpen}
-          variant="indigo"
+          variant="teal"
         />
         <StatCard
           title="Gross Booked Volume"
@@ -332,17 +332,17 @@ export default function AdminBookingsPage() {
             </div>
 
             {/* Financial Snapshot (Rule 11) */}
-            <div className="p-4 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-3">
-              <div className="flex items-center gap-1.5 text-indigo-900 font-bold">
-                <Lock className="w-3.5 h-3.5 text-indigo-600" />
+            <div className="p-4 bg-teal-50/50 rounded-xl border border-teal-100 space-y-3">
+              <div className="flex items-center gap-1.5 text-teal-900 font-bold">
+                <Lock className="w-3.5 h-3.5 text-teal-600" />
                 <span>Locked Financial Snapshot (Rule 11)</span>
               </div>
-              <p className="text-[11px] text-indigo-700">
+              <p className="text-[11px] text-teal-700">
                 Financial parameters are frozen at the exact moment of checkout and remain immutable.
               </p>
 
               {selectedBooking.financial_snapshot ? (
-                <div className="space-y-2 pt-2 border-t border-indigo-100">
+                <div className="space-y-2 pt-2 border-t border-teal-100">
                   <div className="flex items-center justify-between">
                     <span className="text-slate-600">Gross Tuition Paid:</span>
                     <span className="font-bold text-navy-950">
@@ -390,9 +390,9 @@ export default function AdminBookingsPage() {
             <div className="p-4 bg-white border border-slate-200 rounded-xl space-y-2">
               <span className="font-bold text-navy-950 block">Classroom Venue</span>
               {selectedBooking.format.includes("ONLINE") ? (
-                <div className="flex items-center justify-between p-2.5 bg-indigo-50/60 rounded-lg border border-indigo-100">
+                <div className="flex items-center justify-between p-2.5 bg-teal-50/60 rounded-lg border border-teal-100">
                   <div className="flex items-center gap-2">
-                    <Video className="w-4 h-4 text-indigo-600" />
+                    <Video className="w-4 h-4 text-teal-600" />
                     <div>
                       <p className="font-semibold text-navy-950 text-xs">Virtual Classroom (Jitsi)</p>
                       <p className="text-[10px] text-slate-500 font-mono">
@@ -402,7 +402,7 @@ export default function AdminBookingsPage() {
                   </div>
                   <Link
                     href={selectedBooking.meeting_link || `/classroom/Levchary-${selectedBooking.id}`}
-                    className="p-1.5 bg-white rounded border border-indigo-200 text-indigo-600 hover:bg-indigo-50"
+                    className="p-1.5 bg-white rounded border border-teal-200 text-teal-600 hover:bg-teal-50"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                   </Link>
