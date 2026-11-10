@@ -21,6 +21,7 @@ import {
   LogOut,
   ChevronRight,
   ShieldCheck,
+  FileCheck,
 } from "lucide-react";
 
 import { useAuth } from "@/context/auth-context";
@@ -67,6 +68,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
     { label: "Find Instructors", href: "/student/instructors", icon: Users },
     { label: "Classes", href: "/student/classes", icon: Search },
     { label: "Bookings", href: "/student/bookings", icon: Calendar },
+    { label: "Assignments", href: "/student/assignments", icon: FileCheck },
     { label: "Payments", href: "/student/payments", icon: CreditCard },
     { label: "Calendar", href: "/student/calendar", icon: BookOpen },
     {

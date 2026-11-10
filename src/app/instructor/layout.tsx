@@ -22,6 +22,7 @@ import {
   LogOut,
   ChevronRight,
   CheckCircle2,
+  FileCheck,
 } from "lucide-react";
 
 import { useAuth } from "@/context/auth-context";
@@ -56,6 +57,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
     { label: "My Profile", href: "/instructor/profile", icon: User },
     { label: "Verification", href: "/instructor/verification", icon: ShieldCheck, statusBadge: "APPROVED" },
     { label: "Classes", href: "/instructor/classes", icon: BookOpen },
+    { label: "Assignments", href: "/instructor/assignments", icon: FileCheck },
     { label: "Calendar", href: "/instructor/calendar", icon: Calendar },
     { label: "Availability", href: "/instructor/availability", icon: Clock },
     { label: "Students", href: "/instructor/students", icon: Users },

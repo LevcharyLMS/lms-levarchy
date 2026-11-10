@@ -2045,6 +2045,356 @@ export class SupabaseDbService {
     } catch {}
     return memoryDb.incrementAdvertDownload(id);
   }
+
+  // ==========================================
+  // --- ASSIGNMENTS & PROGRESSION ENGINE ---
+  // ==========================================
+
+  static async getAssignments(filters?: {
+    instructorId?: string;
+    studentId?: string;
+    classId?: string;
+    status?: string;
+  }) {
+    try {
+      let sql = `
+        SELECT
+          a.*,
+          c.title AS class_title,
+          p.first_name AS instructor_first_name,
+          p.last_name AS instructor_last_name,
+          p.avatar_url AS instructor_avatar_url,
+          (SELECT COUNT(*)::int FROM assignment_submissions s WHERE s.assignment_id = a.id) AS submissions_count,
+          (SELECT COUNT(*)::int FROM assignment_submissions s WHERE s.assignment_id = a.id AND s.status IN ('GRADED', 'COMPLETED')) AS graded_count
+        FROM assignments a
+        LEFT JOIN classes c ON a.class_id = c.id
+        LEFT JOIN profiles p ON a.instructor_id = p.id
+        WHERE 1=1
+      `;
+      const params: any[] = [];
+
+      if (filters?.instructorId) {
+        params.push(filters.instructorId);
+        sql += ` AND a.instructor_id = $${params.length}`;
+      }
+      if (filters?.classId) {
+        params.push(filters.classId);
+        sql += ` AND a.class_id = $${params.length}`;
+      }
+      if (filters?.status) {
+        params.push(filters.status);
+        sql += ` AND a.status = $${params.length}`;
+      }
+
+      sql += ` ORDER BY a.due_date ASC, a.created_at DESC`;
+
+      const rows = await this.query(sql, params);
+
+      // If queried for a specific student, attach their specific submission status
+      if (filters?.studentId) {
+        const studentSubmissions = await this.query(
+          `SELECT * FROM assignment_submissions WHERE student_id = $1`,
+          [filters.studentId]
+        );
+        const subMap = new Map(studentSubmissions.map((s) => [s.assignment_id, s]));
+
+        return rows.map((r) => ({
+          ...r,
+          max_marks: Number(r.max_marks || 100),
+          resource_links: r.resource_links || [],
+          instructor: {
+            first_name: r.instructor_first_name,
+            last_name: r.instructor_last_name,
+            avatar_url: r.instructor_avatar_url,
+          },
+          user_submission: subMap.get(r.id) || null,
+        }));
+      }
+
+      return rows.map((r) => ({
+        ...r,
+        max_marks: Number(r.max_marks || 100),
+        resource_links: r.resource_links || [],
+        instructor: {
+          first_name: r.instructor_first_name,
+          last_name: r.instructor_last_name,
+          avatar_url: r.instructor_avatar_url,
+        },
+      }));
+    } catch (err) {
+      console.error('Error fetching assignments:', err);
+      return [];
+    }
+  }
+
+  static async getAssignmentById(id: string, studentId?: string) {
+    try {
+      const rows = await this.query(
+        `
+        SELECT
+          a.*,
+          c.title AS class_title,
+          p.first_name AS instructor_first_name,
+          p.last_name AS instructor_last_name,
+          p.avatar_url AS instructor_avatar_url
+        FROM assignments a
+        LEFT JOIN classes c ON a.class_id = c.id
+        LEFT JOIN profiles p ON a.instructor_id = p.id
+        WHERE a.id = $1
+        LIMIT 1
+        `,
+        [id]
+      );
+      if (rows.length === 0) return null;
+      const r = rows[0];
+
+      let userSubmission = null;
+      if (studentId) {
+        const subRows = await this.query(
+          `SELECT * FROM assignment_submissions WHERE assignment_id = $1 AND student_id = $2 LIMIT 1`,
+          [id, studentId]
+        );
+        if (subRows.length > 0) userSubmission = subRows[0];
+      }
+
+      return {
+        ...r,
+        max_marks: Number(r.max_marks || 100),
+        resource_links: r.resource_links || [],
+        instructor: {
+          first_name: r.instructor_first_name,
+          last_name: r.instructor_last_name,
+          avatar_url: r.instructor_avatar_url,
+        },
+        user_submission: userSubmission,
+      };
+    } catch (err) {
+      console.error('Error in getAssignmentById:', err);
+      return null;
+    }
+  }
+
+  static async createAssignment(data: {
+    instructor_id: string;
+    class_id?: string | null;
+    booking_id?: string | null;
+    title: string;
+    description?: string;
+    file_url?: string | null;
+    file_name?: string | null;
+    resource_links?: Array<{ label: string; url: string }>;
+    max_marks?: number;
+    due_date: string;
+    status?: string;
+  }) {
+    try {
+      const sql = `
+        INSERT INTO assignments (
+          instructor_id, class_id, booking_id, title, description,
+          file_url, file_name, resource_links, max_marks, due_date, status,
+          created_at, updated_at
+        ) VALUES (
+          $1, $2, $3, $4, $5,
+          $6, $7, $8::jsonb, $9, $10::timestamptz, $11,
+          NOW(), NOW()
+        )
+        RETURNING *;
+      `;
+      const params = [
+        data.instructor_id,
+        data.class_id || null,
+        data.booking_id || null,
+        data.title,
+        data.description || null,
+        data.file_url || null,
+        data.file_name || null,
+        JSON.stringify(data.resource_links || []),
+        data.max_marks || 100,
+        data.due_date,
+        data.status || 'PUBLISHED',
+      ];
+      const rows = await this.query(sql, params);
+      return rows[0] || null;
+    } catch (err) {
+      console.error('Error creating assignment in DB:', err);
+      return null;
+    }
+  }
+
+  static async updateAssignment(id: string, updates: Record<string, any>) {
+    try {
+      const setClauses: string[] = [];
+      const params: any[] = [id];
+      Object.entries(updates).forEach(([key, val]) => {
+        if (key === 'resource_links') {
+          params.push(JSON.stringify(val));
+          setClauses.push(`resource_links = $${params.length}::jsonb`);
+        } else if (key === 'due_date') {
+          params.push(val);
+          setClauses.push(`due_date = $${params.length}::timestamptz`);
+        } else {
+          params.push(val);
+          setClauses.push(`${key} = $${params.length}`);
+        }
+      });
+      if (setClauses.length > 0) {
+        setClauses.push(`updated_at = NOW()`);
+        const sql = `UPDATE assignments SET ${setClauses.join(', ')} WHERE id = $1 RETURNING *;`;
+        const rows = await this.query(sql, params);
+        if (rows && rows.length > 0) return rows[0];
+      }
+    } catch (err) {
+      console.error('Error updating assignment:', err);
+    }
+    return null;
+  }
+
+  static async getSubmissions(assignmentId: string) {
+    try {
+      const rows = await this.query(
+        `
+        SELECT
+          s.*,
+          stu.first_name AS student_first_name,
+          stu.last_name AS student_last_name,
+          stu.email AS student_email,
+          stu.avatar_url AS student_avatar_url
+        FROM assignment_submissions s
+        JOIN profiles stu ON s.student_id = stu.id
+        WHERE s.assignment_id = $1
+        ORDER BY s.submitted_at DESC
+        `,
+        [assignmentId]
+      );
+      return rows.map((r) => ({
+        ...r,
+        marks_awarded: r.marks_awarded !== null ? Number(r.marks_awarded) : null,
+        student: {
+          first_name: r.student_first_name,
+          last_name: r.student_last_name,
+          email: r.student_email,
+          avatar_url: r.student_avatar_url,
+        },
+      }));
+    } catch (err) {
+      console.error('Error getting submissions:', err);
+      return [];
+    }
+  }
+
+  static async submitAssignment(data: {
+    assignment_id: string;
+    student_id: string;
+    submission_text?: string;
+    file_url?: string;
+    file_name?: string;
+    file_size?: number;
+  }) {
+    try {
+      const sql = `
+        INSERT INTO assignment_submissions (
+          assignment_id, student_id, submission_text, file_url, file_name, file_size,
+          submitted_at, status, file_pruned, created_at, updated_at
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6,
+          NOW(), 'SUBMITTED', false, NOW(), NOW()
+        )
+        ON CONFLICT (id) DO UPDATE SET
+          submission_text = EXCLUDED.submission_text,
+          file_url = EXCLUDED.file_url,
+          file_name = EXCLUDED.file_name,
+          file_size = EXCLUDED.file_size,
+          submitted_at = NOW(),
+          updated_at = NOW()
+        RETURNING *;
+      `;
+      const params = [
+        data.assignment_id,
+        data.student_id,
+        data.submission_text || null,
+        data.file_url || null,
+        data.file_name || null,
+        data.file_size || null,
+      ];
+      const rows = await this.query(sql, params);
+      return rows[0] || null;
+    } catch (err) {
+      console.error('Error submitting assignment:', err);
+      return null;
+    }
+  }
+
+  static async gradeSubmission(
+    submissionId: string,
+    gradeData: {
+      marks_awarded: number;
+      grade_letter: string;
+      instructor_feedback: string;
+    }
+  ) {
+    try {
+      // 1. Update marks, pedagogical review feedback, and status to COMPLETED
+      // 2. Prune file URL from record while keeping complete metadata permanently (Rule/Client requirement)
+      const sql = `
+        UPDATE assignment_submissions
+        SET
+          marks_awarded = $1,
+          grade_letter = $2,
+          instructor_feedback = $3,
+          graded_at = NOW(),
+          status = 'COMPLETED',
+          file_pruned = true,
+          pruned_at = NOW(),
+          updated_at = NOW()
+        WHERE id = $4
+        RETURNING *;
+      `;
+      const rows = await this.query(sql, [
+        gradeData.marks_awarded,
+        gradeData.grade_letter,
+        gradeData.instructor_feedback,
+        submissionId,
+      ]);
+
+      return rows[0] || null;
+    } catch (err) {
+      console.error('Error grading submission:', err);
+      return null;
+    }
+  }
+
+  static async getStudentProgressionMetrics(studentId: string) {
+    try {
+      const rows = await this.query(
+        `
+        SELECT
+          COUNT(*)::int AS total_submitted,
+          COUNT(CASE WHEN status = 'COMPLETED' THEN 1 END)::int AS total_graded,
+          COALESCE(AVG(marks_awarded), 0)::numeric(5,2) AS average_score
+        FROM assignment_submissions
+        WHERE student_id = $1
+        `,
+        [studentId]
+      );
+
+      const stats = rows[0] || { total_submitted: 0, total_graded: 0, average_score: 0 };
+      const avg = Number(stats.average_score || 0);
+
+      let level = 'Foundational';
+      if (avg >= 90) level = 'Mastery / Advanced';
+      else if (avg >= 75) level = 'Proficient';
+      else if (avg >= 60) level = 'Developing';
+
+      return {
+        totalSubmitted: Number(stats.total_submitted || 0),
+        totalGraded: Number(stats.total_graded || 0),
+        averageScore: avg,
+        progressionLevel: level,
+      };
+    } catch {
+      return { totalSubmitted: 0, totalGraded: 0, averageScore: 0, progressionLevel: 'Foundational' };
+    }
+  }
 }
 
 export const supabaseDb = SupabaseDbService;

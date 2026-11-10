@@ -97,6 +97,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     {
       title: "MODERATION & SUPPORT",
       items: [
+        { label: "Assignments", href: "/admin/assignments", icon: FileCheck },
         { label: "Messages", href: "/admin/messages", icon: MessageSquare },
         { label: "Flags", href: "/admin/flags", icon: ShieldAlert, badge: "1" },
         { label: "Reviews", href: "/admin/reviews", icon: Star },

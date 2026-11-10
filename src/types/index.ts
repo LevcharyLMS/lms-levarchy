@@ -528,3 +528,53 @@ export interface AdvertItem {
   created_at: string;
   updated_at: string;
 }
+
+export interface ResourceLink {
+  label: string;
+  url: string;
+}
+
+export interface Assignment {
+  id: string;
+  class_id?: string | null;
+  booking_id?: string | null;
+  instructor_id: string;
+  title: string;
+  description?: string | null;
+  file_url?: string | null;
+  file_name?: string | null;
+  resource_links: ResourceLink[];
+  max_marks: number;
+  due_date: string;
+  status: 'DRAFT' | 'PUBLISHED' | 'IN_REVIEW' | 'ARCHIVED';
+  created_at: string;
+  updated_at: string;
+  class_title?: string;
+  instructor?: UserProfile;
+  submissions_count?: number;
+  graded_count?: number;
+  user_submission?: AssignmentSubmission | null;
+}
+
+export interface AssignmentSubmission {
+  id: string;
+  assignment_id: string;
+  student_id: string;
+  submission_text?: string | null;
+  file_url?: string | null;
+  file_name?: string | null;
+  file_size?: number | null;
+  submitted_at: string;
+  status: 'SUBMITTED' | 'GRADED' | 'COMPLETED';
+  marks_awarded?: number | null;
+  grade_letter?: string | null;
+  instructor_feedback?: string | null;
+  graded_at?: string | null;
+  file_pruned: boolean;
+  pruned_at?: string | null;
+  metadata?: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+  student?: UserProfile;
+  assignment?: Assignment;
+}
