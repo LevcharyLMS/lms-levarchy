@@ -14,29 +14,59 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    let instructorId = body.instructorId || body.tutorId;
 
-    if (body.classType === "GROUP") {
-      const result = await BookingService.enrollInGroupClass({
+    // Resolve instructor from class if not provided
+    if (!instructorId && body.classId) {
+      const classItem = await SupabaseDbService.getClassById(body.classId);
+      if (classItem) {
+        instructorId = classItem.instructor_id || classItem.tutor_id;
+      }
+    }
+
+    if (!instructorId) {
+      return NextResponse.json({ error: "Instructor could not be identified for this class." }, { status: 400 });
+    }
+
+    // Persist real booking to Supabase PostgreSQL database
+    const booking = await SupabaseDbService.createBooking({
+      studentId: body.studentId,
+      instructorId: instructorId,
+      classId: body.classId,
+      startTime: body.startTime,
+      endTime: body.endTime || new Date(new Date(body.startTime).getTime() + 3600000).toISOString(),
+      timezone: body.timezone,
+      format: body.format || "VIRTUAL",
+      locationId: body.locationId,
+      notes: body.notes || body.studentNotes,
+      status: "CONFIRMED",
+    });
+
+    // Automatically establish or ensure a conversation channel between student and instructor
+    try {
+      await SupabaseDbService.getOrCreateConversation(body.studentId, instructorId);
+    } catch (convErr: any) {
+      console.warn("Auto-establishing conversation note:", convErr?.message);
+    }
+
+    // Send notifications to student & instructor asynchronously
+    try {
+      await BookingService.bookOneOnOne({
         studentId: body.studentId,
-        classId: body.classId,
-        timezone: body.timezone,
-      });
-      return NextResponse.json(result, { status: 201 });
-    } else {
-      const result = await BookingService.bookOneOnOne({
-        studentId: body.studentId,
-        tutorId: body.tutorId,
+        tutorId: instructorId,
         classId: body.classId,
         startTime: body.startTime,
-        endTime: body.endTime,
+        endTime: body.endTime || new Date(new Date(body.startTime).getTime() + 3600000).toISOString(),
         timezone: body.timezone,
-        format: body.format,
+        format: body.format || "VIRTUAL",
         locationId: body.locationId,
-        notes: body.notes,
-      });
-      return NextResponse.json(result, { status: 201 });
-    }
+        notes: body.notes || body.studentNotes,
+      }).catch((e) => console.warn("In-memory booking/notification sync note:", e.message));
+    } catch {}
+
+    return NextResponse.json({ booking }, { status: 201 });
   } catch (err: any) {
+    console.error("Booking creation error:", err);
     return NextResponse.json({ error: err.message }, { status: 400 });
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useAuth } from "@/context/auth-context";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { PageTransition, FadeIn } from "@/components/animations";
 import { Send, ShieldAlert, Lock, Info, MessageSquare, User } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 
 interface Conversation {
@@ -41,6 +42,16 @@ export default function TutorMessagesPage() {
   const [inputBody, setInputBody] = useState("");
   const [flagNotice, setFlagNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const supabase = useMemo(() => createClient(), []);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   // Fetch real conversations
   useEffect(() => {
@@ -61,15 +72,84 @@ export default function TutorMessagesPage() {
 
   // Fetch messages for active conversation
   useEffect(() => {
-    if (!activeConvId) return;
+    if (!activeConvId || !tutorId) return;
 
-    fetch(`/api/messages?conversationId=${activeConvId}`)
+    fetch(`/api/messages?conversationId=${activeConvId}&userId=${tutorId}`)
       .then((res) => res.json())
       .then((data) => {
         setMessages(data.messages || []);
+        // Reset unread badge locally for this conversation
+        setConversations((prev) =>
+          prev.map((c) => (c.id === activeConvId ? { ...c, unread_count: 0 } : c))
+        );
       })
       .catch((err) => console.error("Error loading messages:", err));
-  }, [activeConvId]);
+  }, [activeConvId, tutorId]);
+
+  // Real-Time Supabase WebSocket Subscription for incoming messages + Fallback Polling
+  useEffect(() => {
+    if (!activeConvId || !tutorId) return;
+
+    const channel = supabase
+      .channel(`instructor-conversation:${activeConvId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `conversation_id=eq.${activeConvId}`,
+        },
+        (payload: any) => {
+          const newMsg = payload.new as MessageItem;
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === newMsg.id || (m.body === newMsg.body && m.sender_id === newMsg.sender_id && Math.abs(new Date(m.created_at).getTime() - new Date(newMsg.created_at).getTime()) < 3000))) {
+              return prev.map((m) => (m.body === newMsg.body && m.sender_id === newMsg.sender_id ? newMsg : m));
+            }
+            return [...prev, newMsg];
+          });
+
+          if (newMsg.sender_id !== tutorId) {
+            fetch(`/api/messages?conversationId=${activeConvId}&userId=${tutorId}`).catch(() => {});
+          }
+
+          setConversations((prev) =>
+            prev.map((c) =>
+              c.id === activeConvId
+                ? {
+                    ...c,
+                    last_message_body: newMsg.body,
+                    unread_count: 0,
+                  }
+                : c
+            )
+          );
+        }
+      )
+      .subscribe();
+
+    // Safety-net background sync (every 6s) to guarantee consistency without overwhelming the connection
+    const interval = setInterval(() => {
+      fetch(`/api/messages?conversationId=${activeConvId}&userId=${tutorId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.messages && Array.isArray(data.messages)) {
+            setMessages((prev) => {
+              if (data.messages.length !== prev.length || (data.messages.length > 0 && prev.length > 0 && data.messages[data.messages.length - 1].id !== prev[prev.length - 1].id)) {
+                return data.messages;
+              }
+              return prev;
+            });
+          }
+        })
+        .catch(() => {});
+    }, 6000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
+  }, [activeConvId, tutorId, supabase]);
 
   const activeContact = conversations.find((c) => c.id === activeConvId);
 
@@ -79,6 +159,27 @@ export default function TutorMessagesPage() {
 
     const bodyText = inputBody.trim();
     setInputBody("");
+
+    // Instant optimistic update
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMessage: MessageItem = {
+      id: tempId,
+      conversation_id: activeConvId,
+      sender_id: tutorId,
+      body: bodyText,
+      is_read: false,
+      has_flag: false,
+      created_at: new Date().toISOString(),
+    };
+
+    setMessages((prev) => [...prev, optimisticMessage]);
+
+    // Update conversation sidebar preview immediately
+    setConversations((prev) =>
+      prev.map((c) =>
+        c.id === activeConvId ? { ...c, last_message_body: bodyText } : c
+      )
+    );
 
     try {
       const res = await fetch("/api/messages", {
@@ -93,7 +194,9 @@ export default function TutorMessagesPage() {
 
       const data = await res.json();
       if (data.message) {
-        setMessages((prev) => [...prev, data.message]);
+        setMessages((prev) =>
+          prev.map((m) => (m.id === tempId ? data.message : m))
+        );
       }
 
       if (data.hasFlags && data.flags?.length > 0) {
@@ -254,6 +357,7 @@ export default function TutorMessagesPage() {
                     );
                   })
                 )}
+                <div ref={messagesEndRef} />
               </div>
 
               <div className="p-4 bg-white border-t border-slate-200">

@@ -45,7 +45,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
       .then((res) => res.json())
       .then((data) => {
         const convs = data.conversations || [];
-        const totalUnread = convs.reduce((acc: number, c: any) => acc + (c.unread_count || 0), 0);
+        const totalUnread = convs.reduce((acc: number, c: any) => acc + (parseInt(c.unread_count, 10) || 0), 0);
         setUnreadMessages(totalUnread);
       })
       .catch(() => {});

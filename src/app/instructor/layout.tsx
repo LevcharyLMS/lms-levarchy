@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -30,10 +30,25 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [unreadMessages, setUnreadMessages] = useState(0);
 
   const displayName = user ? `${user.first_name} ${user.last_name}` : "Faculty Instructor";
   const firstName = user?.first_name || "Instructor";
   const initials = user ? `${user.first_name?.[0] || "T"}${user.last_name?.[0] || "I"}` : "TC";
+
+  // Fetch real unread messages for instructor
+  useEffect(() => {
+    if (!user?.id) return;
+
+    fetch(`/api/messages?userId=${user.id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        const convs = data.conversations || [];
+        const totalUnread = convs.reduce((acc: number, c: any) => acc + (parseInt(c.unread_count, 10) || 0), 0);
+        setUnreadMessages(totalUnread);
+      })
+      .catch(() => {});
+  }, [user?.id, pathname]);
 
   // Exact 12 items specified in Section 8 of PRD
   const tutorNav = [
@@ -44,10 +59,15 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
     { label: "Calendar", href: "/instructor/calendar", icon: Calendar },
     { label: "Availability", href: "/instructor/availability", icon: Clock },
     { label: "Students", href: "/instructor/students", icon: Users },
-    { label: "Messages", href: "/instructor/messages", icon: MessageSquare, badge: 1 },
+    {
+      label: "Messages",
+      href: "/instructor/messages",
+      icon: MessageSquare,
+      badge: unreadMessages > 0 ? unreadMessages : undefined,
+    },
     { label: "Earnings", href: "/instructor/earnings", icon: DollarSign },
     { label: "Payouts", href: "/instructor/payouts", icon: CreditCard },
-    { label: "Notifications", href: "/instructor/notifications", icon: Bell, badge: 1 },
+    { label: "Notifications", href: "/instructor/notifications", icon: Bell },
     { label: "Settings", href: "/instructor/settings", icon: Settings },
   ];
 

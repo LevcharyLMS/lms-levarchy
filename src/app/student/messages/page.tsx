@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
+import { createClient } from "@/lib/supabase/client";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,8 +46,10 @@ interface MessageItem {
   sender_last_name?: string;
 }
 
-export default function StudentMessagesPage() {
+function StudentMessagesContent() {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
+  const recipientId = searchParams.get("recipientId");
   const currentUserId = user?.id;
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -54,35 +58,120 @@ export default function StudentMessagesPage() {
   const [inputBody, setInputBody] = useState("");
   const [lastFlagAlert, setLastFlagAlert] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const supabase = useMemo(() => createClient(), []);
 
-  // Fetch real conversations for current authenticated user
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  // Fetch real conversations for current authenticated user (and handle recipientId if passed)
   useEffect(() => {
     if (!currentUserId) return;
 
-    fetch(`/api/messages?userId=${currentUserId}`)
+    const url = recipientId
+      ? `/api/messages?userId=${currentUserId}&recipientId=${recipientId}`
+      : `/api/messages?userId=${currentUserId}`;
+
+    fetch(url)
       .then((res) => res.json())
       .then((data) => {
         const convs = data.conversations || [];
         setConversations(convs);
-        if (convs.length > 0) {
+        if (data.conversationId) {
+          setActiveConvId(data.conversationId);
+        } else if (convs.length > 0) {
           setActiveConvId(convs[0].id);
         }
       })
       .catch((err) => console.error("Error loading conversations:", err))
       .finally(() => setLoading(false));
-  }, [currentUserId]);
+  }, [currentUserId, recipientId]);
 
   // Fetch messages when active conversation changes
   useEffect(() => {
-    if (!activeConvId) return;
+    if (!activeConvId || !currentUserId) return;
 
-    fetch(`/api/messages?conversationId=${activeConvId}`)
+    fetch(`/api/messages?conversationId=${activeConvId}&userId=${currentUserId}`)
       .then((res) => res.json())
       .then((data) => {
         setMessages(data.messages || []);
+        // Reset unread badge locally for this conversation
+        setConversations((prev) =>
+          prev.map((c) => (c.id === activeConvId ? { ...c, unread_count: 0 } : c))
+        );
       })
       .catch((err) => console.error("Error loading messages:", err));
-  }, [activeConvId]);
+  }, [activeConvId, currentUserId]);
+
+  // Real-Time Supabase WebSocket Subscription for incoming messages + Fallback Polling
+  useEffect(() => {
+    if (!activeConvId || !currentUserId) return;
+
+    const channel = supabase
+      .channel(`conversation:${activeConvId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `conversation_id=eq.${activeConvId}`,
+        },
+        (payload: any) => {
+          const newMsg = payload.new as MessageItem;
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === newMsg.id || (m.body === newMsg.body && m.sender_id === newMsg.sender_id && Math.abs(new Date(m.created_at).getTime() - new Date(newMsg.created_at).getTime()) < 3000))) {
+              return prev.map((m) => (m.body === newMsg.body && m.sender_id === newMsg.sender_id ? newMsg : m));
+            }
+            return [...prev, newMsg];
+          });
+
+          if (newMsg.sender_id !== currentUserId) {
+            fetch(`/api/messages?conversationId=${activeConvId}&userId=${currentUserId}`).catch(() => {});
+          }
+
+          setConversations((prev) =>
+            prev.map((c) =>
+              c.id === activeConvId
+                ? {
+                    ...c,
+                    last_message_body: newMsg.body,
+                    unread_count: 0,
+                  }
+                : c
+            )
+          );
+        }
+      )
+      .subscribe();
+
+    // Safety-net background sync (every 6s) to guarantee consistency without overwhelming the connection
+    const interval = setInterval(() => {
+      fetch(`/api/messages?conversationId=${activeConvId}&userId=${currentUserId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.messages && Array.isArray(data.messages)) {
+            setMessages((prev) => {
+              if (data.messages.length !== prev.length || (data.messages.length > 0 && prev.length > 0 && data.messages[data.messages.length - 1].id !== prev[prev.length - 1].id)) {
+                return data.messages;
+              }
+              return prev;
+            });
+          }
+        })
+        .catch(() => {});
+    }, 6000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
+  }, [activeConvId, currentUserId, supabase]);
 
   const activeContact = useMemo(() => {
     return conversations.find((c) => c.id === activeConvId);
@@ -102,6 +191,27 @@ export default function StudentMessagesPage() {
     const bodyText = inputBody.trim();
     setInputBody("");
 
+    // Instant Optimistic UI update: Zero lag message rendering
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMessage: MessageItem = {
+      id: tempId,
+      conversation_id: activeConvId,
+      sender_id: currentUserId,
+      body: bodyText,
+      is_read: false,
+      has_flag: false,
+      created_at: new Date().toISOString(),
+    };
+
+    setMessages((prev) => [...prev, optimisticMessage]);
+
+    // Update conversation sidebar preview immediately
+    setConversations((prev) =>
+      prev.map((c) =>
+        c.id === activeConvId ? { ...c, last_message_body: bodyText } : c
+      )
+    );
+
     try {
       const res = await fetch("/api/messages", {
         method: "POST",
@@ -115,7 +225,10 @@ export default function StudentMessagesPage() {
 
       const data = await res.json();
       if (data.message) {
-        setMessages((prev) => [...prev, data.message]);
+        // Replace optimistic message with persistent message from DB
+        setMessages((prev) =>
+          prev.map((m) => (m.id === tempId ? data.message : m))
+        );
       }
 
       if (data.hasFlags && data.flags?.length > 0) {
@@ -180,13 +293,13 @@ export default function StudentMessagesPage() {
                 Your conversations with instructors will appear here once you enroll in a class or reach out for lesson preparation.
               </p>
               <div className="flex items-center justify-center gap-3">
-                <Link href="/classes">
+                <Link href="/student/classes">
                   <Button size="sm" className="gap-1.5 text-xs bg-primary hover:bg-primary/90 text-white">
                     <BookOpen className="w-3.5 h-3.5" />
                     <span>Explore Classes</span>
                   </Button>
                 </Link>
-                <Link href="/find-instructors">
+                <Link href="/student/find-instructors">
                   <Button size="sm" variant="outline" className="text-xs border-slate-200">
                     Find an Instructor
                   </Button>
@@ -312,6 +425,7 @@ export default function StudentMessagesPage() {
                     );
                   })
                 )}
+                <div ref={messagesEndRef} />
               </div>
 
               {/* Proactive Safety Warning Preview */}
@@ -354,5 +468,19 @@ export default function StudentMessagesPage() {
         )}
       </div>
     </PageTransition>
+  );
+}
+
+export default function StudentMessagesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <StudentMessagesContent />
+    </Suspense>
   );
 }

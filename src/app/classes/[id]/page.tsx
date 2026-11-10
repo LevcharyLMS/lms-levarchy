@@ -131,18 +131,31 @@ export default function ClassDetailPage({ params }: ClassPageProps) {
     setBookingError(null);
 
     try {
+      const tutorId = classItem.instructor_id || classItem.tutor_id || tutor?.id;
+      const duration = classItem.duration_minutes || 60;
+
       let bookingPayload: any = {
         studentId: user.id,
+        tutorId: tutorId,
+        instructorId: tutorId,
         classId: classItem.id,
         format: classItem.format,
+        classType: classItem.class_type,
+        locationId: classItem.location_id,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "America/New_York",
       };
 
       if (isGroup) {
-        bookingPayload.startTime = classItem.start_time || new Date(Date.now() + 86400000).toISOString();
+        const start = classItem.start_time || new Date(Date.now() + 86400000).toISOString();
+        const end = classItem.end_time || new Date(new Date(start).getTime() + duration * 60000).toISOString();
+        bookingPayload.startTime = start;
+        bookingPayload.endTime = end;
       } else {
         const fullDateTime = new Date(`${selectedDate}T${selectedTime}:00`);
+        const endTime = new Date(fullDateTime.getTime() + duration * 60000);
         bookingPayload.startTime = fullDateTime.toISOString();
-        bookingPayload.studentNotes = studentNotes;
+        bookingPayload.endTime = endTime.toISOString();
+        bookingPayload.notes = studentNotes;
       }
 
       const res = await fetch("/api/bookings", {

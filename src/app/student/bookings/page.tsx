@@ -319,7 +319,9 @@ export default function StudentBookingsPage() {
                       )}
 
                       <Button asChild variant="outline" size="sm" className="h-8 text-xs border-slate-200">
-                        <Link href="/student/messages">Message Instructor</Link>
+                        <Link href={`/student/messages?recipientId=${bk.instructor_id || bk.tutor_id}`}>
+                          Message Instructor
+                        </Link>
                       </Button>
                     </div>
                   </div>
@@ -334,7 +336,7 @@ export default function StudentBookingsPage() {
           title="No bookings in this tab"
           description="Ready to accelerate your learning? Browse approved instructors and reserve a session."
           actionLabel="Explore Classes"
-          actionHref="/classes"
+          actionHref="/student/classes"
         />
       )}
     </div>

@@ -30,8 +30,8 @@ export const pool =
       process.env.DATABASE_URL ||
       'postgresql://postgres.xegsdlkpdwwmojdatuwb:iTI6MBFuBxvDZaJ9@aws-0-ap-northeast-2.pooler.supabase.com:6543/postgres',
     ssl: { rejectUnauthorized: false },
-    max: 5,
-    connectionTimeoutMillis: 3000,
+    max: 20,
+    connectionTimeoutMillis: 10000,
     idleTimeoutMillis: 30000,
   });
 
@@ -880,6 +880,105 @@ export class SupabaseDbService {
     }
   }
 
+  static async createBooking(params: {
+    studentId: string;
+    instructorId: string;
+    classId: string;
+    startTime: string;
+    endTime: string;
+    timezone?: string;
+    format: string;
+    locationId?: string;
+    notes?: string;
+    status?: string;
+    meetUrl?: string;
+  }) {
+    const bookingNumber = 'BK-' + Math.floor(100000 + Math.random() * 900000);
+    const timezone = params.timezone || 'America/New_York';
+    const status = params.status || 'CONFIRMED';
+    const meetUrl = params.meetUrl || (params.format === 'VIRTUAL' ? `https://meet.jit.si/Levchary-${bookingNumber}` : null);
+
+    try {
+      const sql = `
+        INSERT INTO bookings (
+          booking_number, student_id, instructor_id, class_id, status,
+          start_time, end_time, timezone, format, location_id, meet_url, notes,
+          created_at, updated_at
+        ) VALUES (
+          $1, $2, $3, $4, $5,
+          $6::timestamptz, $7::timestamptz, $8, $9, $10, $11, $12,
+          NOW(), NOW()
+        )
+        RETURNING *;
+      `;
+      const rows = await this.query(sql, [
+        bookingNumber,
+        params.studentId,
+        params.instructorId,
+        params.classId,
+        status,
+        params.startTime,
+        params.endTime,
+        timezone,
+        params.format,
+        params.locationId || null,
+        meetUrl,
+        params.notes || null,
+      ]);
+
+      if (rows.length > 0) {
+        const created = rows[0];
+
+        // Increment enrolled count if class exists
+        await this.query(`UPDATE classes SET enrolled_count = COALESCE(enrolled_count, 0) + 1, updated_at = NOW() WHERE id = $1`, [params.classId]);
+
+        // Keep in-memory store in sync as well
+        memoryDb.state.bookings.push({
+          id: created.id,
+          booking_number: created.booking_number,
+          student_id: created.student_id,
+          tutor_id: created.instructor_id,
+          class_id: created.class_id,
+          status: created.status,
+          start_time: created.start_time,
+          end_time: created.end_time,
+          timezone: created.timezone,
+          format: created.format,
+          location_id: created.location_id,
+          meet_url: created.meet_url,
+          notes: created.notes,
+          created_at: created.created_at,
+          updated_at: created.updated_at,
+        } as any);
+
+        return created;
+      }
+    } catch (err) {
+      console.error('Error inserting booking into PostgreSQL:', err);
+    }
+
+    // Fallback to memory store
+    const memBooking: any = {
+      id: `bk-${Date.now()}`,
+      booking_number: bookingNumber,
+      student_id: params.studentId,
+      tutor_id: params.instructorId,
+      class_id: params.classId,
+      status,
+      start_time: params.startTime,
+      end_time: params.endTime,
+      timezone,
+      format: params.format,
+      location_id: params.locationId,
+      meet_url: meetUrl,
+      notes: params.notes,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    memoryDb.state.bookings.push(memBooking);
+    return memBooking;
+  }
+
   // --- TRANSACTIONS QUERY ---
   static async getTransactions() {
     try {
@@ -1227,7 +1326,7 @@ export class SupabaseDbService {
             ORDER BY m.created_at DESC LIMIT 1
           ) as last_message_body,
           (
-            SELECT COUNT(*) FROM messages m 
+            SELECT COUNT(*)::int FROM messages m 
             WHERE m.conversation_id = c.id 
               AND m.sender_id != $1 
               AND m.is_read = false
@@ -1248,8 +1347,136 @@ export class SupabaseDbService {
     }
   }
 
-  static async getMessages(conversationId: string) {
+  static async getOrCreateConversation(userId1: string, userId2: string) {
+    if (userId1 === userId2) throw new Error("Cannot create conversation with yourself");
     try {
+      // Find existing 2-party conversation
+      const existing = await this.query(
+        `
+        SELECT cp1.conversation_id
+        FROM conversation_participants cp1
+        JOIN conversation_participants cp2 ON cp1.conversation_id = cp2.conversation_id
+        WHERE cp1.user_id = $1 AND cp2.user_id = $2
+        LIMIT 1
+        `,
+        [userId1, userId2]
+      );
+
+      if (existing.length > 0) {
+        return existing[0].conversation_id;
+      }
+
+      // Create new conversation
+      const convRows = await this.query(
+        `INSERT INTO conversations (last_message_at, created_at, updated_at) VALUES (NOW(), NOW(), NOW()) RETURNING id`
+      );
+      const convId = convRows[0].id;
+
+      await this.query(
+        `INSERT INTO conversation_participants (conversation_id, user_id, last_read_at) VALUES ($1, $2, NOW()), ($1, $3, NOW())`,
+        [convId, userId1, userId2]
+      );
+
+      return convId;
+    } catch (err) {
+      console.error('Error in getOrCreateConversation:', err);
+      // Fallback in memory
+      let existingMem = (memoryDb.state.conversations as any[]).find(c => 
+        c.participants?.some((p: any) => p.id === userId1) && c.participants?.some((p: any) => p.id === userId2)
+      );
+      if (existingMem) return existingMem.id;
+      const convId = `conv-${Date.now()}`;
+      const newConv: any = {
+        id: convId,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        last_message_at: new Date().toISOString(),
+        participants: [
+          memoryDb.getProfileById(userId1),
+          memoryDb.getProfileById(userId2),
+        ].filter(Boolean),
+        unread_count: 0,
+      };
+      memoryDb.state.conversations.push(newConv);
+      return newConv.id;
+    }
+  }
+
+  static async createMessage(params: { conversationId: string; senderId: string; body: string; hasFlag?: boolean }) {
+    try {
+      const rows = await this.query(
+        `
+        INSERT INTO messages (conversation_id, sender_id, body, has_flag, is_read, created_at)
+        VALUES ($1, $2, $3, $4, false, NOW())
+        RETURNING *
+        `,
+        [params.conversationId, params.senderId, params.body, params.hasFlag || false]
+      );
+      await this.query(`UPDATE conversations SET last_message_at = NOW(), updated_at = NOW() WHERE id = $1`, [params.conversationId]);
+      return rows[0];
+    } catch (err) {
+      console.error('Error creating message in DB, fallback to memory:', err);
+      return memoryDb.sendMessage(params).message;
+    }
+  }
+
+  static async getMessages(conversationId: string, currentUserId?: string) {
+    try {
+      // 1. First try lightning-fast query via Supabase HTTPS REST API (no connection pool overhead)
+      const { data: sdkMessages, error: sdkErr } = await supabaseAdmin
+        .from('messages')
+        .select(`
+          *,
+          sender:sender_id (
+            first_name,
+            last_name,
+            avatar_url,
+            role
+          )
+        `)
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
+
+      if (!sdkErr && sdkMessages) {
+        if (currentUserId) {
+          // Asynchronously mark messages as read without blocking response
+          supabaseAdmin
+            .from('messages')
+            .update({ is_read: true })
+            .eq('conversation_id', conversationId)
+            .neq('sender_id', currentUserId)
+            .eq('is_read', false)
+            .then(() => {});
+
+          supabaseAdmin
+            .from('conversation_participants')
+            .update({ last_read_at: new Date().toISOString() })
+            .eq('conversation_id', conversationId)
+            .eq('user_id', currentUserId)
+            .then(() => {});
+        }
+
+        return sdkMessages.map((m: any) => ({
+          ...m,
+          sender_first_name: m.sender?.first_name,
+          sender_last_name: m.sender?.last_name,
+          sender_avatar_url: m.sender?.avatar_url,
+          sender_role: m.sender?.role,
+        }));
+      }
+
+      // 2. Fallback to direct pg pool if needed
+      if (currentUserId) {
+        await this.query(
+          `UPDATE messages SET is_read = true WHERE conversation_id = $1 AND sender_id != $2 AND is_read = false`,
+          [conversationId, currentUserId]
+        );
+        await this.query(
+          `UPDATE conversation_participants SET last_read_at = NOW() WHERE conversation_id = $1 AND user_id = $2`,
+          [conversationId, currentUserId]
+        );
+      }
+
       const rows = await this.query(
         `
         SELECT 

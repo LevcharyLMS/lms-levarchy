@@ -10,10 +10,17 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
     const conversationId = searchParams.get("conversationId");
+    const recipientId = searchParams.get("recipientId");
 
     if (conversationId) {
-      const messages = await supabaseDb.getMessages(conversationId);
+      const messages = await supabaseDb.getMessages(conversationId, userId || undefined);
       return NextResponse.json({ messages });
+    }
+
+    if (userId && recipientId) {
+      const convId = await supabaseDb.getOrCreateConversation(userId, recipientId);
+      const conversations = await supabaseDb.getConversations(userId);
+      return NextResponse.json({ conversationId: convId, conversations });
     }
 
     if (userId) {
@@ -40,15 +47,16 @@ export async function POST(request: NextRequest) {
     // Safety scan
     const scan = ModerationService.scanText(text);
 
-    // Save to memory store / DB
-    const res = memoryDb.sendMessage({
+    // Save to PostgreSQL DB
+    const savedMsg = await supabaseDb.createMessage({
       conversationId,
       senderId,
       body: text,
+      hasFlag: scan.hasFlags,
     });
 
     return NextResponse.json({
-      message: res.message,
+      message: savedMsg,
       flags: scan.flags,
       hasFlags: scan.hasFlags,
     });
