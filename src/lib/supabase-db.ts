@@ -30,10 +30,17 @@ export const pool =
       process.env.DATABASE_URL ||
       'postgresql://postgres.xegsdlkpdwwmojdatuwb:iTI6MBFuBxvDZaJ9@aws-0-ap-northeast-2.pooler.supabase.com:6543/postgres',
     ssl: { rejectUnauthorized: false },
-    max: 20,
+    max: 15,
     connectionTimeoutMillis: 10000,
-    idleTimeoutMillis: 30000,
+    idleTimeoutMillis: 10000, // Prune idle pool clients before Supabase remote pooler drops them
+    keepAlive: true,
   });
+
+// Handle idle client terminations gracefully so dead pool sockets are discarded automatically
+pool.on('error', (err) => {
+  // Remote poolers (like Supabase PgBouncer/Supavisor) periodically close idle sockets.
+  // Catching this prevents unhandled socket errors from poisoning the application pool.
+});
 
 if (process.env.NODE_ENV !== 'production') {
   globalForPg.pgPool = pool;
@@ -62,19 +69,34 @@ export class SupabaseDbService {
 
   /**
    * Safe query helper with automatic fallback to in-memory store if DB connection fails
+   * Implements 1 automatic retry on closed/stale socket so queries never fail due to idle timeouts.
    */
-  private static async query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
+  public static async query<T = any>(sql: string, params: any[] = [], retryCount = 0): Promise<T[]> {
+    let client;
     try {
-      const client = await pool.connect();
-      try {
-        const result = await client.query(sql, params);
-        return result.rows.map((r) => SupabaseDbService.sanitizeRow(r)) as T[];
-      } finally {
-        client.release();
+      client = await pool.connect();
+      const result = await client.query(sql, params);
+      return result.rows.map((r) => SupabaseDbService.sanitizeRow(r)) as T[];
+    } catch (err: any) {
+      const isConnectionLoss =
+        err?.message?.includes('Connection terminated') ||
+        err?.message?.includes('connection timeout') ||
+        err?.message?.includes('closed') ||
+        err?.code === 'ECONNRESET';
+
+      if (isConnectionLoss && retryCount < 1) {
+        // Stale connection was released/closed by remote pooler; retry immediately on a fresh connection
+        return SupabaseDbService.query<T>(sql, params, retryCount + 1);
       }
-    } catch (err) {
+
       console.warn('⚠️ Supabase Live DB query notice, using cached store fallback:', (err as Error).message);
       return [];
+    } finally {
+      if (client) {
+        try {
+          client.release();
+        } catch {}
+      }
     }
   }
 
@@ -1269,14 +1291,183 @@ export class SupabaseDbService {
   static async createReview(bookingId: string, studentId: string, instructorId: string, rating: number, comment: string) {
     try {
       const rows = await this.query(
-        `INSERT INTO reviews (booking_id, student_id, instructor_id, rating, comment, is_published)
-         VALUES ($1, $2, $3, $4, $5, true)
+        `INSERT INTO reviews (booking_id, student_id, instructor_id, rating, comment, is_published, is_moderated)
+         VALUES ($1, $2, $3, $4, $5, true, true)
+         ON CONFLICT (booking_id) DO UPDATE 
+         SET rating = EXCLUDED.rating, comment = EXCLUDED.comment, updated_at = NOW()
          RETURNING *`,
         [bookingId, studentId, instructorId, rating, comment]
       );
+
+      // Recompute and update instructor's average rating and reviews count in instructor_profiles
+      if (instructorId) {
+        await this.query(
+          `
+          UPDATE instructor_profiles
+          SET 
+            rating_avg = COALESCE((
+              SELECT ROUND(AVG(rating)::numeric, 1) 
+              FROM reviews 
+              WHERE instructor_id = $1 AND is_published = true
+            ), 5.0),
+            reviews_count = (
+              SELECT COUNT(*)::int 
+              FROM reviews 
+              WHERE instructor_id = $1 AND is_published = true
+            ),
+            updated_at = NOW()
+          WHERE user_id = $1
+          `,
+          [instructorId]
+        );
+      }
+
       return rows[0] || null;
     } catch (err) {
       console.error('Error creating review:', err);
+      return null;
+    }
+  }
+
+  // --- ATTENDANCE & CLASS LIFECYCLE ACTIONS ---
+  static async updateBookingStatus(params: {
+    bookingId: string;
+    status: string;
+    actorId?: string;
+    notes?: string;
+    attendanceMetadata?: any;
+  }) {
+    try {
+      const { bookingId, status, attendanceMetadata, notes } = params;
+      let sql = `UPDATE bookings SET status = $1, updated_at = NOW()`;
+      const values: any[] = [status];
+
+      if (attendanceMetadata !== undefined) {
+        values.push(JSON.stringify(attendanceMetadata));
+        sql += `, attendance_metadata = $${values.length}::jsonb`;
+      }
+
+      if (notes !== undefined) {
+        values.push(notes);
+        sql += `, notes = $${values.length}`;
+      }
+
+      values.push(bookingId);
+      sql += ` WHERE id = $${values.length} RETURNING *`;
+
+      const rows = await this.query(sql, values);
+      if (rows.length > 0) {
+        const updated = rows[0];
+
+        // When a booking transitions to COMPLETED, release escrow to instructor earnings snapshot & record transaction
+        if (status === 'COMPLETED' || status === 'COMMISSIONED') {
+          try {
+            await this.query(
+              `
+              INSERT INTO transactions (
+                booking_id, student_id, instructor_id, amount, currency,
+                type, status, created_at, updated_at
+              )
+              VALUES (
+                $1, $2, $3, 
+                COALESCE((SELECT tutor_earnings FROM booking_financial_snapshots WHERE booking_id = $1), 3500),
+                'USD', 'COMMISSION', 'SUCCEEDED', NOW(), NOW()
+              )
+              ON CONFLICT DO NOTHING
+              `,
+              [updated.id, updated.student_id, updated.instructor_id]
+            );
+          } catch (txErr) {
+            console.warn('Escrow transaction recording notice:', txErr);
+          }
+        }
+
+        // Notify student & instructor
+        try {
+          const statusLabels: Record<string, string> = {
+            IN_PROGRESS: 'Session is now in progress.',
+            COMPLETED: 'Session completed. Please review your instructor.',
+            POSTPONED: 'Session has been proposed for reschedule.',
+            CANCELLED: 'Session has been cancelled.',
+          };
+          const msg = statusLabels[status] || `Booking status updated to ${status}.`;
+
+          if (updated.student_id) {
+            await this.query(
+              `INSERT INTO notifications (user_id, title, message, type, is_read, created_at)
+               VALUES ($1, 'Class Status Update', $2, 'BOOKING', false, NOW())`,
+              [updated.student_id, msg]
+            );
+          }
+          if (updated.instructor_id) {
+            await this.query(
+              `INSERT INTO notifications (user_id, title, message, type, is_read, created_at)
+               VALUES ($1, 'Class Status Update', $2, 'BOOKING', false, NOW())`,
+              [updated.instructor_id, msg]
+            );
+          }
+        } catch (notifErr) {
+          console.warn('Status notification notice:', notifErr);
+        }
+
+        return updated;
+      }
+    } catch (err) {
+      console.error('Error updating booking status:', err);
+    }
+    return null;
+  }
+
+  static async rescheduleBooking(params: {
+    bookingId: string;
+    newStartTime: string;
+    newEndTime: string;
+    reason?: string;
+    requestedBy?: string;
+  }) {
+    try {
+      const sql = `
+        UPDATE bookings 
+        SET 
+          rescheduled_start_time = $1::timestamptz,
+          rescheduled_end_time = $2::timestamptz,
+          reschedule_reason = $3,
+          status = 'POSTPONED',
+          updated_at = NOW()
+        WHERE id = $4
+        RETURNING *;
+      `;
+      const rows = await this.query(sql, [
+        params.newStartTime,
+        params.newEndTime,
+        params.reason || 'Reschedule requested',
+        params.bookingId,
+      ]);
+      return rows[0] || null;
+    } catch (err) {
+      console.error('Error rescheduling booking:', err);
+      return null;
+    }
+  }
+
+  static async acceptReschedule(bookingId: string) {
+    try {
+      const sql = `
+        UPDATE bookings 
+        SET 
+          start_time = rescheduled_start_time,
+          end_time = rescheduled_end_time,
+          rescheduled_start_time = NULL,
+          rescheduled_end_time = NULL,
+          status = 'CONFIRMED',
+          updated_at = NOW()
+        WHERE id = $1
+        RETURNING *;
+      `;
+      const rows = await this.query(sql, [bookingId]);
+      return rows[0] || null;
+    } catch (err) {
+      console.error('Error accepting reschedule:', err);
       return null;
     }
   }

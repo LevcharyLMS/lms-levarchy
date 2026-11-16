@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { RatingStars } from "@/components/ui/rating-stars";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,9 +9,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CheckCircle2, Star, AlertCircle, Award, Clock } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
+import { formatDisplayName } from "@/lib/utils";
 
 export default function StudentReviewsPage() {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
+  const preselectedBookingId = searchParams?.get("bookingId") || "";
+
   const [completedBookings, setCompletedBookings] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,12 +39,14 @@ export default function StudentReviewsPage() {
       const reviewsData = await reviewsRes.json();
 
       const completed = (bookingsData.bookings || []).filter(
-        (b: any) => b.status === "COMPLETED"
+        (b: any) => ["COMPLETED", "COMMISSIONED"].includes(b.status)
       );
       setCompletedBookings(completed);
       setReviews(reviewsData.reviews || []);
 
-      if (completed.length > 0 && !selectedBookingId) {
+      if (preselectedBookingId && completed.some((b: any) => b.id === preselectedBookingId)) {
+        setSelectedBookingId(preselectedBookingId);
+      } else if (completed.length > 0 && !selectedBookingId) {
         setSelectedBookingId(completed[0].id);
       }
     } catch (err) {
@@ -52,7 +59,7 @@ export default function StudentReviewsPage() {
   useEffect(() => {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  }, [user?.id, preselectedBookingId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,7 +83,7 @@ export default function StudentReviewsPage() {
         body: JSON.stringify({
           bookingId: booking.id,
           studentId: user.id,
-          tutorId: booking.tutor_id,
+          tutorId: booking.instructor_id || booking.tutor_id,
           rating,
           comment,
         }),
@@ -105,8 +112,8 @@ export default function StudentReviewsPage() {
             <h1 className="text-xl font-bold tracking-tight text-navy-950">
               Verified Ratings & Feedback
             </h1>
-            <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold flex items-center gap-1">
-              <Award className="w-3 h-3 text-amber-600" />
+            <span className="px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-800 text-[10px] font-bold flex items-center gap-1 border border-teal-200">
+              <Award className="w-3 h-3 text-teal-600" />
               <span>Verified Student Review</span>
             </span>
           </div>
@@ -120,7 +127,7 @@ export default function StudentReviewsPage() {
         <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>Thank you! Your verified review has been published to the marketplace.</span>
+            <span>Thank you! Your verified review has been published to the instructor profile.</span>
           </div>
           <button
             onClick={() => setSuccess(false)}
@@ -162,12 +169,17 @@ export default function StudentReviewsPage() {
                   className="w-full h-9 px-3 text-xs border border-slate-200 rounded-lg bg-slate-50 focus:ring-1 focus:ring-primary outline-hidden"
                   required
                 >
-                  {completedBookings.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.class_item?.title || "Class Session"} • Instructor: {b.tutor?.first_name}{" "}
-                      {b.tutor?.last_name} (#{b.booking_number})
-                    </option>
-                  ))}
+                  {completedBookings.map((b) => {
+                    const tutorName = formatDisplayName(
+                      b.instructor?.first_name || b.tutor?.first_name,
+                      b.instructor?.last_name || b.tutor?.last_name
+                    );
+                    return (
+                      <option key={b.id} value={b.id}>
+                        {b.class_item?.title || "Class Session"} • Instructor: {tutorName} (#{b.booking_number})
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 
@@ -217,7 +229,7 @@ export default function StudentReviewsPage() {
               <Button
                 type="submit"
                 disabled={submitting}
-                className="h-9 px-5 text-xs bg-primary hover:bg-primary/90 text-white font-semibold"
+                className="h-9 px-5 text-xs bg-teal-600 hover:bg-teal-700 text-white font-semibold"
               >
                 {submitting ? "Publishing..." : "Publish Verified Review"}
               </Button>
@@ -228,7 +240,7 @@ export default function StudentReviewsPage() {
         <EmptyState
           icon={Award}
           title="No completed sessions available to review yet"
-          description="Once you finish a scheduled 1-on-1 session or group class cohort, you'll be able to leave verified feedback here."
+          description="Once you finish a scheduled 1-on-1 session or group class, you'll be able to leave verified feedback here."
           actionLabel="View My Bookings"
           actionHref="/student/bookings"
         />
@@ -241,36 +253,39 @@ export default function StudentReviewsPage() {
             Recent Verified Student Reviews
           </h3>
           <div className="space-y-3">
-            {reviews.map((r: any) => (
-              <Card key={r.id} className="border-slate-200/80 shadow-xs bg-white">
-                <CardContent className="p-4 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="font-bold text-navy-950 text-xs">
-                        Review for {r.tutor_first_name} {r.tutor_last_name}
-                      </span>
-                      <p className="text-[10px] text-slate-400 font-mono">
-                        Booking: #{r.booking_number}
-                      </p>
+            {reviews.map((r: any) => {
+              const tutorName = formatDisplayName(r.tutor_first_name, r.tutor_last_name);
+              return (
+                <Card key={r.id} className="border-slate-200/80 shadow-xs bg-white">
+                  <CardContent className="p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="font-bold text-navy-950 text-xs">
+                          Review for {tutorName}
+                        </span>
+                        <p className="text-[10px] text-slate-400 font-mono">
+                          Booking: #{r.booking_number}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <Star
+                            key={s}
+                            className={`w-3.5 h-3.5 ${
+                              s <= r.rating ? "fill-amber-400 text-amber-400" : "text-slate-200"
+                            }`}
+                          />
+                        ))}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <Star
-                          key={s}
-                          className={`w-3.5 h-3.5 ${
-                            s <= r.rating ? "fill-amber-400 text-amber-400" : "text-slate-200"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  <p className="text-xs text-slate-700 leading-relaxed">&ldquo;{r.comment}&rdquo;</p>
-                  <p className="text-[10px] text-slate-400">
-                    Published on {new Date(r.created_at).toLocaleDateString()}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
+                    <p className="text-xs text-slate-700 leading-relaxed">&ldquo;{r.comment}&rdquo;</p>
+                    <p className="text-[10px] text-slate-400">
+                      Published on {new Date(r.created_at).toLocaleDateString()}
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </div>
       )}
