@@ -6,23 +6,20 @@ import { usePathname } from "next/navigation";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   LayoutDashboard,
-  User,
-  ShieldCheck,
   BookOpen,
-  Calendar,
+  FileCheck,
   Clock,
+  Calendar,
   Users,
   MessageSquare,
-  DollarSign,
-  CreditCard,
   Bell,
+  Wallet,
   Settings,
   Menu,
   X,
   LogOut,
   ChevronRight,
   CheckCircle2,
-  FileCheck,
 } from "lucide-react";
 
 import { useAuth } from "@/context/auth-context";
@@ -51,15 +48,23 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
       .catch(() => {});
   }, [user?.id, pathname]);
 
-  // Exact 12 items specified in Section 8 of PRD
+  // Exact 10 items in requested sequence:
+  // 1. dashboard
+  // 2. classes
+  // 3. assignments
+  // 4. availability
+  // 5. calendar
+  // 6. student
+  // 7. message
+  // 8. notification
+  // 9. earnings & payout (Finances)
+  // 10. settings
   const tutorNav = [
     { label: "Dashboard", href: "/instructor/dashboard", icon: LayoutDashboard },
-    { label: "My Profile", href: "/instructor/profile", icon: User },
-    { label: "Verification", href: "/instructor/verification", icon: ShieldCheck, statusBadge: "APPROVED" },
     { label: "Classes", href: "/instructor/classes", icon: BookOpen },
     { label: "Assignments", href: "/instructor/assignments", icon: FileCheck },
-    { label: "Calendar", href: "/instructor/calendar", icon: Calendar },
     { label: "Availability", href: "/instructor/availability", icon: Clock },
+    { label: "Calendar", href: "/instructor/calendar", icon: Calendar },
     { label: "Students", href: "/instructor/students", icon: Users },
     {
       label: "Messages",
@@ -67,9 +72,8 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
       icon: MessageSquare,
       badge: unreadMessages > 0 ? unreadMessages : undefined,
     },
-    { label: "Earnings", href: "/instructor/earnings", icon: DollarSign },
-    { label: "Payouts", href: "/instructor/payouts", icon: CreditCard },
     { label: "Notifications", href: "/instructor/notifications", icon: Bell },
+    { label: "Finances", href: "/instructor/finances", icon: Wallet },
     { label: "Settings", href: "/instructor/settings", icon: Settings },
   ];
 
@@ -125,7 +129,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
 
         {/* User Footer Profile */}
         <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-          <Link href="/instructor/profile" className="flex items-center gap-2.5 min-w-0 hover:opacity-80 transition-opacity">
+          <Link href="/instructor/settings?tab=profile" className="flex items-center gap-2.5 min-w-0 hover:opacity-80 transition-opacity">
             <Avatar className="w-8 h-8 ring-2 ring-teal-50">
               {user?.avatar_url && <AvatarImage src={user.avatar_url} />}
               <AvatarFallback>{initials}</AvatarFallback>
@@ -180,7 +184,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
 
             <div className="h-4 w-px bg-slate-200" />
 
-            <Link href="/instructor/profile" className="flex items-center gap-2">
+            <Link href="/instructor/settings?tab=profile" className="flex items-center gap-2">
               <Avatar className="w-7 h-7">
                 {user?.avatar_url && <AvatarImage src={user.avatar_url} />}
                 <AvatarFallback>{initials}</AvatarFallback>
