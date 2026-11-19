@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import Link from "next/link";
 import { useAuth } from "@/context/auth-context";
-import { Bell, Check, Calendar, DollarSign, ShieldCheck, UserCheck } from "lucide-react";
+import { Bell, Check, Calendar, CreditCard, ShieldCheck, UserCheck, BookOpen, Clock, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageTransition, FadeIn } from "@/components/animations";
@@ -15,14 +16,16 @@ interface NotificationItem {
   type: string;
   is_read: boolean;
   created_at: string;
+  link?: string;
 }
 
-export default function TutorNotificationsPage() {
+export default function InstructorNotificationsPage() {
   const { user } = useAuth();
   const tutorId = user?.id;
 
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<"ALL" | "UNREAD" | "BOOKING" | "PAYOUT">("ALL");
 
   const fetchNotifications = useCallback(() => {
     if (!tutorId) return;
@@ -58,46 +61,101 @@ export default function TutorNotificationsPage() {
       case "BOOKING":
         return <Calendar className="w-4 h-4 text-teal-600" />;
       case "PAYOUT":
-        return <DollarSign className="w-4 h-4 text-emerald-600" />;
+      case "COMMISSION":
+        return <CreditCard className="w-4 h-4 text-emerald-600" />;
       case "VERIFICATION":
         return <ShieldCheck className="w-4 h-4 text-purple-600" />;
+      case "CLASS":
+      case "ASSIGNMENT":
+        return <BookOpen className="w-4 h-4 text-amber-600" />;
       default:
-        return <UserCheck className="w-4 h-4 text-teal-600" />;
+        return <Bell className="w-4 h-4 text-slate-600" />;
     }
   };
+
+  const getNotificationLink = (n: NotificationItem) => {
+    if (n.link) return n.link;
+    if (n.type === "BOOKING") return "/instructor/calendar";
+    if (n.type === "PAYOUT" || n.type === "COMMISSION") return "/instructor/finances";
+    if (n.type === "VERIFICATION") return "/instructor/settings?tab=verification";
+    if (n.type === "ASSIGNMENT") return "/instructor/assignments";
+    return null;
+  };
+
+  const unreadCount = notifications.filter((n) => !n.is_read).length;
+
+  const filteredNotifications = useMemo(() => {
+    return notifications.filter((n) => {
+      if (filter === "UNREAD") return !n.is_read;
+      if (filter === "BOOKING") return n.type === "BOOKING";
+      if (filter === "PAYOUT") return n.type === "PAYOUT" || n.type === "COMMISSION";
+      return true;
+    });
+  }, [notifications, filter]);
 
   return (
     <PageTransition>
       <div className="space-y-6 max-w-4xl mx-auto">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Header */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-navy-950">
-              Instructor Notifications
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold tracking-tight text-navy-950">
+                Instructor Notifications & Alerts
+              </h1>
+              {unreadCount > 0 && (
+                <span className="px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[10px] font-bold">
+                  {unreadCount} Unread
+                </span>
+              )}
+            </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Live updates on student enrollments, payouts, and compliance verification.
+              Live updates on student enrollments, attendance check-ins, automated escrow payouts, and compliance verification.
             </p>
           </div>
-          {notifications.some((n) => !n.is_read) && (
+
+          {unreadCount > 0 && (
             <Button
               variant="outline"
               size="sm"
               onClick={markAllRead}
-              className="text-xs h-8 gap-1.5 border-slate-200"
+              className="text-xs h-8 gap-1.5 border-slate-200 hover:bg-slate-50 shrink-0 font-semibold"
             >
-              <Check className="w-3.5 h-3.5" />
+              <Check className="w-3.5 h-3.5 text-teal-600" />
               <span>Mark all as read</span>
             </Button>
           )}
         </div>
 
-        {!loading && notifications.length === 0 ? (
+        {/* Filter Tabs */}
+        <div className="flex items-center gap-1.5 bg-slate-100/80 p-1 rounded-xl text-xs w-fit">
+          {[
+            { id: "ALL", label: `All (${notifications.length})` },
+            { id: "UNREAD", label: `Unread (${unreadCount})` },
+            { id: "BOOKING", label: "Bookings" },
+            { id: "PAYOUT", label: "Finances" },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setFilter(tab.id as any)}
+              className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
+                filter === tab.id
+                  ? "bg-white text-navy-950 shadow-xs"
+                  : "text-slate-600 hover:text-navy-950"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {!loading && filteredNotifications.length === 0 ? (
           <FadeIn>
-            <Card className="p-12 text-center bg-white border-slate-200/80 shadow-xs">
+            <Card className="p-12 text-center bg-white border-slate-200/80 shadow-xs rounded-2xl">
               <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3 text-slate-400">
                 <Bell className="w-6 h-6" />
               </div>
-              <h2 className="text-base font-bold text-navy-950">No notifications yet</h2>
+              <h2 className="text-base font-bold text-navy-950">No notifications in this view</h2>
               <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1">
                 You&apos;ll receive notifications when students enroll in your classes, automated payouts clear to your bank, or profile verification completes.
               </p>
@@ -105,40 +163,56 @@ export default function TutorNotificationsPage() {
           </FadeIn>
         ) : (
           <div className="space-y-2.5">
-            {notifications.map((n) => (
-              <div
-                key={n.id}
-                className={`p-4 rounded-xl border transition-all flex items-start gap-3.5 bg-white ${
-                  !n.is_read
-                    ? "border-primary/30 shadow-xs bg-teal-50/20"
-                    : "border-slate-200/70"
-                }`}
-              >
+            {filteredNotifications.map((n) => {
+              const link = getNotificationLink(n);
+
+              return (
                 <div
-                  className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                    !n.is_read ? "bg-primary/10" : "bg-slate-100"
+                  key={n.id}
+                  className={`p-4 rounded-2xl border transition-all flex items-start gap-3.5 bg-white ${
+                    !n.is_read
+                      ? "border-teal-300 shadow-xs bg-teal-50/20"
+                      : "border-slate-200/80"
                   }`}
                 >
-                  {getIcon(n.type)}
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="font-semibold text-xs text-navy-950">{n.title}</h3>
-                    <span className="text-[10px] text-slate-400 shrink-0">
-                      {formatRelative(n.created_at)}
-                    </span>
+                  <div
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                      !n.is_read ? "bg-teal-50 border border-teal-200" : "bg-slate-100"
+                    }`}
+                  >
+                    {getIcon(n.type)}
                   </div>
-                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                    {n.message}
-                  </p>
-                </div>
 
-                {!n.is_read && (
-                  <span className="w-2 h-2 rounded-full bg-primary shrink-0 mt-1.5" />
-                )}
-              </div>
-            ))}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="font-bold text-xs text-navy-950">{n.title}</h3>
+                      <span className="text-[10px] text-slate-400 shrink-0">
+                        {formatRelative(n.created_at)}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                      {n.message}
+                    </p>
+
+                    {link && (
+                      <div className="mt-2.5">
+                        <Link
+                          href={link}
+                          className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
+                        >
+                          <span>View Details</span>
+                          <ArrowRight className="w-3 h-3" />
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+
+                  {!n.is_read && (
+                    <span className="w-2 h-2 rounded-full bg-primary shrink-0 mt-2" />
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

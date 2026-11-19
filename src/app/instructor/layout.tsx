@@ -29,21 +29,33 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [unreadMessages, setUnreadMessages] = useState(0);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   const displayName = user ? `${user.first_name} ${user.last_name}` : "Faculty Instructor";
   const firstName = user?.first_name || "Instructor";
   const initials = user ? `${user.first_name?.[0] || "T"}${user.last_name?.[0] || "I"}` : "TC";
 
-  // Fetch real unread messages for instructor
+  // Fetch real unread messages and notifications for instructor
   useEffect(() => {
     if (!user?.id) return;
 
+    // 1. Unread messages
     fetch(`/api/messages?userId=${user.id}`)
       .then((res) => res.json())
       .then((data) => {
         const convs = data.conversations || [];
         const totalUnread = convs.reduce((acc: number, c: any) => acc + (parseInt(c.unread_count, 10) || 0), 0);
         setUnreadMessages(totalUnread);
+      })
+      .catch(() => {});
+
+    // 2. Unread notifications
+    fetch(`/api/notifications?userId=${user.id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        const notifs = data.notifications || [];
+        const unreadCount = notifs.filter((n: any) => !n.is_read).length;
+        setUnreadNotifications(unreadCount);
       })
       .catch(() => {});
   }, [user?.id, pathname]);
@@ -72,7 +84,12 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
       icon: MessageSquare,
       badge: unreadMessages > 0 ? unreadMessages : undefined,
     },
-    { label: "Notifications", href: "/instructor/notifications", icon: Bell },
+    {
+      label: "Notifications",
+      href: "/instructor/notifications",
+      icon: Bell,
+      badge: unreadNotifications > 0 ? unreadNotifications : undefined,
+    },
     { label: "Finances", href: "/instructor/finances", icon: Wallet },
     { label: "Settings", href: "/instructor/settings", icon: Settings },
   ];
@@ -170,7 +187,9 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
               title="Messages"
             >
               <MessageSquare className="w-4 h-4" />
-              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-primary" />
+              {unreadMessages > 0 && (
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary ring-2 ring-white" />
+              )}
             </Link>
 
             <Link
@@ -179,7 +198,9 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
               title="Notifications"
             >
               <Bell className="w-4 h-4" />
-              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-amber-500" />
+              {unreadNotifications > 0 && (
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white" />
+              )}
             </Link>
 
             <div className="h-4 w-px bg-slate-200" />

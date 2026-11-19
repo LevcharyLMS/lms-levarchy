@@ -20,6 +20,8 @@ import {
   AlertCircle,
   X,
   Compass,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import { PageTransition, FadeUp } from "@/components/animations";
@@ -32,6 +34,7 @@ export default function TutorCalendarPage() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
 
   // QR Modal State
   const [qrModalData, setQrModalData] = useState<{
@@ -192,12 +195,12 @@ export default function TutorCalendarPage() {
     }
   };
 
-  // Generate current week dynamically (Monday - Sunday)
+  // Generate week dynamically with offset navigation (Monday - Sunday)
   const today = new Date();
   const currentDayOfWeek = today.getDay();
   const distanceToMonday = (currentDayOfWeek + 6) % 7;
   const monday = new Date(today);
-  monday.setDate(today.getDate() - distanceToMonday);
+  monday.setDate(today.getDate() - distanceToMonday + currentWeekOffset * 7);
 
   const days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(monday);
@@ -210,6 +213,8 @@ export default function TutorCalendarPage() {
     };
   });
 
+  const weekRangeLabel = `${days[0].date} — ${days[6].date}, ${monday.getFullYear()}`;
+
   return (
     <PageTransition className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
@@ -221,6 +226,35 @@ export default function TutorCalendarPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {/* Week Offset Navigation */}
+          <div className="flex items-center bg-white border border-slate-200 rounded-xl p-1 shadow-xs">
+            <button
+              onClick={() => setCurrentWeekOffset((prev) => prev - 1)}
+              className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors"
+              title="Previous Week"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="text-xs font-bold text-navy-950 px-2.5">
+              {currentWeekOffset === 0 ? "This Week" : weekRangeLabel}
+            </span>
+            <button
+              onClick={() => setCurrentWeekOffset((prev) => prev + 1)}
+              className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors"
+              title="Next Week"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+            {currentWeekOffset !== 0 && (
+              <button
+                onClick={() => setCurrentWeekOffset(0)}
+                className="text-[10px] font-bold text-teal-700 hover:text-teal-900 px-2 py-0.5 rounded-md hover:bg-teal-50 ml-1"
+              >
+                Today
+              </button>
+            )}
+          </div>
+
           <Button
             variant="outline"
             size="sm"
