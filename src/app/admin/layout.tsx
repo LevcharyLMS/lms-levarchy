@@ -38,6 +38,7 @@ import {
   LogOut,
   Shield,
   Megaphone,
+  Sparkles,
 } from "lucide-react";
 
 import { useAuth } from "@/context/auth-context";
@@ -103,6 +104,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { label: "Reviews", href: "/admin/reviews", icon: Star },
         { label: "Notifications", href: "/admin/notifications", icon: Bell },
         { label: "Support", href: "/admin/support", icon: LifeBuoy },
+        { label: "Suggestions", href: "/admin/suggestions", icon: Sparkles },
         { label: "Settings", href: "/admin/settings", icon: Settings },
       ],
     },

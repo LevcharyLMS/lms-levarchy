@@ -1085,6 +1085,203 @@ export class SupabaseDbService {
     return memoryDb.state.class_locations;
   }
 
+  // --- TAXONOMY SUGGESTIONS (CATEGORY, SUBJECT, GRADE, ALL_IN_ONE) ---
+  static async createTaxonomySuggestion(params: {
+    instructorId: string;
+    type: 'CATEGORY' | 'SUBJECT' | 'GRADE' | 'ALL_IN_ONE';
+    proposedName: string;
+    parentCategoryId?: string | null;
+    reasonNotes?: string | null;
+    proposedCategory?: string | null;
+    proposedSubject?: string | null;
+    proposedGrade?: string | null;
+  }) {
+    try {
+      const rows = await this.query(
+        `
+        INSERT INTO taxonomy_suggestions (
+          instructor_id, type, proposed_name, parent_category_id, reason_notes,
+          proposed_category, proposed_subject, proposed_grade,
+          status, created_at, updated_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'PENDING', NOW(), NOW())
+        RETURNING *
+        `,
+        [
+          params.instructorId,
+          params.type,
+          params.proposedName.trim(),
+          params.parentCategoryId || null,
+          params.reasonNotes || null,
+          params.proposedCategory?.trim() || null,
+          params.proposedSubject?.trim() || null,
+          params.proposedGrade?.trim() || null,
+        ]
+      );
+      return rows[0] || null;
+    } catch (err) {
+      console.error('Error creating taxonomy suggestion:', err);
+      return null;
+    }
+  }
+
+  static async getTaxonomySuggestions(filters?: { status?: string; instructorId?: string }) {
+    try {
+      let sql = `
+        SELECT
+          ts.*,
+          p.first_name as instructor_first_name,
+          p.last_name as instructor_last_name,
+          p.email as instructor_email,
+          c.name as parent_category_name
+        FROM taxonomy_suggestions ts
+        LEFT JOIN profiles p ON ts.instructor_id = p.id
+        LEFT JOIN categories c ON ts.parent_category_id = c.id
+        WHERE 1=1
+      `;
+      const params: any[] = [];
+      if (filters?.status) {
+        params.push(filters.status);
+        sql += ` AND ts.status = $${params.length}`;
+      }
+      if (filters?.instructorId) {
+        params.push(filters.instructorId);
+        sql += ` AND ts.instructor_id = $${params.length}`;
+      }
+      sql += ` ORDER BY ts.created_at DESC`;
+
+      const rows = await this.query(sql, params);
+      return rows;
+    } catch (err) {
+      console.error('Error fetching taxonomy suggestions:', err);
+      return [];
+    }
+  }
+
+  static async reviewTaxonomySuggestion(params: {
+    suggestionId: string;
+    action: 'APPROVE' | 'REJECT';
+    adminId: string;
+    adminNotes?: string;
+  }) {
+    try {
+      const rows = await this.query(
+        `SELECT * FROM taxonomy_suggestions WHERE id = $1 LIMIT 1`,
+        [params.suggestionId]
+      );
+      if (rows.length === 0) return { success: false, error: 'Suggestion not found' };
+
+      const suggestion = rows[0];
+
+      if (params.action === 'APPROVE') {
+        if (suggestion.type === 'ALL_IN_ONE') {
+          let resolvedCatId = suggestion.parent_category_id;
+
+          // 1. If custom category proposed, insert it first
+          if (suggestion.proposed_category?.trim()) {
+            const catName = suggestion.proposed_category.trim();
+            const catSlug = catName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            const catRes = await this.query(
+              `INSERT INTO categories (name, slug, is_active, created_at, updated_at) VALUES ($1, $2, true, NOW(), NOW()) RETURNING id`,
+              [catName, catSlug]
+            );
+            if (catRes.length > 0) resolvedCatId = catRes[0].id;
+          }
+
+          // 2. If custom subject proposed, insert linked to category
+          if (suggestion.proposed_subject?.trim() && resolvedCatId) {
+            const subName = suggestion.proposed_subject.trim();
+            const subSlug = subName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            await this.query(
+              `INSERT INTO subjects (category_id, name, slug, is_active, created_at, updated_at) VALUES ($1, $2, $3, true, NOW(), NOW())`,
+              [resolvedCatId, subName, subSlug]
+            );
+          }
+
+          // 3. If custom grade proposed, insert it
+          if (suggestion.proposed_grade?.trim()) {
+            const gradeName = suggestion.proposed_grade.trim();
+            await this.query(
+              `INSERT INTO grades (name, level, created_at, updated_at) VALUES ($1, 10, NOW(), NOW())`,
+              [gradeName]
+            );
+          }
+        } else {
+          const slug = suggestion.proposed_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+          if (suggestion.type === 'CATEGORY') {
+            await this.query(
+              `INSERT INTO categories (name, slug, is_active, created_at, updated_at) VALUES ($1, $2, true, NOW(), NOW())`,
+              [suggestion.proposed_name, slug]
+            );
+          } else if (suggestion.type === 'SUBJECT') {
+            await this.query(
+              `INSERT INTO subjects (category_id, name, slug, is_active, created_at, updated_at) VALUES ($1, $2, $3, true, NOW(), NOW())`,
+              [suggestion.parent_category_id, suggestion.proposed_name, slug]
+            );
+          } else if (suggestion.type === 'GRADE') {
+            await this.query(
+              `INSERT INTO grades (name, level, created_at, updated_at) VALUES ($1, 10, NOW(), NOW())`,
+              [suggestion.proposed_name]
+            );
+          }
+        }
+
+        await this.query(
+          `
+          UPDATE taxonomy_suggestions
+          SET status = 'APPROVED', reviewed_by = $1, admin_notes = $2, updated_at = NOW()
+          WHERE id = $3
+          `,
+          [params.adminId, params.adminNotes || 'Approved by Admin', params.suggestionId]
+        );
+
+        // Notify instructor
+        if (suggestion.instructor_id) {
+          await this.query(
+            `
+            INSERT INTO notifications (user_id, title, message, type, is_read, created_at)
+            VALUES ($1, 'Taxonomy Suggestion Approved', $2, 'CLASS', false, NOW())
+            `,
+            [
+              suggestion.instructor_id,
+              `Great news! Your curriculum suggestion "${suggestion.proposed_name}" was approved by Admin and injected into the live platform catalog!`,
+            ]
+          );
+        }
+
+        return { success: true, message: `Approved and injected "${suggestion.proposed_name}" into catalog.` };
+      } else {
+        await this.query(
+          `
+          UPDATE taxonomy_suggestions
+          SET status = 'REJECTED', reviewed_by = $1, admin_notes = $2, updated_at = NOW()
+          WHERE id = $3
+          `,
+          [params.adminId, params.adminNotes || 'Rejected by Admin', params.suggestionId]
+        );
+
+        if (suggestion.instructor_id) {
+          await this.query(
+            `
+            INSERT INTO notifications (user_id, title, message, type, is_read, created_at)
+            VALUES ($1, 'Taxonomy Suggestion Update', $2, 'CLASS', false, NOW())
+            `,
+            [
+              suggestion.instructor_id,
+              `Update regarding your suggestion "${suggestion.proposed_name}": It could not be approved at this time. Note: ${params.adminNotes || 'Does not fit current academic taxonomy guidelines.'}`,
+            ]
+          );
+        }
+
+        return { success: true, message: 'Suggestion rejected.' };
+      }
+    } catch (err: any) {
+      console.error('Error reviewing taxonomy suggestion:', err);
+      return { success: false, error: err?.message || 'Database error' };
+    }
+  }
+
   // --- REFUNDS QUERY & ACTIONS ---
   static async getRefunds() {
     try {

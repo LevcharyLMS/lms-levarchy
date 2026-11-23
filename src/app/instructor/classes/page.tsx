@@ -36,6 +36,9 @@ import {
   Archive,
   RefreshCw,
   ExternalLink,
+  Sparkles,
+  Send,
+  X,
 } from "lucide-react";
 
 export default function TutorClassesPage() {
@@ -65,6 +68,17 @@ export default function TutorClassesPage() {
   const [selectedClass, setSelectedClass] = useState<any | null>(null);
   const [classBookings, setClassBookings] = useState<any[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
+
+  // Suggestion Modal State
+  const [showSuggestionModal, setShowSuggestionModal] = useState(false);
+  const [suggType, setSuggType] = useState<"ALL_IN_ONE" | "SUBJECT" | "CATEGORY" | "GRADE">("ALL_IN_ONE");
+  const [suggProposedName, setSuggProposedName] = useState("");
+  const [suggParentCatId, setSuggParentCatId] = useState("");
+  const [suggNewCatName, setSuggNewCatName] = useState("");
+  const [suggNewGradeName, setSuggNewGradeName] = useState("");
+  const [suggReason, setSuggReason] = useState("");
+  const [suggSubmitting, setSuggSubmitting] = useState(false);
+  const [suggFeedback, setSuggFeedback] = useState<string | null>(null);
 
   // Wizard Form State
   const [title, setTitle] = useState("");
@@ -97,9 +111,12 @@ export default function TutorClassesPage() {
   };
 
   const loadClasses = useCallback(async () => {
+    // Only proceed once auth is resolved
+    if (!tutorId) return;
+
     try {
       setLoading(true);
-      const url = tutorId ? `/api/classes?tutorId=${tutorId}` : "/api/classes";
+      const url = `/api/classes?tutorId=${tutorId}`;
       const res = await fetch(url);
       const data = await res.json();
       setClasses(data.classes || []);
@@ -115,8 +132,13 @@ export default function TutorClassesPage() {
 
   useEffect(() => {
     loadTaxonomy();
-    loadClasses();
-  }, [loadClasses]);
+  }, []);
+
+  useEffect(() => {
+    if (tutorId) {
+      loadClasses();
+    }
+  }, [tutorId, loadClasses]);
 
   const loadClassDetails = async (c: any) => {
     setSelectedClass(c);
@@ -210,6 +232,66 @@ export default function TutorClassesPage() {
     }
   };
 
+  const handleOpenSuggestionModal = (presetType?: "ALL_IN_ONE" | "SUBJECT" | "CATEGORY" | "GRADE") => {
+    if (presetType) setSuggType(presetType);
+    if (!suggParentCatId && taxonomy.categories.length > 0) {
+      setSuggParentCatId(categoryId || taxonomy.categories[0].id);
+    }
+    setSuggFeedback(null);
+    setShowSuggestionModal(true);
+  };
+
+  const handleSubmitSuggestion = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user?.id) {
+      alert("Please log in to submit a suggestion.");
+      return;
+    }
+    if (!suggReason.trim()) {
+      alert("Please provide a description or curriculum reason for the admin to review.");
+      return;
+    }
+
+    try {
+      setSuggSubmitting(true);
+      setSuggFeedback(null);
+
+      const payload = {
+        instructorId: user.id,
+        type: suggType,
+        proposedName: suggType === "ALL_IN_ONE" ? suggProposedName.trim() : suggProposedName.trim(),
+        parentCategoryId: suggParentCatId || (taxonomy.categories[0]?.id ?? null),
+        reasonNotes: suggReason.trim(),
+        proposedCategory: suggType === "ALL_IN_ONE" && suggNewCatName.trim() ? suggNewCatName.trim() : null,
+        proposedSubject: suggType === "ALL_IN_ONE" ? suggProposedName.trim() : null,
+        proposedGrade: suggType === "ALL_IN_ONE" && suggNewGradeName.trim() ? suggNewGradeName.trim() : null,
+      };
+
+      const res = await fetch("/api/taxonomy/suggestions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to submit suggestion");
+
+      setSuggFeedback("Your suggestion has been submitted to Levchary Admin for review! You will be notified once reviewed.");
+      setSuggProposedName("");
+      setSuggNewCatName("");
+      setSuggNewGradeName("");
+      setSuggReason("");
+      setTimeout(() => {
+        setShowSuggestionModal(false);
+        setSuggFeedback(null);
+      }, 2500);
+    } catch (err: any) {
+      alert(err.message || "Failed to submit suggestion");
+    } finally {
+      setSuggSubmitting(false);
+    }
+  };
+
   const wizardSteps: Step[] = [
     {
       id: "course-info",
@@ -264,6 +346,15 @@ export default function TutorClassesPage() {
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
             <span>Sync</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleOpenSuggestionModal()}
+            className="h-8 text-xs border-slate-200 text-slate-700 hover:bg-slate-50 font-medium"
+            title="Suggest a new Subject, Category, or Grade Level to Admin"
+          >
+            Suggestion
           </Button>
           <Button
             onClick={() => setShowWizard(true)}
@@ -324,7 +415,7 @@ export default function TutorClassesPage() {
 
       {/* MultiStepWizard Modal */}
       {showWizard && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy-950/40 backdrop-blur-xs p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl border border-slate-200 p-6 max-w-xl w-full space-y-6 shadow-2xl my-8">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h2 className="text-base font-bold text-navy-950">Publish New Class Offering</h2>
@@ -370,9 +461,18 @@ export default function TutorClassesPage() {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        Category Area *
-                      </label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-xs font-semibold text-slate-700">
+                          Category Area *
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenSuggestionModal("CATEGORY")}
+                          className="text-[10px] text-teal-700 hover:text-teal-900 hover:underline flex items-center gap-0.5"
+                        >
+                          <Sparkles className="w-2.5 h-2.5" /> Suggest New
+                        </button>
+                      </div>
                       <select
                         value={categoryId}
                         onChange={(e) => setCategoryId(e.target.value)}
@@ -387,9 +487,18 @@ export default function TutorClassesPage() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        Subject *
-                      </label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-xs font-semibold text-slate-700">
+                          Subject *
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenSuggestionModal("SUBJECT")}
+                          className="text-[10px] text-teal-700 hover:text-teal-900 hover:underline flex items-center gap-0.5"
+                        >
+                          <Sparkles className="w-2.5 h-2.5" /> Suggest New
+                        </button>
+                      </div>
                       <select
                         value={subjectId}
                         onChange={(e) => setSubjectId(e.target.value)}
@@ -405,9 +514,18 @@ export default function TutorClassesPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Target Academic Grade / Level *
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-semibold text-slate-700">
+                        Target Academic Grade / Level *
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenSuggestionModal("GRADE")}
+                        className="text-[10px] text-teal-700 hover:text-teal-900 hover:underline flex items-center gap-0.5"
+                      >
+                        <Sparkles className="w-2.5 h-2.5" /> Suggest New
+                      </button>
+                    </div>
                     <select
                       value={gradeId}
                       onChange={(e) => setGradeId(e.target.value)}
@@ -841,6 +959,221 @@ export default function TutorClassesPage() {
           </div>
         )}
       </DetailDrawer>
+
+      {/* Suggest Taxonomy Modal */}
+      {showSuggestionModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-950/40 backdrop-blur-xs">
+          <div className="bg-white w-full max-w-lg rounded-2xl border border-slate-200 shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white">
+              <div>
+                <h3 className="font-bold text-base text-navy-950">
+                  Suggest to Admin
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Propose a new subject discipline, category area, or academic grade level.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSuggestionModal(false)}
+                className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {suggFeedback ? (
+              <div className="p-8 text-center space-y-3">
+                <div className="w-10 h-10 mx-auto rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                  <CheckCircle2 className="w-5 h-5" />
+                </div>
+                <p className="text-xs font-semibold text-emerald-900">{suggFeedback}</p>
+                <p className="text-[11px] text-slate-400">Closing automatically...</p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmitSuggestion} className="p-6 space-y-4">
+                {/* Clean Segmented Pill Tabs */}
+                <div className="flex p-1 bg-slate-100 rounded-lg">
+                  {[
+                    { id: "ALL_IN_ONE", label: "Full Course Package" },
+                    { id: "SUBJECT", label: "Subject" },
+                    { id: "CATEGORY", label: "Category" },
+                    { id: "GRADE", label: "Grade Level" },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setSuggType(tab.id as any)}
+                      className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                        suggType === tab.id
+                          ? "bg-teal-600 text-white shadow-xs"
+                          : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Form Fields: All-In-One */}
+                {suggType === "ALL_IN_ONE" && (
+                  <div className="space-y-3.5 pt-1">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                        Category Area *
+                      </label>
+                      <select
+                        value={suggParentCatId || (taxonomy.categories[0]?.id ?? "")}
+                        onChange={(e) => setSuggParentCatId(e.target.value)}
+                        className="w-full h-9 px-3 text-xs border border-slate-200 rounded-lg bg-white outline-hidden focus:ring-1 focus:ring-primary"
+                      >
+                        <option value="">-- Propose a New Category Instead --</option>
+                        {taxonomy.categories.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                      {!suggParentCatId && (
+                        <Input
+                          placeholder="e.g. Artificial Intelligence & Robotics"
+                          value={suggNewCatName}
+                          onChange={(e) => setSuggNewCatName(e.target.value)}
+                          className="text-xs h-9 mt-2"
+                          required={!suggParentCatId}
+                        />
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                        Proposed Subject Title *
+                      </label>
+                      <Input
+                        placeholder="e.g. Deep Learning & LLM Systems"
+                        value={suggProposedName}
+                        onChange={(e) => setSuggProposedName(e.target.value)}
+                        className="text-xs h-9"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                        Target Academic Grade / Level <span className="text-slate-400 font-normal">(Optional)</span>
+                      </label>
+                      <Input
+                        placeholder="e.g. Professional & Executive, Post-Graduate"
+                        value={suggNewGradeName}
+                        onChange={(e) => setSuggNewGradeName(e.target.value)}
+                        className="text-xs h-9"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Form Fields: Single Subject */}
+                {suggType === "SUBJECT" && (
+                  <div className="space-y-3.5 pt-1">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                        Parent Category Area *
+                      </label>
+                      <select
+                        value={suggParentCatId || (taxonomy.categories[0]?.id ?? "")}
+                        onChange={(e) => setSuggParentCatId(e.target.value)}
+                        className="w-full h-9 px-3 text-xs border border-slate-200 rounded-lg bg-white outline-hidden focus:ring-1 focus:ring-primary"
+                        required
+                      >
+                        {taxonomy.categories.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                        Proposed Subject Title *
+                      </label>
+                      <Input
+                        placeholder="e.g. AP Psychology, Organic Chemistry II"
+                        value={suggProposedName}
+                        onChange={(e) => setSuggProposedName(e.target.value)}
+                        className="text-xs h-9"
+                        required
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Form Fields: Single Category or Grade */}
+                {(suggType === "CATEGORY" || suggType === "GRADE") && (
+                  <div className="pt-1">
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                      Proposed {suggType === "CATEGORY" ? "Category Name" : "Academic Grade / Level"} *
+                    </label>
+                    <Input
+                      placeholder={
+                        suggType === "CATEGORY"
+                          ? "e.g. Health Sciences & Medicine"
+                          : "e.g. Post-Graduate / Doctoral"
+                      }
+                      value={suggProposedName}
+                      onChange={(e) => setSuggProposedName(e.target.value)}
+                      className="text-xs h-9"
+                      required
+                    />
+                  </div>
+                )}
+
+                {/* Curriculum Description & Scope */}
+                <div className="pt-1">
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                    Curriculum Description & Scope *
+                  </label>
+                  <Textarea
+                    placeholder="Briefly summarize topics covered, prerequisites, or why this should be added..."
+                    rows={3}
+                    value={suggReason}
+                    onChange={(e) => setSuggReason(e.target.value)}
+                    className="text-xs"
+                    required
+                  />
+                </div>
+
+                {/* Actions */}
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowSuggestionModal(false)}
+                    className="text-xs h-8"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    size="sm"
+                    disabled={
+                      suggSubmitting ||
+                      !suggProposedName.trim() ||
+                      !suggReason.trim() ||
+                      (suggType === "ALL_IN_ONE" && !suggParentCatId && !suggNewCatName.trim())
+                    }
+                    className="text-xs h-8 bg-primary hover:bg-primary/90 text-white font-medium"
+                  >
+                    {suggSubmitting ? "Submitting..." : "Send Suggestion"}
+                  </Button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </PageTransition>
   );
 }
