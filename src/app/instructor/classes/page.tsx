@@ -13,6 +13,7 @@ import { StatCard } from "@/components/ui/stat-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MultiStepWizard, Step } from "@/components/shared/multi-step-wizard";
 import { DetailDrawer } from "@/components/shared/detail-drawer";
+import { Modal } from "@/components/ui/modal";
 import { useAuth } from "@/context/auth-context";
 import {
   PageTransition,
@@ -414,18 +415,14 @@ export default function TutorClassesPage() {
       </div>
 
       {/* MultiStepWizard Modal */}
-      {showWizard && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy-950/40 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 max-w-xl w-full space-y-6 shadow-2xl my-8">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h2 className="text-base font-bold text-navy-950">Publish New Class Offering</h2>
-              <button
-                onClick={() => setShowWizard(false)}
-                className="text-xs text-slate-400 hover:text-slate-600 font-semibold cursor-pointer"
-              >
-                Cancel
-              </button>
-            </div>
+      <Modal
+        isOpen={showWizard}
+        onClose={() => setShowWizard(false)}
+        title="Publish New Class Offering"
+        subtitle="Step-by-step academic offering wizard"
+        maxWidthClass="max-w-xl"
+      >
+        <div className="space-y-6">
 
             {errorMsg && (
               <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-center gap-2">
@@ -712,9 +709,8 @@ export default function TutorClassesPage() {
                 </div>
               )}
             </MultiStepWizard>
-          </div>
         </div>
-      )}
+      </Modal>
 
       {/* Classes List */}
       {loading ? (
@@ -961,219 +957,202 @@ export default function TutorClassesPage() {
       </DetailDrawer>
 
       {/* Suggest Taxonomy Modal */}
-      {showSuggestionModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-950/40 backdrop-blur-xs">
-          <div className="bg-white w-full max-w-lg rounded-2xl border border-slate-200 shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white">
-              <div>
-                <h3 className="font-bold text-base text-navy-950">
-                  Suggest to Admin
-                </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Propose a new subject discipline, category area, or academic grade level.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowSuggestionModal(false)}
-                className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
+      <Modal
+        isOpen={showSuggestionModal}
+        onClose={() => setShowSuggestionModal(false)}
+        title="Suggest to Admin"
+        subtitle="Propose a new subject discipline, category area, or academic grade level."
+        maxWidthClass="max-w-lg"
+      >
+        {suggFeedback ? (
+          <div className="p-8 text-center space-y-3">
+            <div className="w-10 h-10 mx-auto rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
+            <p className="text-xs font-semibold text-emerald-900">{suggFeedback}</p>
+            <p className="text-[11px] text-slate-400">Closing automatically...</p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmitSuggestion} className="space-y-4">
+            {/* Clean Segmented Pill Tabs */}
+            <div className="flex p-1 bg-slate-100 rounded-lg">
+              {[
+                { id: "ALL_IN_ONE", label: "Full Course Package" },
+                { id: "SUBJECT", label: "Subject" },
+                { id: "CATEGORY", label: "Category" },
+                { id: "GRADE", label: "Grade Level" },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setSuggType(tab.id as any)}
+                  className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                    suggType === tab.id
+                      ? "bg-teal-600 text-white shadow-xs"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
 
-            {suggFeedback ? (
-              <div className="p-8 text-center space-y-3">
-                <div className="w-10 h-10 mx-auto rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
-                  <CheckCircle2 className="w-5 h-5" />
-                </div>
-                <p className="text-xs font-semibold text-emerald-900">{suggFeedback}</p>
-                <p className="text-[11px] text-slate-400">Closing automatically...</p>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmitSuggestion} className="p-6 space-y-4">
-                {/* Clean Segmented Pill Tabs */}
-                <div className="flex p-1 bg-slate-100 rounded-lg">
-                  {[
-                    { id: "ALL_IN_ONE", label: "Full Course Package" },
-                    { id: "SUBJECT", label: "Subject" },
-                    { id: "CATEGORY", label: "Category" },
-                    { id: "GRADE", label: "Grade Level" },
-                  ].map((tab) => (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => setSuggType(tab.id as any)}
-                      className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ${
-                        suggType === tab.id
-                          ? "bg-teal-600 text-white shadow-xs"
-                          : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Form Fields: All-In-One */}
-                {suggType === "ALL_IN_ONE" && (
-                  <div className="space-y-3.5 pt-1">
-                    <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
-                        Category Area *
-                      </label>
-                      <select
-                        value={suggParentCatId || (taxonomy.categories[0]?.id ?? "")}
-                        onChange={(e) => setSuggParentCatId(e.target.value)}
-                        className="w-full h-9 px-3 text-xs border border-slate-200 rounded-lg bg-white outline-hidden focus:ring-1 focus:ring-primary"
-                      >
-                        <option value="">-- Propose a New Category Instead --</option>
-                        {taxonomy.categories.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.name}
-                          </option>
-                        ))}
-                      </select>
-                      {!suggParentCatId && (
-                        <Input
-                          placeholder="e.g. Artificial Intelligence & Robotics"
-                          value={suggNewCatName}
-                          onChange={(e) => setSuggNewCatName(e.target.value)}
-                          className="text-xs h-9 mt-2"
-                          required={!suggParentCatId}
-                        />
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
-                        Proposed Subject Title *
-                      </label>
-                      <Input
-                        placeholder="e.g. Deep Learning & LLM Systems"
-                        value={suggProposedName}
-                        onChange={(e) => setSuggProposedName(e.target.value)}
-                        className="text-xs h-9"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
-                        Target Academic Grade / Level <span className="text-slate-400 font-normal">(Optional)</span>
-                      </label>
-                      <Input
-                        placeholder="e.g. Professional & Executive, Post-Graduate"
-                        value={suggNewGradeName}
-                        onChange={(e) => setSuggNewGradeName(e.target.value)}
-                        className="text-xs h-9"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Form Fields: Single Subject */}
-                {suggType === "SUBJECT" && (
-                  <div className="space-y-3.5 pt-1">
-                    <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
-                        Parent Category Area *
-                      </label>
-                      <select
-                        value={suggParentCatId || (taxonomy.categories[0]?.id ?? "")}
-                        onChange={(e) => setSuggParentCatId(e.target.value)}
-                        className="w-full h-9 px-3 text-xs border border-slate-200 rounded-lg bg-white outline-hidden focus:ring-1 focus:ring-primary"
-                        required
-                      >
-                        {taxonomy.categories.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
-                        Proposed Subject Title *
-                      </label>
-                      <Input
-                        placeholder="e.g. AP Psychology, Organic Chemistry II"
-                        value={suggProposedName}
-                        onChange={(e) => setSuggProposedName(e.target.value)}
-                        className="text-xs h-9"
-                        required
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Form Fields: Single Category or Grade */}
-                {(suggType === "CATEGORY" || suggType === "GRADE") && (
-                  <div className="pt-1">
-                    <label className="block text-xs font-medium text-slate-700 mb-1">
-                      Proposed {suggType === "CATEGORY" ? "Category Name" : "Academic Grade / Level"} *
-                    </label>
-                    <Input
-                      placeholder={
-                        suggType === "CATEGORY"
-                          ? "e.g. Health Sciences & Medicine"
-                          : "e.g. Post-Graduate / Doctoral"
-                      }
-                      value={suggProposedName}
-                      onChange={(e) => setSuggProposedName(e.target.value)}
-                      className="text-xs h-9"
-                      required
-                    />
-                  </div>
-                )}
-
-                {/* Curriculum Description & Scope */}
-                <div className="pt-1">
+            {/* Form Fields: All-In-One */}
+            {suggType === "ALL_IN_ONE" && (
+              <div className="space-y-3.5 pt-1">
+                <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1">
-                    Curriculum Description & Scope *
+                    Category Area *
                   </label>
-                  <Textarea
-                    placeholder="Briefly summarize topics covered, prerequisites, or why this should be added..."
-                    rows={3}
-                    value={suggReason}
-                    onChange={(e) => setSuggReason(e.target.value)}
-                    className="text-xs"
+                  <select
+                    value={suggParentCatId || (taxonomy.categories[0]?.id ?? "")}
+                    onChange={(e) => setSuggParentCatId(e.target.value)}
+                    className="w-full h-9 px-3 text-xs border border-slate-200 rounded-lg bg-white outline-hidden focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="">-- Propose a New Category Instead --</option>
+                    {taxonomy.categories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                  {!suggParentCatId && (
+                    <Input
+                      placeholder="e.g. Artificial Intelligence & Robotics"
+                      value={suggNewCatName}
+                      onChange={(e) => setSuggNewCatName(e.target.value)}
+                      className="text-xs h-9 mt-2"
+                      required={!suggParentCatId}
+                    />
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                    Proposed Subject Title *
+                  </label>
+                  <Input
+                    placeholder="e.g. Deep Learning & LLM Systems"
+                    value={suggProposedName}
+                    onChange={(e) => setSuggProposedName(e.target.value)}
+                    className="text-xs h-9"
                     required
                   />
                 </div>
 
-                {/* Actions */}
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowSuggestionModal(false)}
-                    className="text-xs h-8"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    size="sm"
-                    disabled={
-                      suggSubmitting ||
-                      !suggProposedName.trim() ||
-                      !suggReason.trim() ||
-                      (suggType === "ALL_IN_ONE" && !suggParentCatId && !suggNewCatName.trim())
-                    }
-                    className="text-xs h-8 bg-primary hover:bg-primary/90 text-white font-medium"
-                  >
-                    {suggSubmitting ? "Submitting..." : "Send Suggestion"}
-                  </Button>
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                    Target Academic Grade / Level <span className="text-slate-400 font-normal">(Optional)</span>
+                  </label>
+                  <Input
+                    placeholder="e.g. Professional & Executive, Post-Graduate"
+                    value={suggNewGradeName}
+                    onChange={(e) => setSuggNewGradeName(e.target.value)}
+                    className="text-xs h-9"
+                  />
                 </div>
-              </form>
+              </div>
             )}
-          </div>
-        </div>
-      )}
+
+            {/* Form Fields: Single Subject */}
+            {suggType === "SUBJECT" && (
+              <div className="space-y-3.5 pt-1">
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                    Parent Category Area *
+                  </label>
+                  <select
+                    value={suggParentCatId || (taxonomy.categories[0]?.id ?? "")}
+                    onChange={(e) => setSuggParentCatId(e.target.value)}
+                    className="w-full h-9 px-3 text-xs border border-slate-200 rounded-lg bg-white outline-hidden focus:ring-1 focus:ring-primary"
+                    required
+                  >
+                    {taxonomy.categories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                    Proposed Subject Title *
+                  </label>
+                  <Input
+                    placeholder="e.g. AP Psychology, Organic Chemistry II"
+                    value={suggProposedName}
+                    onChange={(e) => setSuggProposedName(e.target.value)}
+                    className="text-xs h-9"
+                    required
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Form Fields: Single Category or Grade */}
+            {(suggType === "CATEGORY" || suggType === "GRADE") && (
+              <div className="pt-1">
+                <label className="block text-xs font-medium text-slate-700 mb-1">
+                  Proposed {suggType === "CATEGORY" ? "Category Name" : "Academic Grade / Level"} *
+                </label>
+                <Input
+                  placeholder={
+                    suggType === "CATEGORY"
+                      ? "e.g. Health Sciences & Medicine"
+                      : "e.g. Post-Graduate / Doctoral"
+                  }
+                  value={suggProposedName}
+                  onChange={(e) => setSuggProposedName(e.target.value)}
+                  className="text-xs h-9"
+                  required
+                />
+              </div>
+            )}
+
+            {/* Curriculum Description & Scope */}
+            <div className="pt-1">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Curriculum Description & Scope *
+              </label>
+              <Textarea
+                placeholder="Briefly summarize topics covered, prerequisites, or why this should be added..."
+                rows={3}
+                value={suggReason}
+                onChange={(e) => setSuggReason(e.target.value)}
+                className="text-xs"
+                required
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowSuggestionModal(false)}
+                className="text-xs h-8"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={
+                  suggSubmitting ||
+                  !suggProposedName.trim() ||
+                  !suggReason.trim() ||
+                  (suggType === "ALL_IN_ONE" && !suggParentCatId && !suggNewCatName.trim())
+                }
+                className="text-xs h-8 bg-primary hover:bg-primary/90 text-white font-medium"
+              >
+                {suggSubmitting ? "Submitting..." : "Send Suggestion"}
+              </Button>
+            </div>
+          </form>
+        )}
+      </Modal>
     </PageTransition>
   );
 }
