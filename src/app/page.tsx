@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { HeroStatsBar } from "@/components/ui/hero-stats-bar";
 import { TestimonialsSection } from "@/components/ui/testimonials-section";
 import { ArcAdvertDock } from "@/components/ui/arc-advert-dock";
+import { LevyChatWidget } from "@/components/assistant/levy-chat-widget";
 
 // Always render fresh data during development, avoiding stale in-memory cached responses
 export const dynamic = "force-dynamic";
@@ -456,6 +457,9 @@ export default async function HomePage() {
 
       {/* Floating Instagram-Style Arc Advert Dock with Booking Note */}
       <ArcAdvertDock initialAdverts={activeAdverts} />
+
+      {/* Floating Academic Concierge Bot Assistant */}
+      <LevyChatWidget />
     </div>
   );
 }
