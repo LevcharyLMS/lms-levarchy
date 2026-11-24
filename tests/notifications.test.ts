@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { NotificationService } from "../src/services/notification";
+import { ModerationService } from "../src/services/moderation";
 
 describe("Notification Center, Multi-Channel Dispatch & Preferences", () => {
   it("handles multiple channels and logs future WhatsApp hooks", async () => {
@@ -49,5 +50,22 @@ describe("Notification Center, Multi-Channel Dispatch & Preferences", () => {
     expect(prefs.email_class_reminders).toBe(true);
     expect(prefs.whatsapp_alerts).toBe(true);
     expect(typeof prefs.email_receipts).toBe("boolean");
+  });
+
+  it("moderates text and intercepts admin-defined custom prohibited flag words", () => {
+    // Add custom prohibited keyword
+    ModerationService.setCustomKeywords(["telegram", "cryptopay"]);
+
+    const cleanResult = ModerationService.scanText("Hello teacher, see you in tomorrow's algebra class!");
+    expect(cleanResult.isFlagged).toBe(false);
+    expect(cleanResult.matches.length).toBe(0);
+
+    const flaggedResult = ModerationService.scanText("Contact me on telegram to bypass platform fees.");
+    expect(flaggedResult.isFlagged).toBe(true);
+    expect(flaggedResult.severity).toBe("HIGH");
+    expect(flaggedResult.matches).toContain("telegram");
+
+    // Clean up
+    ModerationService.setCustomKeywords([]);
   });
 });

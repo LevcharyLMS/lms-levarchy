@@ -17,6 +17,10 @@ import {
   MessageSquare,
   Clock,
   Filter,
+  Plus,
+  Trash2,
+  KeyRound,
+  Loader2,
 } from "lucide-react";
 
 export default function AdminMessageFlagsPage() {
@@ -27,6 +31,59 @@ export default function AdminMessageFlagsPage() {
   const [severityFilter, setSeverityFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [search, setSearch] = useState("");
+
+  // Custom Prohibited Keywords State
+  const [customKeywords, setCustomKeywords] = useState<string[]>([]);
+  const [newKeyword, setNewKeyword] = useState("");
+  const [isAddingKeyword, setIsAddingKeyword] = useState(false);
+  const [keywordNotice, setKeywordNotice] = useState<string | null>(null);
+
+  const loadCustomKeywords = async () => {
+    try {
+      const res = await fetch("/api/admin/flag-words");
+      const data = await res.json();
+      setCustomKeywords(data.keywords || []);
+    } catch {}
+  };
+
+  const handleAddKeyword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanWord = newKeyword.trim().toLowerCase();
+    if (!cleanWord || customKeywords.includes(cleanWord)) return;
+
+    setIsAddingKeyword(true);
+    try {
+      const res = await fetch("/api/admin/flag-words", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ word: cleanWord }),
+      });
+      const data = await res.json();
+      if (data.keywords) {
+        setCustomKeywords(data.keywords);
+        setNewKeyword("");
+        setKeywordNotice(`Added "${cleanWord}" to active message moderation filter.`);
+        setTimeout(() => setKeywordNotice(null), 3000);
+      }
+    } catch {}
+    finally {
+      setIsAddingKeyword(false);
+    }
+  };
+
+  const handleRemoveKeyword = async (word: string) => {
+    try {
+      const res = await fetch(`/api/admin/flag-words?word=${encodeURIComponent(word)}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.keywords) {
+        setCustomKeywords(data.keywords);
+        setKeywordNotice(`Removed "${word}" from moderation filter.`);
+        setTimeout(() => setKeywordNotice(null), 3000);
+      }
+    } catch {}
+  };
 
   const loadFlags = async () => {
     try {
@@ -43,6 +100,7 @@ export default function AdminMessageFlagsPage() {
 
   useEffect(() => {
     loadFlags();
+    loadCustomKeywords();
   }, []);
 
   const handleAction = async (flagId: string, status: "DISMISSED" | "WARNED" | "RESTRICTED" | "ACTIONED") => {
@@ -250,6 +308,72 @@ export default function AdminMessageFlagsPage() {
           icon={ShieldCheck}
           variant="emerald"
         />
+      </div>
+
+      {/* Dynamic Flag Words Manager Card */}
+      <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="font-bold text-sm text-navy-950">Custom Prohibited Flag Words</h3>
+              <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold">
+                {customKeywords.length} Active Keywords
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Messages containing any of these keywords are automatically flagged and intercepted for compliance review.
+            </p>
+          </div>
+
+          <form onSubmit={handleAddKeyword} className="flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="Add word (e.g., telegram, cashapp)..."
+              value={newKeyword}
+              onChange={(e) => setNewKeyword(e.target.value)}
+              className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs w-56 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+            />
+            <Button
+              type="submit"
+              size="sm"
+              disabled={isAddingKeyword || !newKeyword.trim()}
+              className="h-8 text-xs gap-1 bg-teal-600 hover:bg-teal-700 text-white font-semibold"
+            >
+              {isAddingKeyword ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+              <span>Add Keyword</span>
+            </Button>
+          </form>
+        </div>
+
+        {keywordNotice && (
+          <div className="p-2.5 bg-teal-50 border border-teal-200 rounded-lg text-xs text-teal-800 flex items-center gap-2">
+            <CheckCircle2 className="w-3.5 h-3.5 text-teal-600 shrink-0" />
+            <span>{keywordNotice}</span>
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-2">
+          {customKeywords.length === 0 ? (
+            <p className="text-xs text-slate-400 italic">No custom words added yet. Standard system safety filters (phone, email, Venmo, PayPal) are active.</p>
+          ) : (
+            customKeywords.map((word) => (
+              <span
+                key={word}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs font-mono font-medium"
+              >
+                <span>{word}</span>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveKeyword(word)}
+                  className="text-slate-400 hover:text-red-600 transition-colors p-0.5"
+                  title={`Remove "${word}"`}
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </span>
+            ))
+          )}
+        </div>
       </div>
 
       {/* Filter Chips */}

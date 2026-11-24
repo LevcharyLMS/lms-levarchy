@@ -15,11 +15,27 @@ export interface ModerationResult {
   }>;
 }
 
+// Dynamic in-memory & settings-driven custom flag keywords
+let customFlaggedKeywords: string[] = [];
+
 export class ModerationService {
+  /**
+   * Set or sync dynamic admin custom flagged keywords
+   */
+  static setCustomKeywords(keywords: string[]) {
+    customFlaggedKeywords = Array.from(
+      new Set(keywords.map((w) => w.trim().toLowerCase()).filter(Boolean))
+    );
+  }
+
+  static getCustomKeywords(): string[] {
+    return [...customFlaggedKeywords];
+  }
+
   /**
    * Scan message text for policy violations
    */
-  static scanText(text: string): ModerationResult {
+  static scanText(text: string, additionalWords?: string[]): ModerationResult {
     const flags: ModerationResult['flags'] = [];
 
     // 1. Phone numbers detection (various formats)
@@ -78,9 +94,30 @@ export class ModerationService {
       });
     }
 
+    // 5. Dynamic Admin-Configured Custom Flag Words
+    const activeCustom = Array.from(new Set([...customFlaggedKeywords, ...(additionalWords || [])]));
+    if (activeCustom.length > 0) {
+      const escaped = activeCustom.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+      const customRegex = new RegExp(`\\b(${escaped})\\b`, 'gi');
+      const customMatches = text.match(customRegex);
+      if (customMatches) {
+        customMatches.forEach((match) => {
+          flags.push({
+            type: 'OFF_PLATFORM_PAYMENT',
+            snippet: match,
+            severity: 'HIGH',
+            reason: `Message triggered administrator custom-monitored keyword: "${match}".`,
+          });
+        });
+      }
+    }
+
     return {
       hasFlags: flags.length > 0,
+      isFlagged: flags.length > 0,
       flags,
-    };
+      matches: flags.map(f => f.snippet.toLowerCase()),
+      severity: flags.some(f => f.severity === 'HIGH') ? 'HIGH' : flags.some(f => f.severity === 'MEDIUM') ? 'MEDIUM' : 'LOW'
+    } as any;
   }
 }
