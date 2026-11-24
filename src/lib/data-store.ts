@@ -571,6 +571,31 @@ class DataStore {
     return true;
   }
 
+  toggleNotificationRead(notificationId: string, isRead: boolean) {
+    const notif = this.state.notifications.find((n) => n.id === notificationId);
+    if (notif) {
+      notif.is_read = isRead;
+      return notif;
+    }
+    return null;
+  }
+
+  deleteNotification(notificationId: string) {
+    const idx = this.state.notifications.findIndex((n) => n.id === notificationId);
+    if (idx >= 0) {
+      this.state.notifications.splice(idx, 1);
+      return true;
+    }
+    return false;
+  }
+
+  clearReadNotifications(userId: string) {
+    this.state.notifications = this.state.notifications.filter(
+      (n) => !(n.user_id === userId && n.is_read)
+    );
+    return true;
+  }
+
   // --- BOOKING ENGINE (ATOMIC SLOT & CAPACITY PRESERVATION) ---
   bookOneOnOneSlot(params: {
     studentId: string;

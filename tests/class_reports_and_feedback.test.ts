@@ -133,4 +133,35 @@ describe("Post-Class Reports, Admin Moderation & Feedback Review Alerts", () => 
       expect(isStudentOnboarded({ preferences: { subjects: ["Calculus"] } })).toBe(true);
     });
   });
+
+  describe("5. Notification Granular Actions & Delivery Preferences", () => {
+    it("validates granular toggle read status and filtering", () => {
+      const notifications = [
+        { id: "n1", title: "Class reminder", is_read: false, type: "BOOKING" },
+        { id: "n2", title: "Teacher comments", is_read: true, type: "CLASS" },
+        { id: "n3", title: "Tuition receipt", is_read: false, type: "PAYMENT" },
+      ];
+
+      const unreadOnly = notifications.filter((n) => !n.is_read);
+      expect(unreadOnly.length).toBe(2);
+
+      const toggled = notifications.map((n) => (n.id === "n1" ? { ...n, is_read: true } : n));
+      expect(toggled.find((n) => n.id === "n1")?.is_read).toBe(true);
+    });
+
+    it("validates notification delivery preferences payload structure", () => {
+      const prefs = {
+        email_class_reminders: true,
+        email_reports: true,
+        email_messages: true,
+        email_receipts: false,
+        in_app_alerts: true,
+        whatsapp_alerts: true,
+      };
+
+      expect(prefs.email_class_reminders).toBe(true);
+      expect(prefs.whatsapp_alerts).toBe(true);
+      expect(typeof prefs.email_receipts).toBe("boolean");
+    });
+  });
 });

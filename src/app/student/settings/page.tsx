@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,11 +19,18 @@ import {
   MapPin,
   Sparkles,
   ShieldCheck,
+  MessageSquare,
+  Calendar,
+  CreditCard,
+  Smartphone,
 } from "lucide-react";
 
 export default function StudentSettingsPage() {
+  const searchParams = useSearchParams();
+  const initialTab = searchParams?.get("tab") === "notifications" ? "notifications" : "profile";
+
   const { user, studentProfile, updateStudentProfile } = useAuth();
-  const [activeTab, setActiveTab] = useState<"profile" | "account" | "notifications">("profile");
+  const [activeTab, setActiveTab] = useState<"profile" | "account" | "notifications">(initialTab);
 
   // Form State
   const [firstName, setFirstName] = useState("");
@@ -37,6 +45,22 @@ export default function StudentSettingsPage() {
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Notification Preferences State
+  const [emailClassReminders, setEmailClassReminders] = useState(true);
+  const [emailReports, setEmailReports] = useState(true);
+  const [emailMessages, setEmailMessages] = useState(true);
+  const [emailReceipts, setEmailReceipts] = useState(true);
+  const [inAppAlerts, setInAppAlerts] = useState(true);
+  const [whatsappAlerts, setWhatsappAlerts] = useState(false);
+  const [savingNotifs, setSavingNotifs] = useState(false);
+  const [notifsSaved, setNotifsSaved] = useState(false);
+
+  useEffect(() => {
+    if (searchParams?.get("tab") === "notifications") {
+      setActiveTab("notifications");
+    }
+  }, [searchParams]);
+
   useEffect(() => {
     if (user) {
       setFirstName(user.first_name || "");
@@ -45,12 +69,59 @@ export default function StudentSettingsPage() {
       setPhone(user.phone || "");
       setCity(user.city || "");
       setState(user.state || "");
+
+      // Load saved notification preferences
+      fetch(`/api/notifications?userId=${user.id}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.preferences) {
+            const p = data.preferences;
+            if (p.email_class_reminders !== undefined) setEmailClassReminders(p.email_class_reminders);
+            if (p.email_reports !== undefined) setEmailReports(p.email_reports);
+            if (p.email_messages !== undefined) setEmailMessages(p.email_messages);
+            if (p.email_receipts !== undefined) setEmailReceipts(p.email_receipts);
+            if (p.in_app_alerts !== undefined) setInAppAlerts(p.in_app_alerts);
+            if (p.whatsapp_alerts !== undefined) setWhatsappAlerts(p.whatsapp_alerts);
+          }
+        })
+        .catch(() => {});
     }
     if (studentProfile) {
       setGradeLevel(studentProfile.grade_level || "");
       setLearningGoals(studentProfile.learning_goals || "");
     }
   }, [user, studentProfile]);
+
+  const handleSaveNotifPreferences = async () => {
+    if (!user?.id) return;
+    setSavingNotifs(true);
+    try {
+      const res = await fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          action: "UPDATE_PREFERENCES",
+          preferences: {
+            email_class_reminders: emailClassReminders,
+            email_reports: emailReports,
+            email_messages: emailMessages,
+            email_receipts: emailReceipts,
+            in_app_alerts: inAppAlerts,
+            whatsapp_alerts: whatsappAlerts,
+          },
+        }),
+      });
+      if (res.ok) {
+        setNotifsSaved(true);
+        setTimeout(() => setNotifsSaved(false), 3000);
+      }
+    } catch (err) {
+      console.error("Failed to save notification preferences:", err);
+    } finally {
+      setSavingNotifs(false);
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -303,40 +374,179 @@ export default function StudentSettingsPage() {
         </Card>
       )}
 
-      {/* TAB 3: NOTIFICATIONS */}
+      {/* TAB 3: NOTIFICATIONS & DELIVERY PREFERENCES */}
       {activeTab === "notifications" && (
-        <Card className="border-slate-200 shadow-xs">
-          <CardContent className="p-6 space-y-4">
-            <h2 className="text-sm font-bold text-navy-950 flex items-center gap-2 pb-2 border-b border-slate-100">
-              <Bell className="w-4 h-4 text-teal-600" /> Notifications & Reminders
-            </h2>
-            <div className="space-y-3 text-xs text-slate-700">
-              <label className="flex items-center gap-2.5 cursor-pointer p-2 rounded-lg hover:bg-slate-50 transition-colors">
-                <input type="checkbox" defaultChecked className="accent-teal-600 rounded" />
-                <div>
-                  <p className="font-semibold text-navy-950">24-Hour Session Alert</p>
-                  <p className="text-[11px] text-slate-500">Email reminder 24 hours prior to scheduled class</p>
-                </div>
-              </label>
-
-              <label className="flex items-center gap-2.5 cursor-pointer p-2 rounded-lg hover:bg-slate-50 transition-colors">
-                <input type="checkbox" defaultChecked className="accent-teal-600 rounded" />
-                <div>
-                  <p className="font-semibold text-navy-950">1-Hour Session Alert</p>
-                  <p className="text-[11px] text-slate-500">Urgent alert with virtual classroom entrance link</p>
-                </div>
-              </label>
-
-              <label className="flex items-center gap-2.5 cursor-pointer p-2 rounded-lg hover:bg-slate-50 transition-colors">
-                <input type="checkbox" defaultChecked className="accent-teal-600 rounded" />
-                <div>
-                  <p className="font-semibold text-navy-950">Instructor Message Alerts</p>
-                  <p className="text-[11px] text-slate-500">Instant notification when your instructor sends a message</p>
-                </div>
-              </label>
+        <div className="space-y-5">
+          {notifsSaved && (
+            <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Notification delivery preferences saved successfully.</span>
             </div>
-          </CardContent>
-        </Card>
+          )}
+
+          {/* Section 1: Email Channel Delivery */}
+          <Card className="border-slate-200 shadow-xs">
+            <CardContent className="p-6 space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h2 className="text-sm font-bold text-navy-950 flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-teal-600" />
+                  <span>Email Alerts Delivery</span>
+                </h2>
+                <span className="text-[11px] text-slate-400">
+                  Sent to {email || "your registered email"}
+                </span>
+              </div>
+
+              <div className="divide-y divide-slate-100 text-xs">
+                <label className="flex items-center justify-between py-3 cursor-pointer hover:bg-slate-50/50 px-2 rounded-lg transition-colors">
+                  <div className="space-y-0.5">
+                    <p className="font-semibold text-navy-950 flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-teal-600" />
+                      <span>Class Schedule Reminders</span>
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      Receive reminders 24 hours and 1 hour before scheduled class sessions.
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={emailClassReminders}
+                    onChange={(e) => setEmailClassReminders(e.target.checked)}
+                    className="w-4 h-4 accent-teal-600 rounded cursor-pointer"
+                  />
+                </label>
+
+                <label className="flex items-center justify-between py-3 cursor-pointer hover:bg-slate-50/50 px-2 rounded-lg transition-colors">
+                  <div className="space-y-0.5">
+                    <p className="font-semibold text-navy-950 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-teal-600" />
+                      <span>Published Post-Class Notes &amp; Reports</span>
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      Get alerted when your instructor publishes verified session notes, homework, and comments.
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={emailReports}
+                    onChange={(e) => setEmailReports(e.target.checked)}
+                    className="w-4 h-4 accent-teal-600 rounded cursor-pointer"
+                  />
+                </label>
+
+                <label className="flex items-center justify-between py-3 cursor-pointer hover:bg-slate-50/50 px-2 rounded-lg transition-colors">
+                  <div className="space-y-0.5">
+                    <p className="font-semibold text-navy-950 flex items-center gap-1.5">
+                      <MessageSquare className="w-3.5 h-3.5 text-teal-600" />
+                      <span>Instructor Direct Messages</span>
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      Email alerts when an instructor sends you a direct message or reply.
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={emailMessages}
+                    onChange={(e) => setEmailMessages(e.target.checked)}
+                    className="w-4 h-4 accent-teal-600 rounded cursor-pointer"
+                  />
+                </label>
+
+                <label className="flex items-center justify-between py-3 cursor-pointer hover:bg-slate-50/50 px-2 rounded-lg transition-colors">
+                  <div className="space-y-0.5">
+                    <p className="font-semibold text-navy-950 flex items-center gap-1.5">
+                      <CreditCard className="w-3.5 h-3.5 text-teal-600" />
+                      <span>Tuition Receipts &amp; Invoices</span>
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      Immediate receipts for class bookings and payment transactions.
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={emailReceipts}
+                    onChange={(e) => setEmailReceipts(e.target.checked)}
+                    className="w-4 h-4 accent-teal-600 rounded cursor-pointer"
+                  />
+                </label>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Section 2: In-App Platform Alerts */}
+          <Card className="border-slate-200 shadow-xs">
+            <CardContent className="p-6 space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h2 className="text-sm font-bold text-navy-950 flex items-center gap-2">
+                  <Bell className="w-4 h-4 text-teal-600" />
+                  <span>In-App Platform Alerts</span>
+                </h2>
+                <span className="text-[10px] font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded border border-teal-200 uppercase">
+                  Active
+                </span>
+              </div>
+              <label className="flex items-center justify-between cursor-pointer hover:bg-slate-50/50 p-2 rounded-lg transition-colors text-xs">
+                <div className="space-y-0.5">
+                  <p className="font-semibold text-navy-950">Show In-App Alert Badges</p>
+                  <p className="text-[11px] text-slate-500">
+                    Display notification badges on the top header bell and in the Notifications tab.
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={inAppAlerts}
+                  onChange={(e) => setInAppAlerts(e.target.checked)}
+                  className="w-4 h-4 accent-teal-600 rounded cursor-pointer"
+                />
+              </label>
+            </CardContent>
+          </Card>
+
+          {/* Section 3: WhatsApp Notifications (Prepared & Extensible) */}
+          <Card className="border-slate-200 shadow-xs bg-slate-50/50">
+            <CardContent className="p-6 space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-200/60">
+                <h2 className="text-sm font-bold text-navy-950 flex items-center gap-2">
+                  <Smartphone className="w-4 h-4 text-emerald-600" />
+                  <span>WhatsApp Alerts</span>
+                </h2>
+                <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                  Ready for Integration
+                </span>
+              </div>
+              <label className="flex items-center justify-between cursor-pointer hover:bg-white/80 p-2 rounded-lg transition-colors text-xs">
+                <div className="space-y-0.5">
+                  <p className="font-semibold text-navy-950">Receive WhatsApp Class Alerts</p>
+                  <p className="text-[11px] text-slate-500">
+                    Send real-time session links and reminders directly to your mobile phone via WhatsApp.
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={whatsappAlerts}
+                  onChange={(e) => setWhatsappAlerts(e.target.checked)}
+                  className="w-4 h-4 accent-emerald-600 rounded cursor-pointer"
+                />
+              </label>
+              <div className="text-[11px] text-slate-500 flex items-center gap-1.5 pl-2 pt-1">
+                <span>Registered Mobile Phone:</span>
+                <strong className="text-navy-950">{phone || user?.phone || "Not configured (add in Account tab)"}</strong>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Save Button */}
+          <div className="flex justify-end pt-2">
+            <Button
+              type="button"
+              disabled={savingNotifs}
+              onClick={handleSaveNotifPreferences}
+              className="font-semibold bg-teal-600 hover:bg-teal-700 text-white text-xs px-6 h-9"
+            >
+              {savingNotifs ? "Saving Preferences..." : "Save Notification Preferences"}
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );

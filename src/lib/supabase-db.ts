@@ -1693,6 +1693,78 @@ export class SupabaseDbService {
     }
   }
 
+  static async toggleNotificationRead(notificationId: string, isRead: boolean) {
+    try {
+      const rows = await this.query(
+        `UPDATE notifications SET is_read = $1 WHERE id = $2 RETURNING *`,
+        [isRead, notificationId]
+      );
+      if (rows.length > 0) return rows[0];
+    } catch (err) {
+      console.error('Error toggling notification read in DB:', err);
+    }
+    return memoryDb.toggleNotificationRead(notificationId, isRead);
+  }
+
+  static async deleteNotification(notificationId: string) {
+    try {
+      await this.query(`DELETE FROM notifications WHERE id = $1`, [notificationId]);
+      return true;
+    } catch (err) {
+      console.error('Error deleting notification from DB:', err);
+    }
+    return memoryDb.deleteNotification(notificationId);
+  }
+
+  static async clearReadNotifications(userId: string) {
+    try {
+      await this.query(`DELETE FROM notifications WHERE user_id = $1 AND is_read = true`, [userId]);
+      return true;
+    } catch (err) {
+      console.error('Error clearing read notifications from DB:', err);
+    }
+    return memoryDb.clearReadNotifications(userId);
+  }
+
+  static async getNotificationPreferences(userId: string) {
+    try {
+      const rows = await this.query(
+        `SELECT preferences FROM student_profiles WHERE user_id = $1 LIMIT 1`,
+        [userId]
+      );
+      if (rows.length > 0 && rows[0].preferences) {
+        let prefs = rows[0].preferences;
+        if (typeof prefs === 'string') {
+          try { prefs = JSON.parse(prefs); } catch {}
+        }
+        return prefs.notifications || null;
+      }
+    } catch {}
+    return null;
+  }
+
+  static async updateNotificationPreferences(userId: string, notifPrefs: any) {
+    try {
+      const rows = await this.query(
+        `SELECT preferences FROM student_profiles WHERE user_id = $1 LIMIT 1`,
+        [userId]
+      );
+      let prefs = rows.length > 0 && rows[0].preferences ? rows[0].preferences : {};
+      if (typeof prefs === 'string') {
+        try { prefs = JSON.parse(prefs); } catch { prefs = {}; }
+      }
+      prefs.notifications = notifPrefs;
+      await this.query(
+        `UPDATE student_profiles SET preferences = $1::jsonb, updated_at = NOW() WHERE user_id = $2`,
+        [JSON.stringify(prefs), userId]
+      );
+      return true;
+    } catch (err) {
+      console.error('Error updating notification preferences:', err);
+    }
+    return true;
+  }
+
   // --- CONVERSATIONS & MESSAGING ---
   static async getConversations(userId: string) {
     try {

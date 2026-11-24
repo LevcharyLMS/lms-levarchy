@@ -47,6 +47,14 @@ export default function InstructorSettingsPage() {
   const [savingAccount, setSavingAccount] = useState(false);
   const [accountSaved, setAccountSaved] = useState(false);
 
+  // Notification Preferences State
+  const [instEmailBookings, setInstEmailBookings] = useState(true);
+  const [instEmailReports, setInstEmailReports] = useState(true);
+  const [instEmailPayouts, setInstEmailPayouts] = useState(true);
+  const [instWhatsapp, setInstWhatsapp] = useState(false);
+  const [savingNotifs, setSavingNotifs] = useState(false);
+  const [notifsSaved, setNotifsSaved] = useState(false);
+
   // Tab 2: Public Profile State
   const [headline, setHeadline] = useState("");
   const [qualifications, setQualifications] = useState("");
@@ -120,7 +128,52 @@ export default function InstructorSettingsPage() {
       }
     }
     loadInstructorData();
+
+    // Load saved notification preferences
+    if (user?.id) {
+      fetch(`/api/notifications?userId=${user.id}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.preferences) {
+            const p = data.preferences;
+            if (p.email_bookings !== undefined) setInstEmailBookings(p.email_bookings);
+            if (p.email_reports !== undefined) setInstEmailReports(p.email_reports);
+            if (p.email_payouts !== undefined) setInstEmailPayouts(p.email_payouts);
+            if (p.whatsapp_alerts !== undefined) setInstWhatsapp(p.whatsapp_alerts);
+          }
+        })
+        .catch(() => {});
+    }
   }, [user?.id]);
+
+  const handleSaveNotifPreferences = async () => {
+    if (!user?.id) return;
+    setSavingNotifs(true);
+    try {
+      const res = await fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          action: "UPDATE_PREFERENCES",
+          preferences: {
+            email_bookings: instEmailBookings,
+            email_reports: instEmailReports,
+            email_payouts: instEmailPayouts,
+            whatsapp_alerts: instWhatsapp,
+          },
+        }),
+      });
+      if (res.ok) {
+        setNotifsSaved(true);
+        setTimeout(() => setNotifsSaved(false), 3000);
+      }
+    } catch (err) {
+      console.error("Failed to save instructor notification preferences:", err);
+    } finally {
+      setSavingNotifs(false);
+    }
+  };
 
   // Handle Tab 1: Account Settings Save
   const handleSaveAccount = async (e: React.FormEvent) => {
@@ -414,25 +467,90 @@ export default function InstructorSettingsPage() {
               </CardContent>
             </Card>
 
-            {/* Notifications Preferences */}
+            {/* Notifications Delivery Preferences */}
             <Card className="border-slate-200/80 shadow-xs bg-white">
               <CardContent className="p-6 space-y-4">
-                <h2 className="text-sm font-bold text-navy-950 flex items-center gap-2 pb-2 border-b border-slate-100">
-                  <Bell className="w-4 h-4 text-teal-600" /> Notifications & Reminders
-                </h2>
-                <div className="space-y-3 text-xs text-slate-700">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" defaultChecked className="accent-teal-600 rounded" />
-                    <span>Immediate email when a student reserves a session</span>
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                  <h2 className="text-sm font-bold text-navy-950 flex items-center gap-2">
+                    <Bell className="w-4 h-4 text-teal-600" /> Notifications &amp; Delivery Preferences
+                  </h2>
+                  {notifsSaved && (
+                    <span className="text-[11px] font-semibold text-emerald-700 flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      Preferences saved
+                    </span>
+                  )}
+                </div>
+
+                <div className="space-y-3 text-xs text-slate-700 divide-y divide-slate-100">
+                  <label className="flex items-center justify-between pt-2 cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition-colors">
+                    <div className="space-y-0.5">
+                      <p className="font-semibold text-navy-950">Student Reservation Email Alerts</p>
+                      <p className="text-[11px] text-slate-500">Immediate transactional email when a student reserves a 1-on-1 or cohort class</p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={instEmailBookings}
+                      onChange={(e) => setInstEmailBookings(e.target.checked)}
+                      className="w-4 h-4 accent-teal-600 rounded cursor-pointer"
+                    />
                   </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" defaultChecked className="accent-teal-600 rounded" />
-                    <span>SMS reminder 15 minutes before virtual classroom session begins</span>
+
+                  <label className="flex items-center justify-between pt-3 cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition-colors">
+                    <div className="space-y-0.5">
+                      <p className="font-semibold text-navy-950">Student Feedback &amp; Report Approvals</p>
+                      <p className="text-[11px] text-slate-500">Receive student feedback review reports and post-class report approval notices</p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={instEmailReports}
+                      onChange={(e) => setInstEmailReports(e.target.checked)}
+                      className="w-4 h-4 accent-teal-600 rounded cursor-pointer"
+                    />
                   </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" defaultChecked className="accent-teal-600 rounded" />
-                    <span>Weekly earnings and payout transfer summary</span>
+
+                  <label className="flex items-center justify-between pt-3 cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition-colors">
+                    <div className="space-y-0.5">
+                      <p className="font-semibold text-navy-950">Payout &amp; Earnings Summaries</p>
+                      <p className="text-[11px] text-slate-500">Stripe Connect payout disbursement notices and weekly financial receipts</p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={instEmailPayouts}
+                      onChange={(e) => setInstEmailPayouts(e.target.checked)}
+                      className="w-4 h-4 accent-teal-600 rounded cursor-pointer"
+                    />
                   </label>
+
+                  <label className="flex items-center justify-between pt-3 cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition-colors">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-navy-950">WhatsApp Urgent Session Alerts</p>
+                        <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.2 rounded border border-emerald-200">
+                          Ready for Integration
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500">Urgent 15-minute start reminders and booking confirmations via WhatsApp</p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={instWhatsapp}
+                      onChange={(e) => setInstWhatsapp(e.target.checked)}
+                      className="w-4 h-4 accent-emerald-600 rounded cursor-pointer"
+                    />
+                  </label>
+                </div>
+
+                <div className="pt-3 flex justify-end">
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={savingNotifs}
+                    onClick={handleSaveNotifPreferences}
+                    className="font-semibold bg-teal-600 hover:bg-teal-700 text-white text-xs h-8 px-4"
+                  >
+                    {savingNotifs ? "Saving..." : "Save Notification Preferences"}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
