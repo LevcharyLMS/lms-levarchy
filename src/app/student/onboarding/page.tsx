@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
+import { isStudentOnboarded } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -127,7 +129,20 @@ const COMMITMENT_OPTIONS = [
 
 export default function StudentOnboardingPage() {
   const router = useRouter();
-  const { user, refreshUser } = useAuth();
+  const { user, studentProfile, refreshUser, isLoading } = useAuth();
+
+  // Redirect guard: if user is not a student, or if already onboarded, navigate to appropriate dashboard
+  useEffect(() => {
+    if (!isLoading && user) {
+      if (user.role !== "STUDENT") {
+        router.replace(user.role === "ADMIN" ? "/admin/dashboard" : "/instructor/dashboard");
+        return;
+      }
+      if (isStudentOnboarded(studentProfile, user)) {
+        router.replace("/student/dashboard");
+      }
+    }
+  }, [user, studentProfile, isLoading, router]);
 
   // Wizard Step State
   const [currentStep, setCurrentStep] = useState(1);
@@ -370,6 +385,19 @@ export default function StudentOnboardingPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto space-y-6 w-full">
+        {/* Navigation Escape for returning students */}
+        <div className="flex items-center justify-between">
+          <Link
+            href="/student/dashboard"
+            className="text-xs text-teal-700 hover:text-teal-900 flex items-center gap-1 font-semibold transition-colors"
+          >
+            &larr; Back to Student Dashboard
+          </Link>
+          <span className="text-[11px] text-slate-400">
+            Signed in as {user?.email}
+          </span>
+        </div>
+
         {/* Brand Header */}
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-xs font-bold uppercase tracking-wider">

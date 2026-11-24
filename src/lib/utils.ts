@@ -147,3 +147,46 @@ export function parseMoneyToCents(amount: string | number): number {
   if (isNaN(num)) return 0;
   return Math.round(num * 100);
 }
+
+/**
+ * Safely determine whether a student account has completed onboarding.
+ * Detects:
+ *   1. Explicit onboarding_completed: true boolean
+ *   2. Parsed or stringified JSON preferences
+ *   3. Existing student who already has grade_level configured
+ *   4. Existing student with learning goals or subjects chosen
+ *   5. Completed timestamp
+ */
+export function isStudentOnboarded(studentProfile: any, user?: any): boolean {
+  if (!studentProfile && !user) return false;
+
+  let prefs = studentProfile?.preferences;
+  if (typeof prefs === "string") {
+    try {
+      prefs = JSON.parse(prefs);
+    } catch {
+      prefs = {};
+    }
+  }
+
+  // 1. Explicit onboarding_completed flag
+  if (prefs?.onboarding_completed === true) return true;
+
+  // 2. Completed at timestamp exists
+  if (prefs?.completed_at) return true;
+
+  // 3. Existing student who already has grade_level populated
+  if (studentProfile?.grade_level && String(studentProfile.grade_level).trim().length > 0) {
+    return true;
+  }
+
+  // 4. Existing student with learning goals or subjects already selected
+  if (studentProfile?.learning_goals && String(studentProfile.learning_goals).trim().length > 0) {
+    return true;
+  }
+  if (Array.isArray(prefs?.subjects) && prefs.subjects.length > 0) {
+    return true;
+  }
+
+  return false;
+}

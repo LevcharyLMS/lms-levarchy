@@ -15,6 +15,7 @@ import {
   Mail,
   ShieldCheck,
 } from "lucide-react";
+import { isStudentOnboarded } from "@/lib/utils";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -42,7 +43,7 @@ export default function LoginPage() {
     const studentProfile = result.studentProfile;
 
     if (user.role === "STUDENT") {
-      const isOnboarded = (studentProfile?.preferences as any)?.onboarding_completed;
+      const isOnboarded = isStudentOnboarded(studentProfile, user);
       router.push(isOnboarded ? "/student/dashboard" : "/student/onboarding");
     } else if (user.role === "TUTOR" || user.role === "INSTRUCTOR") {
       router.push("/instructor/dashboard");

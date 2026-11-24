@@ -54,6 +54,11 @@ export async function POST(req: Request) {
     let studentProfile = null;
     if (user.role === "STUDENT") {
       studentProfile = await SupabaseDbService.getStudentProfile(user.id);
+      if (studentProfile && typeof studentProfile.preferences === "string") {
+        try {
+          studentProfile.preferences = JSON.parse(studentProfile.preferences);
+        } catch {}
+      }
     }
 
     const sessionPayload = {

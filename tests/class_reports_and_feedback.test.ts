@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { BrevoService } from "../src/lib/brevo";
 import { NotificationService } from "../src/services/notification";
+import { isStudentOnboarded } from "../src/lib/utils";
 
 describe("Post-Class Reports, Admin Moderation & Feedback Review Alerts", () => {
   describe("1. Site-Uniform Email Templates", () => {
@@ -112,6 +113,24 @@ describe("Post-Class Reports, Admin Moderation & Feedback Review Alerts", () => 
 
       expect(validStatuses.includes(initial)).toBe(true);
       expect(validStatuses.includes(approved)).toBe(true);
+    });
+  });
+
+  describe("4. Student Onboarding Detection", () => {
+    it("returns false for new student without preferences or grade level", () => {
+      expect(isStudentOnboarded(null)).toBe(false);
+      expect(isStudentOnboarded({ preferences: { onboarding_completed: false } })).toBe(false);
+    });
+
+    it("detects onboarded status from explicit boolean or stringified JSON", () => {
+      expect(isStudentOnboarded({ preferences: { onboarding_completed: true } })).toBe(true);
+      expect(isStudentOnboarded({ preferences: '{"onboarding_completed": true}' })).toBe(true);
+    });
+
+    it("detects existing/old student accounts from grade_level or learning_goals", () => {
+      expect(isStudentOnboarded({ grade_level: "High School (Grades 9-10)", preferences: {} })).toBe(true);
+      expect(isStudentOnboarded({ learning_goals: "Exam Prep", preferences: {} })).toBe(true);
+      expect(isStudentOnboarded({ preferences: { subjects: ["Calculus"] } })).toBe(true);
     });
   });
 });
