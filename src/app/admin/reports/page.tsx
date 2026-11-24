@@ -5,6 +5,7 @@ import { db } from "@/lib/data-store";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FileSpreadsheet, Download, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { AdminClassReportsQueue } from "@/components/admin/class-reports-queue";
 
 export default function AdminReportsPage() {
   const [downloadSuccess, setDownloadSuccess] = useState<string | null>(null);
@@ -174,6 +175,11 @@ export default function AdminReportsPage() {
             </Button>
           </CardContent>
         </Card>
+      </div>
+
+      {/* SECTION 2: Post-Class Reports & Moderation Queue */}
+      <div className="pt-6 border-t border-slate-200">
+        <AdminClassReportsQueue />
       </div>
     </div>
   );

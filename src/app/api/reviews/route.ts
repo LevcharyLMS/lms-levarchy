@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SupabaseDbService } from "@/lib/supabase-db";
 import { db } from "@/lib/data-store";
+import { NotificationService } from "@/services/notification";
 
 export async function GET(req: NextRequest) {
   try {
@@ -68,6 +69,36 @@ export async function POST(req: NextRequest) {
         comment: comment || "",
       });
     } catch {}
+
+    // Dispatch In-App Notifications for instructor and admin (per user feedback policy)
+    try {
+      // 1. Notify instructor
+      if (tutorId) {
+        await NotificationService.dispatchMultiChannel({
+          recipientId: tutorId,
+          channels: ["IN_APP"],
+          title: "New Student Review Received",
+          message: `A student submitted a ${rating}-star review for your completed class session.`,
+          metadata: { bookingId, rating },
+        });
+      }
+
+      // 2. Notify platform admins
+      const admins = await SupabaseDbService.query(
+        `SELECT id FROM profiles WHERE role IN ('ADMIN', 'OWNER') LIMIT 10`
+      );
+      for (const admin of admins) {
+        await NotificationService.dispatchMultiChannel({
+          recipientId: admin.id,
+          channels: ["IN_APP"],
+          title: `New Student Rating (${rating}★)`,
+          message: `Student left feedback for instructor. Review is awaiting moderation or published.`,
+          metadata: { bookingId, rating, tutorId },
+        });
+      }
+    } catch (notifErr) {
+      console.warn("Review notification notice:", notifErr);
+    }
 
     return NextResponse.json({ success: true, review }, { status: 201 });
   } catch (error: any) {

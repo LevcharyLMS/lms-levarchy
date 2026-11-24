@@ -14,6 +14,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { MultiStepWizard, Step } from "@/components/shared/multi-step-wizard";
 import { DetailDrawer } from "@/components/shared/detail-drawer";
 import { Modal } from "@/components/ui/modal";
+import { PostClassReportModal } from "@/components/classes/post-class-report-modal";
 import { useAuth } from "@/context/auth-context";
 import {
   PageTransition,
@@ -69,6 +70,9 @@ export default function TutorClassesPage() {
   const [selectedClass, setSelectedClass] = useState<any | null>(null);
   const [classBookings, setClassBookings] = useState<any[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
+
+  // Post-Class Report State
+  const [reportTargetClass, setReportTargetClass] = useState<any | null>(null);
 
   // Suggestion Modal State
   const [showSuggestionModal, setShowSuggestionModal] = useState(false);
@@ -788,6 +792,16 @@ export default function TutorClassesPage() {
                           <Button
                             variant="ghost"
                             size="sm"
+                            className="h-8 text-xs text-teal-800 bg-teal-50 hover:bg-teal-100 flex items-center gap-1 font-semibold"
+                            onClick={() => setReportTargetClass(c)}
+                            title="Submit Post-Class Report"
+                          >
+                            <Sparkles className="w-3 h-3 text-teal-600" />
+                            <span>Class Report</span>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             className="h-8 text-xs text-primary hover:bg-teal-50 flex items-center gap-1"
                             onClick={() => loadClassDetails(c)}
                           >
@@ -936,11 +950,23 @@ export default function TutorClassesPage() {
             </div>
 
             <div className="pt-3 border-t border-slate-200 flex items-center justify-between">
-              <Button asChild size="sm" variant="outline" className="text-xs border-slate-200">
-                <Link href={`/classes/${selectedClass.id}`} target="_blank">
-                  Open Public Preview
-                </Link>
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  className="text-xs bg-teal-600 hover:bg-teal-700 text-white gap-1"
+                  onClick={() => {
+                    setReportTargetClass(selectedClass);
+                  }}
+                >
+                  <Sparkles className="w-3 h-3" />
+                  <span>Submit Post-Class Report</span>
+                </Button>
+                <Button asChild size="sm" variant="outline" className="text-xs border-slate-200">
+                  <Link href={`/classes/${selectedClass.id}`} target="_blank">
+                    Open Public Preview
+                  </Link>
+                </Button>
+              </div>
               {selectedClass.status !== "ARCHIVED" && (
                 <Button
                   size="sm"
@@ -955,6 +981,30 @@ export default function TutorClassesPage() {
           </div>
         )}
       </DetailDrawer>
+
+      {/* Post-Class Report Modal */}
+      {reportTargetClass && (
+        <PostClassReportModal
+          isOpen={!!reportTargetClass}
+          onClose={() => setReportTargetClass(null)}
+          classItem={{
+            id: reportTargetClass.id,
+            title: reportTargetClass.title,
+            format: reportTargetClass.format,
+            class_type: reportTargetClass.class_type,
+            location_id: reportTargetClass.location_id,
+            location_name: reportTargetClass.location?.name,
+          }}
+          instructorId={tutorId || reportTargetClass.instructor_id || reportTargetClass.tutor_id}
+          enrolledStudents={classBookings.map((b) => ({
+            id: b.student_id,
+            name: `${b.student?.first_name || "Student"} ${b.student?.last_name || ""}`.trim(),
+          }))}
+          onReportSubmitted={() => {
+            loadClasses();
+          }}
+        />
+      )}
 
       {/* Suggest Taxonomy Modal */}
       <Modal

@@ -26,6 +26,7 @@ import {
   Loader2,
   Lock,
 } from "lucide-react";
+import { PublishedClassReports } from "@/components/classes/published-class-reports";
 import { formatDisplayName } from "@/lib/utils";
 
 interface ClassPageProps {
@@ -285,6 +286,11 @@ export default function ClassDetailPage({ params }: ClassPageProps) {
                 )}
               </div>
             )}
+
+            {/* Published Class Reports & Teacher Comments (Section for platform users) */}
+            <div className="pt-6 border-t border-slate-100">
+              <PublishedClassReports classId={classItem.id} />
+            </div>
           </div>
         </div>
 

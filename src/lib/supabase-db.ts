@@ -2783,6 +2783,187 @@ export class SupabaseDbService {
       return { totalSubmitted: 0, totalGraded: 0, averageScore: 0, progressionLevel: 'Foundational' };
     }
   }
+
+  static async getProfileById(id: string): Promise<UserProfile | null> {
+    try {
+      const rows = await this.query(`SELECT * FROM profiles WHERE id = $1 LIMIT 1`, [id]);
+      if (rows.length > 0) return rows[0] as UserProfile;
+    } catch (err) {
+      console.error('Error fetching profile by id:', err);
+    }
+    return memoryDb.getProfileById(id) || null;
+  }
+
+  // ============================================================
+  // CLASS REPORTS & ADMIN MODERATION WORKFLOW
+  // ============================================================
+
+  static async createClassReport(data: {
+    classId: string;
+    bookingId?: string | null;
+    instructorId: string;
+    format: 'VIRTUAL' | 'PHYSICAL';
+    classType: 'ONE_ON_ONE' | 'GROUP';
+    sessionDate?: string;
+    locationId?: string | null;
+    topicsCovered: string;
+    homeworkAssigned?: string;
+    instructorPrivateNotes?: string;
+    textClassComments: string;
+    attendanceRecords?: Array<{ studentId: string; studentName: string; status: 'PRESENT' | 'ABSENT' | 'LATE' }>;
+    status?: 'DRAFT' | 'PENDING_ADMIN_REVIEW';
+  }) {
+    try {
+      const {
+        classId,
+        bookingId = null,
+        instructorId,
+        format = 'VIRTUAL',
+        classType = 'ONE_ON_ONE',
+        sessionDate = new Date().toISOString(),
+        locationId = null,
+        topicsCovered,
+        homeworkAssigned = '',
+        instructorPrivateNotes = '',
+        textClassComments,
+        attendanceRecords = [],
+        status = 'PENDING_ADMIN_REVIEW',
+      } = data;
+
+      const rows = await this.query(
+        `INSERT INTO class_reports (
+          class_id, booking_id, instructor_id, format, class_type,
+          session_date, location_id, topics_covered, homework_assigned,
+          instructor_private_notes, text_class_comments, attendance_records, status,
+          created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::jsonb, $13, NOW(), NOW())
+        RETURNING *`,
+        [
+          classId,
+          bookingId,
+          instructorId,
+          format,
+          classType,
+          sessionDate,
+          locationId,
+          topicsCovered,
+          homeworkAssigned,
+          instructorPrivateNotes,
+          textClassComments,
+          JSON.stringify(attendanceRecords),
+          status,
+        ]
+      );
+
+      return rows[0] || null;
+    } catch (err) {
+      console.error('Error in createClassReport:', err);
+      throw err;
+    }
+  }
+
+  static async getClassReports(options?: {
+    classId?: string;
+    instructorId?: string;
+    studentId?: string;
+    status?: string;
+    adminView?: boolean;
+  }) {
+    try {
+      const { classId, instructorId, studentId, status, adminView } = options || {};
+      let sql = `
+        SELECT
+          cr.*,
+          c.title as class_title,
+          c.format as class_format,
+          c.class_type as class_mode,
+          p.first_name as instructor_first_name,
+          p.last_name as instructor_last_name,
+          p.email as instructor_email,
+          p.avatar_url as instructor_avatar_url,
+          loc.name as location_name,
+          loc.address as location_address
+        FROM class_reports cr
+        JOIN classes c ON cr.class_id = c.id
+        JOIN profiles p ON cr.instructor_id = p.id
+        LEFT JOIN class_locations loc ON cr.location_id = loc.id
+        WHERE 1=1
+      `;
+      const params: any[] = [];
+
+      if (classId) {
+        params.push(classId);
+        sql += ` AND cr.class_id = $${params.length}`;
+      }
+
+      if (instructorId) {
+        params.push(instructorId);
+        sql += ` AND cr.instructor_id = $${params.length}`;
+      }
+
+      if (status && status !== 'ALL') {
+        params.push(status);
+        sql += ` AND cr.status = $${params.length}`;
+      } else if (!adminView && !instructorId) {
+        // Platform users (students/parents) ONLY see APPROVED/PUBLISHED reports
+        sql += ` AND cr.status IN ('APPROVED', 'PUBLISHED')`;
+      }
+
+      sql += ` ORDER BY cr.session_date DESC, cr.created_at DESC`;
+
+      const rows = await this.query(sql, params);
+      return rows;
+    } catch (err) {
+      console.error('Error in getClassReports:', err);
+      return [];
+    }
+  }
+
+  static async getClassReportById(id: string) {
+    try {
+      const rows = await this.query(
+        `SELECT cr.*, c.title as class_title, p.first_name as instructor_first_name, p.last_name as instructor_last_name, p.email as instructor_email
+         FROM class_reports cr
+         JOIN classes c ON cr.class_id = c.id
+         JOIN profiles p ON cr.instructor_id = p.id
+         WHERE cr.id = $1 LIMIT 1`,
+        [id]
+      );
+      return rows[0] || null;
+    } catch (err) {
+      console.error('Error in getClassReportById:', err);
+      return null;
+    }
+  }
+
+  static async updateClassReportStatus(params: {
+    reportId: string;
+    status: 'APPROVED' | 'PUBLISHED' | 'CHANGES_REQUESTED' | 'DRAFT' | 'PENDING_ADMIN_REVIEW';
+    adminReviewerId?: string;
+    adminNotes?: string;
+  }) {
+    try {
+      const { reportId, status, adminReviewerId, adminNotes } = params;
+      const isPublished = status === 'APPROVED' || status === 'PUBLISHED';
+      
+      const rows = await this.query(
+        `UPDATE class_reports
+         SET status = $1,
+             admin_reviewer_id = COALESCE($2, admin_reviewer_id),
+             admin_notes = COALESCE($3, admin_notes),
+             published_at = CASE WHEN $4 = true THEN NOW() ELSE published_at END,
+             updated_at = NOW()
+         WHERE id = $5
+         RETURNING *`,
+        [status, adminReviewerId || null, adminNotes || null, isPublished, reportId]
+      );
+
+      return rows[0] || null;
+    } catch (err) {
+      console.error('Error in updateClassReportStatus:', err);
+      throw err;
+    }
+  }
 }
 
 export const supabaseDb = SupabaseDbService;

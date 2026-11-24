@@ -23,6 +23,7 @@ import {
   Compass,
   Check,
   X,
+  Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import { formatDisplayName } from "@/lib/utils";
@@ -487,12 +488,22 @@ export default function StudentBookingsPage() {
                       )}
 
                       {isCompleted && (
-                        <Button asChild size="sm" className="h-8 text-xs bg-teal-600 hover:bg-teal-700 text-white gap-1.5 font-semibold">
-                          <Link href={`/student/reviews?bookingId=${bk.id}`}>
-                            <Star className="w-3.5 h-3.5 text-amber-300" />
-                            <span>Leave Review</span>
-                          </Link>
-                        </Button>
+                        <>
+                          <Button asChild size="sm" className="h-8 text-xs bg-teal-600 hover:bg-teal-700 text-white gap-1.5 font-semibold">
+                            <Link href={`/student/reviews?bookingId=${bk.id}`}>
+                              <Star className="w-3.5 h-3.5 text-amber-300" />
+                              <span>Leave Review</span>
+                            </Link>
+                          </Button>
+                          {bk.class_id && (
+                            <Button asChild variant="outline" size="sm" className="h-8 text-xs border-teal-200 text-teal-800 bg-teal-50/50 hover:bg-teal-100 gap-1">
+                              <Link href={`/classes/${bk.class_id}`}>
+                                <Sparkles className="w-3 h-3 text-teal-600" />
+                                <span>View Class Notes</span>
+                              </Link>
+                            </Button>
+                          )}
+                        </>
                       )}
 
                       <Button asChild variant="outline" size="sm" className="h-8 text-xs border-slate-200">
