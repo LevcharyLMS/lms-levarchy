@@ -21,6 +21,7 @@ export type ClassFormat = 'VIRTUAL' | 'PHYSICAL';
 
 export type ClassStatus =
   | 'DRAFT'
+  | 'PENDING_APPROVAL'
   | 'PUBLISHED'
   | 'OPEN'
   | 'FULL'

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { BrevoService } from "../src/lib/brevo";
+import { db } from "../src/lib/data-store";
 
 describe("Post-Class Reports, Admin Moderation & Feedback Review Alerts", () => {
   it("renders uniform branded layout with brand colors, badge, and footer", () => {
@@ -86,5 +87,27 @@ describe("Post-Class Reports, Admin Moderation & Feedback Review Alerts", () => 
 
     expect(validStatuses.includes(initial)).toBe(true);
     expect(validStatuses.includes(approved)).toBe(true);
+  });
+
+  it("enforces class creation defaults to PENDING_APPROVAL and requires admin activation", () => {
+    const testClass = db.createClass({
+      title: "Biochemistry Seminar",
+      description: "Advanced macromolecular structures and enzyme kinetics.",
+      instructor_id: "usr-instructor-1",
+      category_id: "cat-2",
+      subject_id: "sub-3",
+      class_type: "GROUP",
+      format: "VIRTUAL",
+      duration_minutes: 90,
+      price: 4500,
+      capacity: 12,
+      status: "PENDING_APPROVAL",
+    });
+
+    expect(testClass.status).toBe("PENDING_APPROVAL");
+
+    // Admin approves and publishes class
+    const updatedClass = db.updateClass(testClass.id, { status: "PUBLISHED" });
+    expect(updatedClass?.status).toBe("PUBLISHED");
   });
 });

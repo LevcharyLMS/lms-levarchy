@@ -23,6 +23,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
       );
 
     case "PENDING":
+    case "PENDING_APPROVAL":
     case "PENDING_PAYMENT":
     case "PAYMENT_PROCESSING":
     case "PENDING_REVIEW":

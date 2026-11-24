@@ -48,6 +48,10 @@ export default function AdminClassesPage() {
   const toggleStatus = async (id: string, currentStatus: string) => {
     const newStatus =
       currentStatus === "PUBLISHED" || currentStatus === "OPEN" ? "CANCELLED" : "PUBLISHED";
+    await updateClassStatus(id, newStatus);
+  };
+
+  const updateClassStatus = async (id: string, newStatus: string) => {
     try {
       const res = await fetch("/api/admin/classes", {
         method: "PATCH",
@@ -82,6 +86,7 @@ export default function AdminClassesPage() {
     });
   }, [classes, formatFilter, statusFilter, searchQuery]);
 
+  const pendingCount = classes.filter((c) => c.status === "PENDING_APPROVAL").length;
   const publishedCount = classes.filter(
     (c) => c.status === "PUBLISHED" || c.status === "OPEN"
   ).length;
@@ -177,14 +182,27 @@ export default function AdminClassesPage() {
             <Eye className="w-3 h-3" />
             <span>Inspect</span>
           </Button>
-          <Button
-            variant={c.status === "CANCELLED" ? "default" : "outline"}
-            size="sm"
-            className="h-7 text-xs"
-            onClick={() => toggleStatus(c.id, c.status)}
-          >
-            {c.status === "CANCELLED" ? "Reactivate" : "Cancel"}
-          </Button>
+
+          {c.status === "PENDING_APPROVAL" ? (
+            <Button
+              variant="default"
+              size="sm"
+              className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1"
+              onClick={() => updateClassStatus(c.id, "PUBLISHED")}
+            >
+              <CheckCircle2 className="w-3 h-3" />
+              <span>Approve & Publish</span>
+            </Button>
+          ) : (
+            <Button
+              variant={c.status === "CANCELLED" ? "default" : "outline"}
+              size="sm"
+              className="h-7 text-xs"
+              onClick={() => toggleStatus(c.id, c.status)}
+            >
+              {c.status === "CANCELLED" ? "Reactivate" : "Cancel"}
+            </Button>
+          )}
         </div>
       ),
     },
@@ -241,6 +259,13 @@ export default function AdminClassesPage() {
           variant="teal"
         />
         <StatCard
+          title="Pending Approval"
+          value={pendingCount}
+          subtitle="Awaiting admin sign-off"
+          icon={CheckCircle2}
+          variant="amber"
+        />
+        <StatCard
           title="Published & Open"
           value={publishedCount}
           subtitle="Available for student booking"
@@ -253,13 +278,6 @@ export default function AdminClassesPage() {
           subtitle="Active student bookings"
           icon={Users}
           variant="purple"
-        />
-        <StatCard
-          title="Total Seat Capacity"
-          value={totalCapacity}
-          subtitle="Across all formats"
-          icon={Calendar}
-          variant="teal"
         />
       </div>
 
@@ -291,7 +309,7 @@ export default function AdminClassesPage() {
             <div className="h-4 w-px bg-slate-200 mx-1 hidden sm:block" />
 
             <span className="text-xs font-semibold text-slate-500">Status:</span>
-            {["ALL", "PUBLISHED", "OPEN", "CANCELLED"].map((st) => (
+            {["ALL", "PENDING_APPROVAL", "PUBLISHED", "OPEN", "CANCELLED"].map((st) => (
               <button
                 key={st}
                 onClick={() => setStatusFilter(st)}
@@ -301,7 +319,7 @@ export default function AdminClassesPage() {
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
-                {st}
+                {st === "PENDING_APPROVAL" ? "Pending Approval" : st}
               </button>
             ))}
           </div>
@@ -378,7 +396,16 @@ export default function AdminClassesPage() {
               </p>
             </div>
 
-            <div className="pt-3 border-t border-slate-200 flex gap-2">
+            <div className="pt-3 border-t border-slate-200 flex flex-col sm:flex-row gap-2">
+              {selectedClass.status === "PENDING_APPROVAL" && (
+                <Button
+                  variant="default"
+                  className="w-full h-9 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+                  onClick={() => updateClassStatus(selectedClass.id, "PUBLISHED")}
+                >
+                  Approve & Publish Class
+                </Button>
+              )}
               <Button
                 variant={selectedClass.status === "CANCELLED" ? "default" : "destructive"}
                 className="w-full h-9 text-xs"

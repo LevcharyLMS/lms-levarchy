@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
       capacity,
       location_id: format === "PHYSICAL" ? body.location_id || body.locationId || "44444444-4444-4444-4444-444444444001" : null,
       meet_url: meetUrl,
-      status: body.status || "PUBLISHED",
+      status: body.status || "PENDING_APPROVAL",
       start_time: body.start_time || null,
       end_time: body.end_time || null,
     });
