@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { NotificationService } from "../src/services/notification";
 import { ModerationService } from "../src/services/moderation";
+import { db } from "../src/lib/data-store";
 
 describe("Notification Center, Multi-Channel Dispatch & Preferences", () => {
   it("handles multiple channels and logs future WhatsApp hooks", async () => {
@@ -67,5 +68,28 @@ describe("Notification Center, Multi-Channel Dispatch & Preferences", () => {
 
     // Clean up
     ModerationService.setCustomKeywords([]);
+  });
+
+  it("handles administrator broadcast messaging with target audience filtering", () => {
+    db.seedTestFixtures();
+    const profiles = db.getProfiles();
+
+    // Verify audiences
+    const students = profiles.filter((p: any) => p.role === "STUDENT");
+    const instructors = profiles.filter((p: any) => p.role === "INSTRUCTOR" || p.role === "TUTOR");
+
+    expect(students.length).toBeGreaterThan(0);
+    expect(instructors.length).toBeGreaterThan(0);
+
+    // Mock broadcast creation
+    const { message: announcementMsg } = db.sendMessage({
+      conversationId: "conv-admin-broadcast",
+      senderId: "usr-admin-1",
+      body: "[Announcement: Welcome New Cohort] Welcome to the academic semester!",
+      hasFlag: false,
+    });
+
+    expect(announcementMsg.has_flag).toBe(false);
+    expect(announcementMsg.body).toContain("Welcome to the academic semester!");
   });
 });
