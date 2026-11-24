@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -47,9 +47,37 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [pendingFlagsCount, setPendingFlagsCount] = useState(0);
 
   const displayName = user ? `${user.first_name} ${user.last_name}` : "Platform Administrator";
+  const firstName = user?.first_name || "Administrator";
   const initials = user ? `${user.first_name?.[0] || "A"}${user.last_name?.[0] || "D"}` : "AD";
+
+  // Real-time unread notifications and pending flags polling
+  useEffect(() => {
+    // 1. Fetch unread notifications for admin
+    if (user?.id) {
+      fetch(`/api/notifications?userId=${user.id}`)
+        .then((res) => res.json())
+        .then((data) => {
+          const notifs = data.notifications || [];
+          const unread = notifs.filter((n: any) => !n.is_read).length;
+          setUnreadNotifications(unread);
+        })
+        .catch(() => {});
+    }
+
+    // 2. Fetch pending moderation flags count
+    fetch(`/api/admin/flag-words`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.flags && Array.isArray(data.flags)) {
+          setPendingFlagsCount(data.flags.filter((f: any) => f.status === "PENDING" || !f.status).length);
+        }
+      })
+      .catch(() => {});
+  }, [user?.id, pathname]);
 
   // Complete 27 Admin Items Grouped Logically (Section 8 of PRD)
   const navGroups = [
@@ -224,7 +252,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               title="Moderation Flags"
             >
               <ShieldAlert className="w-4 h-4" />
-              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-amber-500" />
+              {pendingFlagsCount > 0 && (
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white" />
+              )}
             </Link>
 
             <Link
@@ -233,17 +263,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               title="Notifications"
             >
               <Bell className="w-4 h-4" />
+              {unreadNotifications > 0 && (
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-teal-500 ring-2 ring-white" />
+              )}
             </Link>
 
             <div className="h-4 w-px bg-slate-200" />
 
-            <div className="flex items-center gap-2">
-              <Avatar className="w-7 h-7">
-                <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150" />
-                <AvatarFallback>SJ</AvatarFallback>
+            <Link href="/admin/settings" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <Avatar className="w-7 h-7 ring-2 ring-teal-50">
+                {user?.avatar_url && <AvatarImage src={user.avatar_url} />}
+                <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
-              <span className="text-xs font-semibold text-navy-950 hidden sm:inline-block">Admin Sarah</span>
-            </div>
+              <span className="text-xs font-semibold text-navy-950 hidden sm:inline-block">{firstName}</span>
+            </Link>
           </div>
         </header>
 
@@ -352,7 +385,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         )}
 
         {/* Workspace Page Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto animate-in fade-in-50 duration-200">
           {children}
         </main>
       </div>

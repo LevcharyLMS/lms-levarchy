@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { db } from "@/lib/data-store";
+import { useAuth } from "@/context/auth-context";
 import { UserProfile, UserRole } from "@/types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -11,6 +12,7 @@ import { FilterBar } from "@/components/shared/filter-bar";
 import { UserX, UserCheck, Shield, CheckCircle2 } from "lucide-react";
 
 export default function AdminUsersPage() {
+  const { user: currentAdmin } = useAuth();
   const [users, setUsers] = useState<UserProfile[]>(db.getProfiles());
   const [roleFilter, setRoleFilter] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -35,7 +37,7 @@ export default function AdminUsersPage() {
 
     if (updated) {
       db.logAudit({
-        actor_id: "usr-admin-1",
+        actor_id: currentAdmin?.id || "usr-admin-1",
         actor_role: "ADMIN",
         action: `USER_STATUS_${newStatus}`,
         entity_type: "USER_PROFILE",

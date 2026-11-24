@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { db } from "@/lib/data-store";
+import { useAuth } from "@/context/auth-context";
 import { ClassLocation } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { MapPin, Plus, CheckCircle2 } from "lucide-react";
 
 export default function AdminLocationsPage() {
+  const { user: currentAdmin } = useAuth();
   const [locations, setLocations] = useState<ClassLocation[]>(db.state.class_locations);
   const [showAdd, setShowAdd] = useState(false);
   const [name, setName] = useState("");
@@ -40,7 +42,7 @@ export default function AdminLocationsPage() {
     setShowAdd(false);
 
     db.logAudit({
-      actor_id: "usr-admin-1",
+      actor_id: currentAdmin?.id || "usr-admin-1",
       actor_role: "ADMIN",
       action: "PHYSICAL_LOCATION_CREATED",
       entity_type: "CLASS_LOCATION",

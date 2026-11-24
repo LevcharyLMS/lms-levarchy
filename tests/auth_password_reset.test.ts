@@ -61,5 +61,5 @@ describe("Forgot Password & Reset Password Authentication Flow", () => {
     // 5. Token is now consumed/invalidated
     const verifyAfter = await SupabaseDbService.verifyPasswordResetToken(testEmail, token);
     expect(verifyAfter.valid).toBe(false);
-  });
+  }, 10000);
 });

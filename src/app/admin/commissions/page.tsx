@@ -2,12 +2,14 @@
 
 import React, { useState } from "react";
 import { db } from "@/lib/data-store";
+import { useAuth } from "@/context/auth-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Lock, Layers, TrendingUp, AlertTriangle } from "lucide-react";
 
 export default function AdminCommissionsPage() {
+  const { user: currentAdmin } = useAuth();
   const [currentTier, setCurrentTier] = useState("20.00");
   const [minFee, setMinFee] = useState("5.00");
   const [tierName, setTierName] = useState("Standard Marketplace Tier 2026");
@@ -47,7 +49,7 @@ export default function AdminCommissionsPage() {
     setHistory([newRule, ...history.map((h) => ({ ...h, isActive: false }))]);
 
     db.logAudit({
-      actor_id: "usr-admin-1",
+      actor_id: currentAdmin?.id || "usr-admin-1",
       actor_role: "ADMIN",
       action: "COMMISSION_RULE_VERSIONED",
       entity_type: "COMMISSION_RULE",
