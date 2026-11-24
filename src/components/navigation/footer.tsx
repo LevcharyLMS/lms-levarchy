@@ -37,6 +37,8 @@ const SOCIAL_LINKS = [
 const PORTAL_OR_AUTH_PREFIXES = [
   "/login",
   "/register",
+  "/forgot-password",
+  "/reset-password",
   "/tutor/application",
   "/instructor/application",
   "/student",
