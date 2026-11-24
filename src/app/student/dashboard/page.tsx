@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import { formatDisplayName } from "@/lib/utils";
 import { cookies } from "next/headers";
+import { RecommendationService, ScoredTutor } from "@/services/recommendation";
+import { Sparkles, Award } from "lucide-react";
 import {
   PageTransition,
   FadeUp,
@@ -72,13 +74,23 @@ export default async function StudentDashboardPage() {
     console.error("Error fetching tutors for student dashboard:", err);
   }
 
+  let scoredRecommendations: ScoredTutor[] = [];
+  try {
+    if (studentId) {
+      scoredRecommendations = await RecommendationService.getRecommendedTutors(studentId, 3);
+    } else {
+      scoredRecommendations = await RecommendationService.getRecommendedTutors({}, 3);
+    }
+  } catch (err) {
+    console.error("Error fetching recommended tutors:", err);
+  }
+
   const bookings = allBookings || [];
   const activeBookings = bookings.filter((b: any) => b?.status === "CONFIRMED");
   const completedBookings = bookings.filter((b: any) => b?.status === "COMPLETED");
 
   const nextClass = activeBookings[0];
   const otherUpcomingClasses = activeBookings.slice(1, 4);
-  const recommendedTutors = (tutors || []).slice(0, 3);
   const recentBookings = bookings.slice(0, 5);
 
   const totalLearningHours = completedBookings.reduce(
@@ -300,20 +312,26 @@ export default async function StudentDashboardPage() {
             </div>
           )}
 
-          {/* Recommended Verified Tutors (Section 24, 27, 88) */}
+          {/* Recommended Verified Tutors with Academic Match Scoring */}
           <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
-                <h3 className="font-bold text-sm text-navy-950">Recommended Verified Instructors</h3>
-                <p className="text-xs text-slate-500">Verified academic faculty available for 1-on-1 mentorship</p>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-sm text-navy-950">Recommended For You</h3>
+                  <span className="px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 text-[10px] font-bold border border-teal-200/60 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-teal-600" />
+                    <span>Academic Match</span>
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500">Ranked by your curriculum grade level, subject goals, and proximity</p>
               </div>
-              <Link href="/student/instructors" className="text-xs text-primary font-semibold hover:underline flex items-center gap-1">
-                <span>Explore All Instructors</span>
+              <Link href="/find-instructors" className="text-xs text-primary font-semibold hover:underline flex items-center gap-1">
+                <span>Explore All</span>
                 <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
 
-            {recommendedTutors.length === 0 ? (
+            {scoredRecommendations.length === 0 ? (
               <EmptyState
                 icon={Users}
                 title="No instructors currently available"
@@ -323,37 +341,53 @@ export default async function StudentDashboardPage() {
               />
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                {recommendedTutors.map((t: any) => (
+                {scoredRecommendations.map(({ tutor: t, matchScore, matchReasons }) => (
                   <AnimatedCard
                     key={t.user_id}
-                    className="p-3.5 rounded-xl border border-slate-200/80 hover:border-primary/40 transition-all bg-white flex flex-col justify-between space-y-3 shadow-xs"
+                    className="p-3.5 rounded-xl border border-slate-200/80 hover:border-teal-400 transition-all bg-white flex flex-col justify-between space-y-3 shadow-xs relative"
                   >
                     <div className="space-y-2">
-                      <div className="flex items-center gap-2.5">
-                        <Avatar className="w-9 h-9 ring-2 ring-teal-50">
-                          <AvatarImage src={t.user?.avatar_url || t.avatar_url} />
-                          <AvatarFallback>{(t.user?.first_name || t.first_name || "T")[0]}</AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0">
-                          <p className="text-xs font-bold text-navy-950 truncate">
-                            {formatDisplayName(t.user?.first_name || t.first_name, t.user?.last_name || t.last_name)}
-                          </p>
-                          <p className="text-[10px] text-emerald-700 font-semibold">
-                            {t.reviews_count > 0 ? `★ ${t.rating_avg} (${t.reviews_count}) • Verified` : "New Instructor • Verified"}
-                          </p>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2.5">
+                          <Avatar className="w-9 h-9 ring-2 ring-teal-50">
+                            <AvatarImage src={t.user?.avatar_url || t.avatar_url} />
+                            <AvatarFallback>{(t.user?.first_name || t.first_name || "T")[0]}</AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-navy-950 truncate">
+                              {formatDisplayName(t.user?.first_name || t.first_name, t.user?.last_name || t.last_name)}
+                            </p>
+                            <p className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
+                              <ShieldCheck className="w-3 h-3" />
+                              <span>{t.instructor_type === "FACULTY" ? "Senior Faculty" : "Verified Tutor"}</span>
+                            </p>
+                          </div>
                         </div>
+
+                        {/* Match Percentage Pill */}
+                        <span className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          {matchScore}% Match
+                        </span>
                       </div>
+
                       <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
                         {t.headline || t.bio || "Academic specialist ready for mentorship."}
                       </p>
+
+                      {/* Top Match Reason Tag */}
+                      {matchReasons && matchReasons.length > 0 && (
+                        <div className="p-1.5 rounded-md bg-slate-50 border border-slate-100 text-[10px] text-slate-600 line-clamp-1">
+                          💡 {matchReasons[0]}
+                        </div>
+                      )}
                     </div>
 
                     <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
                       <span className="text-xs font-bold text-navy-950">
-                        ${((t.hourly_rate || 7500) / 100).toFixed(2)}/hr
+                        ${((t.hourly_rate || 7500) > 500 ? (t.hourly_rate / 100) : (t.hourly_rate || 65)).toFixed(2)}/hr
                       </span>
                       <Button asChild size="sm" variant="ghost" className="h-7 text-xs text-primary hover:text-primary p-0">
-                        <Link href={`/instructors/${t.user_id}`}>Profile →</Link>
+                        <Link href={`/instructors/${t.user_id}`}>View Profile →</Link>
                       </Button>
                     </div>
                   </AnimatedCard>
