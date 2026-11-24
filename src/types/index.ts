@@ -109,6 +109,7 @@ export interface StudentProfile {
   parent_guardian_phone?: string | null;
   parent_guardian_email?: string | null;
   preferences?: Record<string, unknown>;
+  profile_last_verified_at?: string | null;
   created_at: string;
   updated_at: string;
 }

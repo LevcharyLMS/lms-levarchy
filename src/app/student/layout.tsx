@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 
 import { useAuth } from "@/context/auth-context";
+import { SemesterCheckinModal } from "@/components/student/semester-checkin-modal";
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -32,10 +33,35 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [needsSemesterCheckin, setNeedsSemesterCheckin] = useState(false);
+  const [studentProfileData, setStudentProfileData] = useState<any>(null);
 
   const displayName = user ? `${user.first_name} ${user.last_name}` : "Student Account";
   const firstName = user?.first_name || "Student";
   const initials = user ? `${user.first_name?.[0] || "S"}${user.last_name?.[0] || "T"}` : "ST";
+
+  // Check 6-month check-in mandate
+  useEffect(() => {
+    if (!user?.id) return;
+
+    fetch(`/api/auth/me`)
+      .then((res) => res.json())
+      .then((data) => {
+        const studentProfile = data.studentProfile || data.user?.student_profile;
+        if (studentProfile) {
+          setStudentProfileData(studentProfile);
+          const lastVerified = studentProfile.profile_last_verified_at || studentProfile.created_at;
+          if (lastVerified) {
+            const daysSince = (Date.now() - new Date(lastVerified).getTime()) / (1000 * 60 * 60 * 24);
+            // 6-month cadence = 180 days
+            if (daysSince >= 180) {
+              setNeedsSemesterCheckin(true);
+            }
+          }
+        }
+      })
+      .catch(() => {});
+  }, [user?.id]);
 
   // Fetch real unread counts for messages and notifications
   useEffect(() => {
@@ -307,6 +333,23 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
           {children}
         </main>
+
+        {/* 6-Month Mandatory Academic Check-in Modal */}
+        {needsSemesterCheckin && user && (
+          <SemesterCheckinModal
+            userId={user.id}
+            initialGradeLevel={studentProfileData?.grade_level}
+            initialGoals={studentProfileData?.learning_goals}
+            initialPhone={studentProfileData?.parent_guardian_phone || user.phone}
+            initialSubjects={
+              studentProfileData?.preferences?.subjects ||
+              (typeof studentProfileData?.preferences === "string"
+                ? JSON.parse(studentProfileData.preferences).subjects
+                : [])
+            }
+            onCompleted={() => setNeedsSemesterCheckin(false)}
+          />
+        )}
       </div>
     </div>
   );

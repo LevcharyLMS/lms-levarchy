@@ -3136,6 +3136,71 @@ export class SupabaseDbService {
       return { success: memSuccess, error: memSuccess ? undefined : 'Failed to reset password' };
     }
   }
+
+  // ==========================================
+  // STUDENT SEMESTER CHECK-IN (6-MONTH MANDATORY UPDATE)
+  // ==========================================
+
+  static async updateStudentSemesterCheckin(params: {
+    userId: string;
+    gradeLevel: string;
+    learningGoals?: string;
+    subjects?: string[];
+    parentGuardianPhone?: string;
+  }): Promise<{ success: boolean; studentProfile?: any; error?: string }> {
+    try {
+      const { userId, gradeLevel, learningGoals, subjects, parentGuardianPhone } = params;
+
+      // 1. Fetch existing student profile preferences
+      const existingUser = await this.getUserById(userId);
+      const existingProfile = (existingUser as any)?.student_profile || (existingUser as any)?.studentProfile;
+      let prefs = existingProfile?.preferences || {};
+      if (typeof prefs === 'string') {
+        try {
+          prefs = JSON.parse(prefs);
+        } catch {
+          prefs = {};
+        }
+      }
+
+      const updatedPrefs = {
+        ...prefs,
+        grade_level: gradeLevel,
+        subjects: subjects || prefs.subjects || [],
+        learning_goals: learningGoals || prefs.learning_goals || '',
+        semester_checkin_completed: true,
+      };
+
+      const rows = await this.query(
+        `UPDATE student_profiles
+         SET grade_level = $1,
+             learning_goals = COALESCE($2, learning_goals),
+             parent_guardian_phone = COALESCE($3, parent_guardian_phone),
+             preferences = $4,
+             profile_last_verified_at = NOW(),
+             updated_at = NOW()
+         WHERE user_id = $5
+         RETURNING *`,
+        [gradeLevel, learningGoals || null, parentGuardianPhone || null, JSON.stringify(updatedPrefs), userId]
+      );
+
+      // Keep in-memory store in sync
+      const memProfile = memoryDb.state?.student_profiles?.find((sp) => sp.user_id === userId);
+      if (memProfile) {
+        memProfile.grade_level = gradeLevel;
+        if (learningGoals) memProfile.learning_goals = learningGoals;
+        if (parentGuardianPhone) memProfile.parent_guardian_phone = parentGuardianPhone;
+        memProfile.preferences = updatedPrefs;
+        memProfile.profile_last_verified_at = new Date().toISOString();
+        memProfile.updated_at = new Date().toISOString();
+      }
+
+      return { success: true, studentProfile: rows[0] || memProfile };
+    } catch (err: any) {
+      console.error('Error in updateStudentSemesterCheckin:', err);
+      return { success: false, error: err.message || 'Failed to update semester check-in' };
+    }
+  }
 }
 
 export const supabaseDb = SupabaseDbService;
