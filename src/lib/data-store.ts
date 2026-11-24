@@ -1137,6 +1137,51 @@ class DataStore {
     }
     return 0;
   }
+
+  // --- PASSWORD RESET ENGINE ---
+  createPasswordResetToken(email: string): { token: string; user: UserProfile } | null {
+    const cleanEmail = email.trim().toLowerCase();
+    const user = this.state.profiles.find((p) => p.email.toLowerCase() === cleanEmail);
+    if (!user) return null;
+
+    const token = `rst_${Math.random().toString(36).substring(2)}${Date.now().toString(36)}`;
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
+
+    user.reset_password_token = token;
+    user.reset_password_expires_at = expiresAt;
+    user.updated_at = new Date().toISOString();
+
+    return { token, user };
+  }
+
+  verifyPasswordResetToken(email: string, token: string): { valid: boolean; user?: UserProfile; error?: string } {
+    const cleanEmail = email.trim().toLowerCase();
+    const user = this.state.profiles.find((p) => p.email.toLowerCase() === cleanEmail);
+    if (!user) {
+      return { valid: false, error: 'User not found' };
+    }
+
+    if (!user.reset_password_token || user.reset_password_token !== token) {
+      return { valid: false, error: 'Invalid reset token' };
+    }
+
+    if (!user.reset_password_expires_at || new Date(user.reset_password_expires_at).getTime() < Date.now()) {
+      return { valid: false, error: 'Reset token has expired' };
+    }
+
+    return { valid: true, user };
+  }
+
+  resetPasswordWithToken(email: string, token: string, newPasswordHash: string): boolean {
+    const check = this.verifyPasswordResetToken(email, token);
+    if (!check.valid || !check.user) return false;
+
+    check.user.password_hash = newPasswordHash;
+    check.user.reset_password_token = null;
+    check.user.reset_password_expires_at = null;
+    check.user.updated_at = new Date().toISOString();
+    return true;
+  }
 }
 
 // Global Singleton for development

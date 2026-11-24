@@ -6,15 +6,39 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Logo } from "@/components/ui/logo";
-import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSent(true);
+    if (!email) return;
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to process password reset request");
+      }
+
+      setSent(true);
+    } catch (err: any) {
+      setErrorMessage(err.message || "An unexpected error occurred. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -34,18 +58,37 @@ export default function ForgotPasswordPage() {
 
         <Card className="border-slate-200 shadow-sm">
           <CardContent className="p-6">
+            {errorMessage && (
+              <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-lg flex items-center gap-2.5 text-xs text-rose-700">
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                <span>{errorMessage}</span>
+              </div>
+            )}
+
             {sent ? (
               <div className="text-center space-y-4">
                 <div className="w-12 h-12 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center mx-auto">
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
-                <h3 className="text-sm font-semibold text-navy-950">Instructions Sent</h3>
+                <h3 className="text-sm font-semibold text-navy-950">Instructions Dispatched</h3>
                 <p className="text-xs text-slate-500 leading-relaxed">
-                  If an account exists for <strong>{email}</strong>, a secure password reset link has been dispatched to your inbox.
+                  If an account exists for <strong>{email}</strong>, a secure password reset link has been dispatched to your inbox via our email delivery service.
                 </p>
-                <Button asChild variant="outline" className="w-full">
-                  <Link href="/login">Return to Sign In</Link>
-                </Button>
+                <div className="pt-2 space-y-2">
+                  <Button asChild variant="default" className="w-full font-semibold">
+                    <Link href="/login">Return to Sign In</Link>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setSent(false);
+                      setEmail("");
+                    }}
+                    className="w-full text-xs text-slate-500"
+                  >
+                    Send to a different email
+                  </Button>
+                </div>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -59,15 +102,32 @@ export default function ForgotPasswordPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    disabled={isSubmitting}
+                    className="h-10 text-sm"
                   />
                 </div>
 
-                <Button type="submit" variant="default" className="w-full font-semibold">
-                  Send Reset Link
+                <Button
+                  type="submit"
+                  variant="default"
+                  disabled={isSubmitting}
+                  className="w-full font-semibold h-10"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Sending Link...
+                    </>
+                  ) : (
+                    "Send Reset Link"
+                  )}
                 </Button>
 
                 <div className="text-center pt-2">
-                  <Link href="/login" className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-teal-600 font-medium">
+                  <Link
+                    href="/login"
+                    className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-teal-600 font-medium"
+                  >
                     <ArrowLeft className="w-3.5 h-3.5" /> Back to Login
                   </Link>
                 </div>

@@ -3036,6 +3036,106 @@ export class SupabaseDbService {
       throw err;
     }
   }
+
+  // ==========================================
+  // PASSWORD RESET METHODS
+  // ==========================================
+
+  static async createPasswordResetToken(email: string): Promise<{ token: string; user: any } | null> {
+    const cleanEmail = email.trim().toLowerCase();
+    const token = `rst_${Math.random().toString(36).substring(2)}${Date.now().toString(36)}`;
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+
+    try {
+      const rows = await this.query(
+        `UPDATE profiles
+         SET reset_password_token = $1,
+             reset_password_expires_at = $2,
+             updated_at = NOW()
+         WHERE LOWER(email) = $3
+         RETURNING id, email, first_name, last_name, role`,
+        [token, expiresAt, cleanEmail]
+      );
+
+      if (rows && rows.length > 0) {
+        // Also update memory store fallback if present
+        memoryDb.createPasswordResetToken(cleanEmail);
+        return { token, user: rows[0] };
+      }
+
+      // Try in-memory fallback
+      return memoryDb.createPasswordResetToken(cleanEmail);
+    } catch (err) {
+      console.error('Error in createPasswordResetToken:', err);
+      return memoryDb.createPasswordResetToken(cleanEmail);
+    }
+  }
+
+  static async verifyPasswordResetToken(
+    email: string,
+    token: string
+  ): Promise<{ valid: boolean; user?: any; error?: string }> {
+    const cleanEmail = email.trim().toLowerCase();
+    try {
+      const rows = await this.query(
+        `SELECT id, email, first_name, last_name, role, reset_password_token, reset_password_expires_at
+         FROM profiles
+         WHERE LOWER(email) = $1
+         LIMIT 1`,
+        [cleanEmail]
+      );
+
+      if (rows && rows.length > 0) {
+        const u = rows[0];
+        if (!u.reset_password_token || u.reset_password_token !== token) {
+          return { valid: false, error: 'Invalid reset token' };
+        }
+        if (!u.reset_password_expires_at || new Date(u.reset_password_expires_at).getTime() < Date.now()) {
+          return { valid: false, error: 'Reset token has expired' };
+        }
+        return { valid: true, user: u };
+      }
+
+      return memoryDb.verifyPasswordResetToken(cleanEmail, token);
+    } catch (err) {
+      console.error('Error in verifyPasswordResetToken:', err);
+      return memoryDb.verifyPasswordResetToken(cleanEmail, token);
+    }
+  }
+
+  static async resetPasswordWithToken(
+    email: string,
+    token: string,
+    newPasswordHash: string
+  ): Promise<{ success: boolean; error?: string }> {
+    const cleanEmail = email.trim().toLowerCase();
+    try {
+      const verify = await this.verifyPasswordResetToken(cleanEmail, token);
+      if (!verify.valid) {
+        return { success: false, error: verify.error || 'Invalid or expired token' };
+      }
+
+      const rows = await this.query(
+        `UPDATE profiles
+         SET password_hash = $1,
+             reset_password_token = NULL,
+             reset_password_expires_at = NULL,
+             updated_at = NOW()
+         WHERE LOWER(email) = $2
+         RETURNING id, email`,
+        [newPasswordHash, cleanEmail]
+      );
+
+      // Keep memory store in sync
+      memoryDb.resetPasswordWithToken(cleanEmail, token, newPasswordHash);
+
+      return { success: true };
+    } catch (err) {
+      console.error('Error in resetPasswordWithToken:', err);
+      const memSuccess = memoryDb.resetPasswordWithToken(cleanEmail, token, newPasswordHash);
+      return { success: memSuccess, error: memSuccess ? undefined : 'Failed to reset password' };
+    }
+  }
 }
 
 export const supabaseDb = SupabaseDbService;

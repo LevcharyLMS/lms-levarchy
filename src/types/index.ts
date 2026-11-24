@@ -93,6 +93,9 @@ export interface UserProfile {
   account_status: AccountStatus;
   verification_status: VerificationStatus;
   email_verified: boolean;
+  password_hash?: string | null;
+  reset_password_token?: string | null;
+  reset_password_expires_at?: string | null;
   created_at: string;
   updated_at: string;
   last_login_at?: string | null;

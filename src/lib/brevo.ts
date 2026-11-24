@@ -349,4 +349,53 @@ export class BrevoService {
       textContent: `Your post-class report for ${params.classTitle} has been approved by admin and published over the platform.`,
     });
   }
+
+  /**
+   * Send Password Reset Email with site-uniform layout
+   */
+  static async sendPasswordResetEmail(params: {
+    to: string;
+    firstName: string;
+    resetUrl: string;
+  }): Promise<{ success: boolean; error?: string }> {
+    const bodyContent = `
+      <div style="font-size: 17px; font-weight: 700; color: #0f172a; margin-bottom: 6px;">
+        Hello, ${params.firstName}!
+      </div>
+      <p style="font-size: 13px; color: #475569; line-height: 1.6; margin-top: 0;">
+        We received a request to reset your password for your Levchary LMS account. Click the button below to set a new password:
+      </p>
+
+      <div class="btn-container">
+        <a href="${params.resetUrl}" class="btn" target="_blank">
+          Reset Password
+        </a>
+      </div>
+
+      <div class="card">
+        <div style="font-size: 12px; font-weight: 600; color: #0f172a;">Security Notice</div>
+        <p style="font-size: 12px; color: #64748b; margin: 4px 0 0 0; line-height: 1.5;">
+          This password reset link is valid for <strong>1 hour</strong>. If you did not request a password reset, you can safely ignore this email; your account remains secure.
+        </p>
+      </div>
+
+      <div style="font-size: 11px; color: #94a3b8; word-break: break-all; margin-top: 16px;">
+        If the button above does not work, copy and paste this link into your browser:<br/>
+        <a href="${params.resetUrl}" style="color: #0d9488;">${params.resetUrl}</a>
+      </div>
+    `;
+
+    const htmlContent = this.renderBrandedLayout(
+      "Password Reset",
+      "Reset your Levchary account password",
+      bodyContent
+    );
+
+    return this.sendEmail({
+      to: params.to,
+      subject: "Reset your Levchary account password",
+      htmlContent,
+      textContent: `Hello ${params.firstName}, click the link to reset your password: ${params.resetUrl}. This link expires in 1 hour.`,
+    });
+  }
 }
