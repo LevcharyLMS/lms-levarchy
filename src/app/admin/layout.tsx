@@ -247,38 +247,107 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </header>
 
-        {/* Mobile Navigation Drawer */}
+        {/* Mobile Navigation Drawer with Backdrop */}
         {mobileOpen && (
-          <div className="lg:hidden bg-white border-b border-slate-200 p-3 space-y-3 shadow-lg max-h-[70vh] overflow-y-auto">
-            {navGroups.map((group) => (
-              <div key={group.title} className="space-y-1">
-                <p className="px-2 text-[10px] font-bold uppercase text-slate-400">{group.title}</p>
-                {group.items.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = pathname === item.href;
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setMobileOpen(false)}
-                      className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium ${
-                        isActive ? "bg-primary text-white font-semibold" : "text-slate-600 hover:bg-slate-50"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Icon className="w-3.5 h-3.5" />
-                        <span>{item.label}</span>
+          <div className="lg:hidden fixed inset-0 z-50 flex">
+            {/* Backdrop overlay */}
+            <div
+              className="fixed inset-0 bg-navy-950/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+              onClick={() => setMobileOpen(false)}
+            />
+
+            {/* Slide-out drawer container */}
+            <div className="relative w-72 max-w-[85vw] bg-white h-full shadow-2xl flex flex-col justify-between p-4 z-10 animate-in slide-in-from-left duration-300">
+              <div className="space-y-4 overflow-y-auto pr-1">
+                {/* Drawer Header matching desktop sidebar */}
+                <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                  <div className="flex-1 p-2.5 bg-slate-900 text-white rounded-xl flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-teal-400">
+                        Admin Workspace
+                      </span>
+                      <h2 className="text-xs font-bold text-white">Levchary Operations</h2>
+                    </div>
+                    <span className="text-[10px] font-bold px-1.5 py-0.2 bg-teal-500/20 text-teal-300 rounded-full">
+                      Root
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setMobileOpen(false)}
+                    className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors shrink-0"
+                    title="Close navigation"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Nav Groups */}
+                <div className="space-y-4">
+                  {navGroups.map((group) => (
+                    <div key={group.title} className="space-y-1">
+                      <p className="px-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        {group.title}
+                      </p>
+                      <div className="space-y-0.5">
+                        {group.items.map((item) => {
+                          const Icon = item.icon;
+                          const isActive =
+                            pathname === item.href ||
+                            (item.href !== "/admin/dashboard" && pathname.startsWith(item.href));
+                          return (
+                            <Link
+                              key={item.href}
+                              href={item.href}
+                              onClick={() => setMobileOpen(false)}
+                              className={`flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium transition-all ${
+                                isActive
+                                  ? "bg-primary text-white shadow-xs font-semibold"
+                                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                              }`}
+                            >
+                              <div className="flex items-center gap-2.5">
+                                <Icon
+                                  className={`w-3.5 h-3.5 ${
+                                    isActive ? "text-white" : "text-slate-400"
+                                  }`}
+                                />
+                                <span>{item.label}</span>
+                              </div>
+                              {item.badge && !isActive && (
+                                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800">
+                                  {item.badge}
+                                </span>
+                              )}
+                            </Link>
+                          );
+                        })}
                       </div>
-                      {item.badge && !isActive && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800">
-                          {item.badge}
-                        </span>
-                      )}
-                    </Link>
-                  );
-                })}
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))}
+
+              {/* Mobile Drawer Footer */}
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Avatar className="w-8 h-8 ring-2 ring-teal-50">
+                    {user?.avatar_url && <AvatarImage src={user.avatar_url} />}
+                    <AvatarFallback>{initials}</AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-navy-950 truncate">{displayName}</p>
+                    <p className="text-[10px] text-slate-400 truncate">Platform Administrator</p>
+                  </div>
+                </div>
+                <button
+                  onClick={logout}
+                  className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100"
+                  title="Sign Out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
           </div>
         )}
 

@@ -186,14 +186,44 @@ export function Navbar() {
             </Link>
           </div>
 
-          <div className="flex gap-2 pt-2">
-            <Button asChild variant="outline" className="w-full">
-              <Link href="/login" onClick={() => setMobileMenuOpen(false)}>Sign In</Link>
-            </Button>
-            <Button asChild variant="default" className="w-full">
-              <Link href="/register" onClick={() => setMobileMenuOpen(false)}>Get Started</Link>
-            </Button>
-          </div>
+          {user ? (
+            <div className="pt-2 border-t border-slate-100 flex flex-col gap-2">
+              <Button asChild variant="default" className="w-full bg-teal-600 hover:bg-teal-700 text-white gap-2">
+                <Link
+                  href={
+                    user.role === "STUDENT"
+                      ? "/student/dashboard"
+                      : user.role === "TUTOR" || user.role === "INSTRUCTOR"
+                      ? "/instructor/dashboard"
+                      : "/admin/dashboard"
+                  }
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span>Open {user.first_name}&apos;s Portal</span>
+                </Link>
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full border-slate-200 text-slate-600"
+                onClick={() => {
+                  logout();
+                  setMobileMenuOpen(false);
+                }}
+              >
+                Sign Out
+              </Button>
+            </div>
+          ) : (
+            <div className="flex gap-2 pt-2 border-t border-slate-100">
+              <Button asChild variant="outline" className="w-full">
+                <Link href="/login" onClick={() => setMobileMenuOpen(false)}>Sign In</Link>
+              </Button>
+              <Button asChild variant="default" className="w-full bg-teal-600 hover:bg-teal-700 text-white">
+                <Link href="/register" onClick={() => setMobileMenuOpen(false)}>Get Started</Link>
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </header>

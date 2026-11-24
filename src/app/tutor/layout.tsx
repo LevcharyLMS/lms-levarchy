@@ -168,33 +168,98 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
           </div>
         </header>
 
-        {/* Mobile Navigation Drawer */}
+        {/* Mobile Slide-Over Drawer with Backdrop */}
         {mobileOpen && (
-          <div className="lg:hidden bg-white border-b border-slate-200 p-3 space-y-1 shadow-md">
-            {tutorNav.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium ${
-                    isActive ? "bg-primary text-white font-semibold" : "text-slate-600 hover:bg-slate-50"
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Icon className="w-4 h-4" />
-                    <span>{item.label}</span>
-                  </div>
-                  {item.badge && !isActive && (
-                    <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-teal-100 text-teal-700">
-                      {item.badge}
+          <div className="lg:hidden fixed inset-0 z-50 flex">
+            {/* Backdrop overlay */}
+            <div
+              className="fixed inset-0 bg-navy-950/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+              onClick={() => setMobileOpen(false)}
+            />
+
+            {/* Slide-out drawer container */}
+            <div className="relative w-64 max-w-[80vw] bg-white h-full shadow-2xl flex flex-col justify-between p-4 z-10 animate-in slide-in-from-left duration-300">
+              <div className="space-y-4 overflow-y-auto pr-1">
+                {/* Workspace Pill */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex-1 p-3 bg-purple-50/60 border border-purple-100/80 rounded-xl flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-purple-700">
+                        Workspace
+                      </span>
+                      <h2 className="text-xs font-bold text-navy-950">Faculty Portal</h2>
+                    </div>
+                    <span className="text-[10px] font-bold px-1.5 py-0.2 bg-emerald-100 text-emerald-800 rounded-full flex items-center gap-0.5">
+                      <CheckCircle2 className="w-2.5 h-2.5" /> Approved
                     </span>
-                  )}
+                  </div>
+                  <button
+                    onClick={() => setMobileOpen(false)}
+                    className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors shrink-0"
+                    title="Close navigation"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Nav Links */}
+                <nav className="space-y-0.5">
+                  {tutorNav.map((item) => {
+                    const Icon = item.icon;
+                    const isActive =
+                      pathname === item.href ||
+                      (item.href !== "/tutor/dashboard" && pathname.startsWith(item.href));
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setMobileOpen(false)}
+                        className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                          isActive
+                            ? "bg-primary text-white shadow-xs font-semibold"
+                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <Icon className={`w-4 h-4 ${isActive ? "text-white" : "text-slate-400"}`} />
+                          <span>{item.label}</span>
+                        </div>
+                        {item.badge && !isActive && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-teal-100 text-teal-700">
+                            {item.badge}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </nav>
+              </div>
+
+              {/* Drawer footer */}
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                <Link
+                  href="/tutor/profile"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2.5 min-w-0 hover:opacity-80 transition-opacity"
+                >
+                  <Avatar className="w-8 h-8 ring-2 ring-teal-50">
+                    {user?.avatar_url && <AvatarImage src={user.avatar_url} />}
+                    <AvatarFallback>{initials}</AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-navy-950 truncate">{displayName}</p>
+                    <p className="text-[10px] text-slate-400 truncate">Faculty Instructor</p>
+                  </div>
                 </Link>
-              );
-            })}
+                <button
+                  onClick={logout}
+                  className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100"
+                  title="Sign Out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
