@@ -8,6 +8,7 @@ import { DataTable, Column } from "@/components/shared/data-table";
 import { FilterBar } from "@/components/shared/filter-bar";
 import { DetailDrawer } from "@/components/shared/detail-drawer";
 import { StatCard } from "@/components/ui/stat-card";
+import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 import {
   CreditCard,
   Lock,
@@ -143,35 +144,34 @@ export default function AdminTransactionsPage() {
     },
   ];
 
+  const financeTabs = [
+    { label: "Payments", href: "/admin/payments" },
+    { label: "Transactions", href: "/admin/transactions" },
+    { label: "Payouts", href: "/admin/payouts" },
+    { label: "Refunds", href: "/admin/refunds" },
+    { label: "Commissions", href: "/admin/commissions" },
+    { label: "Pricing", href: "/admin/pricing" },
+  ];
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs">
-        <div>
-          <div className="flex items-center gap-2 mb-0.5">
-            <h1 className="text-xl font-bold tracking-tight text-navy-950">
-              Financial Transactions Master Ledger
-            </h1>
-            <span className="px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[10px] font-bold flex items-center gap-1">
-              <Lock className="w-3 h-3 text-teal-600" />
-              <span>Append-Only Ledger</span>
-            </span>
-          </div>
-          <p className="text-xs text-slate-500">
-            Immutable settlement record tracking gross tuition, 20% platform commission, and 80% net instructor payouts.
-          </p>
-        </div>
-
-        <Button
-          onClick={loadTransactions}
-          variant="outline"
-          size="sm"
-          className="h-8 text-xs border-slate-200"
-          disabled={loading}
-        >
-          Refresh Ledger
-        </Button>
-      </div>
+      <AdminHubHeader
+        title="Financial Operations Hub"
+        badgeText="Immutable Ledger"
+        description="Immutable settlement record tracking gross tuition, 20% platform commission, and 80% net instructor payouts."
+        tabs={financeTabs}
+        actions={
+          <Button
+            onClick={loadTransactions}
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs border-slate-200"
+            disabled={loading}
+          >
+            Refresh Ledger
+          </Button>
+        }
+      />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-3.5">

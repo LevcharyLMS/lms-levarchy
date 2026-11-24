@@ -7,6 +7,7 @@ import { DataTable, Column } from "@/components/shared/data-table";
 import { FilterBar } from "@/components/shared/filter-bar";
 import { DetailDrawer } from "@/components/shared/detail-drawer";
 import { StatCard } from "@/components/ui/stat-card";
+import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 import {
   ShieldAlert,
   CheckCircle2,
@@ -244,34 +245,32 @@ export default function AdminMessageFlagsPage() {
     },
   ];
 
+  const moderationTabs = [
+    { label: "Safety Flags", href: "/admin/flags", badge: flags.filter((f) => f.status === "PENDING").length || undefined },
+    { label: "Review Approvals", href: "/admin/reviews" },
+    { label: "Post-Class Reports", href: "/admin/reports" },
+    { label: "Support Tickets", href: "/admin/support" },
+  ];
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs">
-        <div>
-          <div className="flex items-center gap-2 mb-0.5">
-            <h1 className="text-xl font-bold tracking-tight text-navy-950">
-              Message Safety & Moderation Queue
-            </h1>
-            <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-800 text-[10px] font-bold">
-              Rule 19 Automated Safety Filter
-            </span>
-          </div>
-          <p className="text-xs text-slate-500">
-            Proactive automated detection and interception of off-platform phone numbers, emails, and payment solicitations.
-          </p>
-        </div>
-
-        <Button
-          onClick={loadFlags}
-          variant="outline"
-          size="sm"
-          className="h-8 text-xs border-slate-200"
-          disabled={loading}
-        >
-          Refresh Queue
-        </Button>
-      </div>
+      <AdminHubHeader
+        title="Moderation & Safety Center"
+        badgeText="Automated Safety Filter"
+        description="Proactive automated detection of off-platform contact sharing, payment solicitations, review publications, and class reports."
+        tabs={moderationTabs}
+        actions={
+          <Button
+            onClick={loadFlags}
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs border-slate-200"
+            disabled={loading}
+          >
+            Refresh Queue
+          </Button>
+        }
+      />
 
       {actionNotice && (
         <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center justify-between">

@@ -8,6 +8,7 @@ import { DataTable, Column } from "@/components/shared/data-table";
 import { FilterBar } from "@/components/shared/filter-bar";
 import { DetailDrawer } from "@/components/shared/detail-drawer";
 import { StatCard } from "@/components/ui/stat-card";
+import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 import {
   BookOpen,
   Video,
@@ -208,34 +209,33 @@ export default function AdminClassesPage() {
     },
   ];
 
+  const academicTabs = [
+    { label: "Classes & Approvals", href: "/admin/classes", badge: pendingCount > 0 ? pendingCount : undefined },
+    { label: "Categories", href: "/admin/categories" },
+    { label: "Subjects", href: "/admin/subjects" },
+    { label: "Grades", href: "/admin/grades" },
+    { label: "Physical Venues", href: "/admin/locations" },
+  ];
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs">
-        <div>
-          <div className="flex items-center gap-2 mb-0.5">
-            <h1 className="text-xl font-bold tracking-tight text-navy-950">
-              Marketplace Class Catalog Management
-            </h1>
-            <span className="px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[10px] font-bold">
-              Multi-Format Scheduling
-            </span>
-          </div>
-          <p className="text-xs text-slate-500">
-            Oversee virtual classrooms, physical home visits, and learning centers across all subjects and grades.
-          </p>
-        </div>
-
-        <Button
-          onClick={loadClasses}
-          variant="outline"
-          size="sm"
-          className="h-8 text-xs border-slate-200"
-          disabled={loading}
-        >
-          Refresh Catalog
-        </Button>
-      </div>
+      <AdminHubHeader
+        title="Academics & Curriculum Hub"
+        badgeText="Catalog & Approvals"
+        description="Oversee virtual classrooms, curriculum subjects, grade taxonomies, physical home visits, and learning centers."
+        tabs={academicTabs}
+        actions={
+          <Button
+            onClick={loadClasses}
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs border-slate-200"
+            disabled={loading}
+          >
+            Refresh Catalog
+          </Button>
+        }
+      />
 
       {actionNotice && (
         <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center justify-between">

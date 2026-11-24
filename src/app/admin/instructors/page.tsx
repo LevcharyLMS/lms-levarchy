@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { RatingStars } from "@/components/ui/rating-stars";
 import { MoneyDisplay } from "@/components/ui/money-display";
 import { Button } from "@/components/ui/button";
+import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 import { ShieldCheck, UserX, UserCheck, Loader2 } from "lucide-react";
 
 export default function AdminInstructorsPage() {
@@ -66,16 +67,22 @@ export default function AdminInstructorsPage() {
     }
   };
 
+  const userTabs = [
+    { label: "All Users", href: "/admin/users" },
+    { label: "Students", href: "/admin/students" },
+    { label: "Instructors", href: "/admin/instructors" },
+    { label: "Applications", href: "/admin/instructor-applications" },
+    { label: "Verifications", href: "/admin/verifications", badge: "1" },
+  ];
+
   return (
-    <div className="space-y-8 max-w-6xl">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-navy-950">
-          Instructor Management
-        </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Directory of all instructors (tutors &amp; faculty), verification oversight, and teaching authorization.
-        </p>
-      </div>
+    <div className="space-y-6 max-w-7xl mx-auto">
+      <AdminHubHeader
+        title="Users & Directory Hub"
+        badgeText="Faculty & Instructors"
+        description="Directory of all instructors (tutors & faculty), verification oversight, and teaching authorization."
+        tabs={userTabs}
+      />
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
         {loading ? (

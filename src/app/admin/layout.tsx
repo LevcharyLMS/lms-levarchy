@@ -1,44 +1,25 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   LayoutDashboard,
   Users,
-  GraduationCap,
-  UserCheck,
-  FileCheck,
-  ShieldCheck,
   BookOpen,
-  Tag,
-  BookMarked,
-  Layers,
-  MapPin,
   Calendar,
   CreditCard,
-  Receipt,
-  RotateCcw,
-  DollarSign,
-  Percent,
-  Calculator,
-  MessageSquare,
   ShieldAlert,
-  Star,
   Bell,
-  LifeBuoy,
-  BarChart3,
-  FileSpreadsheet,
-  History,
+  Megaphone,
   Settings,
   Menu,
   X,
   ChevronRight,
   LogOut,
   Shield,
-  Megaphone,
-  Sparkles,
+  Search,
 } from "lucide-react";
 
 import { useAuth } from "@/context/auth-context";
@@ -47,6 +28,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [pendingFlagsCount, setPendingFlagsCount] = useState(0);
 
@@ -56,7 +38,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   // Real-time unread notifications and pending flags polling
   useEffect(() => {
-    // 1. Fetch unread notifications for admin
     if (user?.id) {
       fetch(`/api/notifications?userId=${user.id}`)
         .then((res) => res.json())
@@ -68,7 +49,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         .catch(() => {});
     }
 
-    // 2. Fetch pending moderation flags count
     fetch(`/api/admin/flag-words`)
       .then((res) => res.json())
       .then((data) => {
@@ -79,83 +59,169 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       .catch(() => {});
   }, [user?.id, pathname]);
 
-  // Complete 27 Admin Items Grouped Logically (Section 8 of PRD)
-  const navGroups = [
+  // Modern 9-Hub Consolidation Architecture (Option B)
+  const navHubs = [
     {
-      title: "OVERVIEW",
-      items: [
-        { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
-        { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
-        { label: "Reports", href: "/admin/reports", icon: FileSpreadsheet },
-        { label: "Audit Logs", href: "/admin/audit-logs", icon: History },
+      groupTitle: "CORE HUBS",
+      hubs: [
+        {
+          label: "Dashboard",
+          href: "/admin/dashboard",
+          icon: LayoutDashboard,
+          subRoutes: ["/admin/dashboard"],
+          description: "KPIs & Operations Command",
+        },
+        {
+          label: "Academics",
+          href: "/admin/classes",
+          icon: BookOpen,
+          subRoutes: [
+            "/admin/classes",
+            "/admin/categories",
+            "/admin/subjects",
+            "/admin/grades",
+            "/admin/locations",
+          ],
+          description: "Curriculum, Classes & Locations",
+        },
+        {
+          label: "Users & Directory",
+          href: "/admin/users",
+          icon: Users,
+          subRoutes: [
+            "/admin/users",
+            "/admin/students",
+            "/admin/instructors",
+            "/admin/instructor-applications",
+            "/admin/tutor-applications",
+            "/admin/tutors",
+            "/admin/verifications",
+          ],
+          badge: "1",
+          description: "Students, Faculty & Approvals",
+        },
+        {
+          label: "Sessions & Bookings",
+          href: "/admin/bookings",
+          icon: Calendar,
+          subRoutes: ["/admin/bookings", "/admin/assignments"],
+          description: "Class Bookings & Assignments",
+        },
       ],
     },
     {
-      title: "USERS & VERIFICATION",
-      items: [
-        { label: "Users", href: "/admin/users", icon: Users },
-        { label: "Students", href: "/admin/students", icon: GraduationCap },
-        { label: "Instructors", href: "/admin/instructors", icon: UserCheck },
-        { label: "Instructor Applications", href: "/admin/instructor-applications", icon: FileCheck },
-        { label: "Verification", href: "/admin/verifications", icon: ShieldCheck, badge: "1" },
+      groupTitle: "FINANCES & INTEGRITY",
+      hubs: [
+        {
+          label: "Financials",
+          href: "/admin/payments",
+          icon: CreditCard,
+          subRoutes: [
+            "/admin/payments",
+            "/admin/transactions",
+            "/admin/payouts",
+            "/admin/refunds",
+            "/admin/commissions",
+            "/admin/pricing",
+          ],
+          description: "Ledgers, Payouts & Commissions",
+        },
+        {
+          label: "Moderation Queue",
+          href: "/admin/flags",
+          icon: ShieldAlert,
+          subRoutes: [
+            "/admin/flags",
+            "/admin/reviews",
+            "/admin/reports",
+            "/admin/support",
+          ],
+          badge: pendingFlagsCount > 0 ? pendingFlagsCount : undefined,
+          description: "Rule 19 Flags & Approvals",
+        },
+        {
+          label: "Communications",
+          href: "/admin/messages",
+          icon: Bell,
+          subRoutes: [
+            "/admin/messages",
+            "/admin/notifications",
+          ],
+          badge: unreadNotifications > 0 ? unreadNotifications : undefined,
+          description: "Announcements & Broadcasts",
+        },
       ],
     },
     {
-      title: "ACADEMICS & VENUES",
-      items: [
-        { label: "Classes", href: "/admin/classes", icon: BookOpen },
-        { label: "Categories", href: "/admin/categories", icon: Tag },
-        { label: "Subjects", href: "/admin/subjects", icon: BookMarked },
-        { label: "Grades", href: "/admin/grades", icon: Layers },
-        { label: "Locations", href: "/admin/locations", icon: MapPin },
-      ],
-    },
-    {
-      title: "OPERATIONS & FINANCIALS",
-      items: [
-        { label: "Bookings", href: "/admin/bookings", icon: Calendar },
-        { label: "Adverts", href: "/admin/adverts", icon: Megaphone },
-        { label: "Payments", href: "/admin/payments", icon: CreditCard },
-        { label: "Transactions", href: "/admin/transactions", icon: Receipt },
-        { label: "Refunds", href: "/admin/refunds", icon: RotateCcw },
-        { label: "Payouts", href: "/admin/payouts", icon: DollarSign },
-        { label: "Commissions", href: "/admin/commissions", icon: Percent },
-        { label: "Pricing", href: "/admin/pricing", icon: Calculator },
-      ],
-    },
-    {
-      title: "MODERATION & SUPPORT",
-      items: [
-        { label: "Assignments", href: "/admin/assignments", icon: FileCheck },
-        { label: "Messages", href: "/admin/messages", icon: MessageSquare },
-        { label: "Flags", href: "/admin/flags", icon: ShieldAlert, badge: "1" },
-        { label: "Reviews", href: "/admin/reviews", icon: Star },
-        { label: "Notifications", href: "/admin/notifications", icon: Bell },
-        { label: "Support", href: "/admin/support", icon: LifeBuoy },
-        { label: "Suggestions", href: "/admin/suggestions", icon: Sparkles },
-        { label: "Settings", href: "/admin/settings", icon: Settings },
+      groupTitle: "GROWTH & PLATFORM",
+      hubs: [
+        {
+          label: "Marketing",
+          href: "/admin/adverts",
+          icon: Megaphone,
+          subRoutes: [
+            "/admin/adverts",
+            "/admin/suggestions",
+          ],
+          description: "Adverts & Taxonomy Suggestions",
+        },
+        {
+          label: "Settings & Audit",
+          href: "/admin/settings",
+          icon: Settings,
+          subRoutes: [
+            "/admin/settings",
+            "/admin/audit-logs",
+            "/admin/analytics",
+          ],
+          description: "Rules, Logs & Platform Config",
+        },
       ],
     },
   ];
 
-  // Find current label
-  let activeLabel = "Control Center";
-  for (const g of navGroups) {
-    const found = g.items.find((i) => pathname === i.href || (i.href !== "/admin/dashboard" && pathname.startsWith(i.href)));
-    if (found) {
-      activeLabel = found.label;
-      break;
+  // Active Hub and Sub-Item Label Determination
+  const activeHub = useMemo(() => {
+    for (const g of navHubs) {
+      for (const hub of g.hubs) {
+        if (
+          pathname === hub.href ||
+          hub.subRoutes.some(
+            (sr) => pathname === sr || (sr !== "/admin/dashboard" && pathname.startsWith(sr + "/"))
+          )
+        ) {
+          return hub;
+        }
+      }
     }
-  }
+    return null;
+  }, [pathname, navHubs]);
+
+  // Filtered hubs based on quick-search input
+  const filteredNavGroups = useMemo(() => {
+    if (!searchQuery.trim()) return navHubs;
+    const q = searchQuery.toLowerCase();
+    return navHubs
+      .map((g) => ({
+        ...g,
+        hubs: g.hubs.filter(
+          (h) =>
+            h.label.toLowerCase().includes(q) ||
+            h.description.toLowerCase().includes(q) ||
+            h.subRoutes.some((sr) => sr.toLowerCase().includes(q))
+        ),
+      }))
+      .filter((g) => g.hubs.length > 0);
+  }, [searchQuery, navHubs]);
 
   return (
     <div className="flex min-h-screen bg-[#F8FAFC]">
       {/* Desktop Persistent Admin Sidebar (260px) */}
       <aside className="hidden lg:flex flex-col w-[260px] border-r border-slate-200/80 bg-white justify-between shrink-0 h-screen sticky top-0">
-        {/* Scrollable Nav Area */}
-        <div className="p-4 overflow-y-auto space-y-5">
+        {/* Top Header & Search Area */}
+        <div className="p-4 space-y-3.5 overflow-hidden flex flex-col flex-1">
           {/* Workspace Pill */}
-          <div className="p-3 bg-teal-50/70 border border-teal-100/80 rounded-xl flex items-center justify-between">
+          <div className="p-3 bg-teal-50/70 border border-teal-100/80 rounded-xl flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-md bg-teal-600 text-white flex items-center justify-center">
                 <Shield className="w-3.5 h-3.5" />
@@ -170,34 +236,63 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <span className="w-2 h-2 rounded-full bg-emerald-500 ring-4 ring-emerald-100" />
           </div>
 
-          {/* Grouped Navigation */}
-          <div className="space-y-4">
-            {navGroups.map((group) => (
-              <div key={group.title} className="space-y-1">
+          {/* Quick Hub Filter Input */}
+          <div className="relative shrink-0">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Quick search hubs..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-8 pl-8 pr-2.5 text-[11px] bg-slate-50 border border-slate-200/90 rounded-lg text-slate-700 placeholder:text-slate-400 focus:outline-hidden focus:ring-1 focus:ring-primary focus:bg-white transition-all"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+
+          {/* 9 Consolidated Navigation Hubs */}
+          <div className="overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-slate-200">
+            {filteredNavGroups.map((group) => (
+              <div key={group.groupTitle} className="space-y-1">
                 <p className="px-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  {group.title}
+                  {group.groupTitle}
                 </p>
                 <div className="space-y-0.5">
-                  {group.items.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = pathname === item.href || (item.href !== "/admin/dashboard" && pathname.startsWith(item.href));
+                  {group.hubs.map((hub) => {
+                    const Icon = hub.icon;
+                    const isActive =
+                      activeHub?.href === hub.href ||
+                      hub.subRoutes.some(
+                        (sr) => pathname === sr || (sr !== "/admin/dashboard" && pathname.startsWith(sr + "/"))
+                      );
+
                     return (
                       <Link
-                        key={item.href}
-                        href={item.href}
-                        className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        key={hub.href}
+                        href={hub.href}
+                        className={`flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium transition-all ${
                           isActive
                             ? "bg-primary text-white shadow-xs font-semibold"
                             : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                         }`}
                       >
-                        <div className="flex items-center gap-2">
-                          <Icon className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-slate-400"}`} />
-                          <span>{item.label}</span>
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <Icon
+                            className={`w-4 h-4 shrink-0 ${
+                              isActive ? "text-white" : "text-slate-400"
+                            }`}
+                          />
+                          <span className="truncate">{hub.label}</span>
                         </div>
-                        {item.badge && !isActive && (
-                          <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800">
-                            {item.badge}
+                        {hub.badge && !isActive && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 shrink-0">
+                            {hub.badge}
                           </span>
                         )}
                       </Link>
@@ -210,9 +305,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
 
         {/* Admin User Footer */}
-        <div className="p-3 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
+        <div className="p-3 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2 min-w-0">
-            <Avatar className="w-7 h-7 ring-2 ring-teal-50">
+            <Avatar className="w-7 h-7 ring-2 ring-teal-50 shrink-0">
               {user?.avatar_url && <AvatarImage src={user.avatar_url} />}
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
@@ -221,7 +316,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <p className="text-[10px] text-slate-400 truncate">Platform Administrator</p>
             </div>
           </div>
-          <button onClick={logout} className="text-slate-400 hover:text-slate-600 p-1" title="Sign Out">
+          <button
+            onClick={logout}
+            className="text-slate-400 hover:text-slate-600 p-1 rounded-md hover:bg-slate-100"
+            title="Sign Out"
+          >
             <LogOut className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -239,9 +338,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               {mobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
             </button>
             <div className="flex items-center gap-1.5 text-xs text-slate-500">
-              <span className="font-medium text-slate-400">Admin</span>
+              <span className="font-medium text-slate-400">Admin Hub</span>
               <ChevronRight className="w-3 h-3 text-slate-300" />
-              <span className="font-semibold text-navy-950">{activeLabel}</span>
+              <span className="font-semibold text-navy-950">
+                {activeHub?.label || "Operations"}
+              </span>
             </div>
           </div>
 
@@ -292,7 +393,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {/* Slide-out drawer container */}
             <div className="relative w-72 max-w-[85vw] bg-white h-full shadow-2xl flex flex-col justify-between p-4 z-10 animate-in slide-in-from-left duration-300">
               <div className="space-y-4 overflow-y-auto pr-1">
-                {/* Drawer Header matching desktop sidebar */}
+                {/* Drawer Header */}
                 <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
                   <div className="flex-1 p-2.5 bg-slate-900 text-white rounded-xl flex items-center justify-between">
                     <div>
@@ -314,23 +415,26 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </button>
                 </div>
 
-                {/* Nav Groups */}
+                {/* Mobile Hub Navigation */}
                 <div className="space-y-4">
-                  {navGroups.map((group) => (
-                    <div key={group.title} className="space-y-1">
+                  {navHubs.map((group) => (
+                    <div key={group.groupTitle} className="space-y-1">
                       <p className="px-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                        {group.title}
+                        {group.groupTitle}
                       </p>
                       <div className="space-y-0.5">
-                        {group.items.map((item) => {
-                          const Icon = item.icon;
+                        {group.hubs.map((hub) => {
+                          const Icon = hub.icon;
                           const isActive =
-                            pathname === item.href ||
-                            (item.href !== "/admin/dashboard" && pathname.startsWith(item.href));
+                            activeHub?.href === hub.href ||
+                            hub.subRoutes.some(
+                              (sr) => pathname === sr || (sr !== "/admin/dashboard" && pathname.startsWith(sr + "/"))
+                            );
+
                           return (
                             <Link
-                              key={item.href}
-                              href={item.href}
+                              key={hub.href}
+                              href={hub.href}
                               onClick={() => setMobileOpen(false)}
                               className={`flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium transition-all ${
                                 isActive
@@ -340,15 +444,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             >
                               <div className="flex items-center gap-2.5">
                                 <Icon
-                                  className={`w-3.5 h-3.5 ${
+                                  className={`w-4 h-4 ${
                                     isActive ? "text-white" : "text-slate-400"
                                   }`}
                                 />
-                                <span>{item.label}</span>
+                                <span>{hub.label}</span>
                               </div>
-                              {item.badge && !isActive && (
+                              {hub.badge && !isActive && (
                                 <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800">
-                                  {item.badge}
+                                  {hub.badge}
                                 </span>
                               )}
                             </Link>

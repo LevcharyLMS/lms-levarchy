@@ -4,20 +4,28 @@ import React from "react";
 import { db } from "@/lib/data-store";
 import { MoneyDisplay } from "@/components/ui/money-display";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 
 export default function AdminPaymentsPage() {
   const transactions = db.state.transactions;
 
+  const financeTabs = [
+    { label: "Payments", href: "/admin/payments" },
+    { label: "Transactions", href: "/admin/transactions" },
+    { label: "Payouts", href: "/admin/payouts" },
+    { label: "Refunds", href: "/admin/refunds" },
+    { label: "Commissions", href: "/admin/commissions" },
+    { label: "Pricing", href: "/admin/pricing" },
+  ];
+
   return (
-    <div className="space-y-8 max-w-6xl">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-navy-950">
-          Stripe Payment Intents & Checkouts
-        </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Real-time Stripe payment verification and idempotency keys.
-        </p>
-      </div>
+    <div className="space-y-6 max-w-7xl mx-auto">
+      <AdminHubHeader
+        title="Financial Operations Hub"
+        badgeText="Stripe Integrations"
+        description="Comprehensive financial ledgers, Stripe charges, automated instructor payouts, refund queues, and platform take-rates."
+        tabs={financeTabs}
+      />
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">

@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { DataTable, Column } from "@/components/shared/data-table";
 import { DetailDrawer } from "@/components/shared/detail-drawer";
+import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 import { Textarea } from "@/components/ui/textarea";
 import {
   ShieldCheck,
@@ -115,17 +116,22 @@ export default function AdminVerificationsPage() {
     },
   ];
 
+  const userTabs = [
+    { label: "All Users", href: "/admin/users" },
+    { label: "Students", href: "/admin/students" },
+    { label: "Instructors", href: "/admin/instructors" },
+    { label: "Applications", href: "/admin/instructor-applications" },
+    { label: "Verifications", href: "/admin/verifications", badge: "1" },
+  ];
+
   return (
     <div className="space-y-5 max-w-7xl mx-auto">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-xl font-bold tracking-tight text-navy-950">
-          Instructor Verification Center
-        </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Review government photo IDs and university degrees with 15-minute expiring signed URLs before granting teaching authority.
-        </p>
-      </div>
+      <AdminHubHeader
+        title="Users & Directory Hub"
+        badgeText="Document Verification"
+        description="Review government photo IDs and university degrees with 15-minute expiring signed URLs before granting teaching authority."
+        tabs={userTabs}
+      />
 
       {actionSuccess && (
         <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center justify-between">

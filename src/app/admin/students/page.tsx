@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
+import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 import { ShieldCheck, UserX, UserCheck, Loader2, Phone, MapPin, FileText } from "lucide-react";
 
 export default function AdminStudentsPage() {
@@ -51,16 +52,22 @@ export default function AdminStudentsPage() {
     }
   };
 
+  const userTabs = [
+    { label: "All Users", href: "/admin/users" },
+    { label: "Students", href: "/admin/students" },
+    { label: "Instructors", href: "/admin/instructors" },
+    { label: "Applications", href: "/admin/instructor-applications" },
+    { label: "Verifications", href: "/admin/verifications", badge: "1" },
+  ];
+
   return (
-    <div className="space-y-8 max-w-6xl">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-navy-950">
-          Enrolled Students Directory
-        </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Student profiles, learning preferences, ID verification review, and platform access oversight.
-        </p>
-      </div>
+    <div className="space-y-6 max-w-7xl mx-auto">
+      <AdminHubHeader
+        title="Users & Directory Hub"
+        badgeText="Enrolled Students"
+        description="Student profiles, learning preferences, ID verification review, and platform access oversight."
+        tabs={userTabs}
+      />
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
         {loading ? (

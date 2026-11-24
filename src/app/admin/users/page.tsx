@@ -9,6 +9,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { DataTable, Column } from "@/components/shared/data-table";
 import { FilterBar } from "@/components/shared/filter-bar";
+import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 import { UserX, UserCheck, Shield, CheckCircle2 } from "lucide-react";
 
 export default function AdminUsersPage() {
@@ -135,19 +136,23 @@ export default function AdminUsersPage() {
     },
   ];
 
+  const userTabs = [
+    { label: "All Users", href: "/admin/users" },
+    { label: "Students", href: "/admin/students" },
+    { label: "Instructors", href: "/admin/instructors" },
+    { label: "Applications", href: "/admin/instructor-applications" },
+    { label: "Verifications", href: "/admin/verifications", badge: "1" },
+  ];
+
   return (
     <div className="space-y-5 max-w-7xl mx-auto">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight text-navy-950">
-            Platform User Directory
-          </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Manage student, educator, and administrator accounts with strict server-side RBAC and suspension controls.
-          </p>
-        </div>
-      </div>
+      {/* Modern Hub Header with Sub-Tabs */}
+      <AdminHubHeader
+        title="Users & Directory Hub"
+        badgeText="RBAC Authority"
+        description="Oversee student enrollments, faculty profiles, vetting applications, and document verification."
+        tabs={userTabs}
+      />
 
       {actionAlert && (
         <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center justify-between">
