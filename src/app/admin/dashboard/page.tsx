@@ -28,15 +28,14 @@ export default async function AdminDashboardPage() {
   let bookings: any[] = [];
 
   try {
-    stats = await SupabaseDbService.getAdminKPIs();
+    const [kpiRes, bookingsRes] = await Promise.all([
+      SupabaseDbService.getAdminKPIs(),
+      SupabaseDbService.getBookings(),
+    ]);
+    stats = kpiRes || {};
+    bookings = bookingsRes || [];
   } catch (err) {
-    console.error("Error fetching admin KPIs:", err);
-  }
-
-  try {
-    bookings = await SupabaseDbService.getBookings();
-  } catch (err) {
-    console.error("Error fetching admin bookings:", err);
+    console.error("Error loading admin dashboard aggregates:", err);
   }
 
   const recentBookings = (bookings || []).slice(0, 5);
@@ -70,20 +69,57 @@ export default async function AdminDashboardPage() {
       </div>
 
       {/* Critical Alert Bar for Pending Items */}
-      {(stats.pendingVerifications > 0 || stats.pendingFlagsCount > 0) && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+      {(stats.pendingVerifications > 0 ||
+        stats.pendingFlagsCount > 0 ||
+        stats.pendingClassesCount > 0 ||
+        stats.pendingReviewsCount > 0) && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          {stats.pendingClassesCount > 0 && (
+            <div className="p-3.5 bg-emerald-50/90 border border-emerald-200/80 rounded-xl flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-900 flex items-center justify-center font-bold text-xs shrink-0">
+                  {stats.pendingClassesCount}
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-emerald-950">Classes Pending Approval</h3>
+                  <p className="text-[10px] text-emerald-800">Faculty classes awaiting publication</p>
+                </div>
+              </div>
+              <Button asChild size="sm" variant="outline" className="h-7 text-xs border-emerald-300 hover:bg-emerald-100 bg-white shrink-0">
+                <Link href="/admin/classes">Approve</Link>
+              </Button>
+            </div>
+          )}
+
+          {stats.pendingReviewsCount > 0 && (
+            <div className="p-3.5 bg-teal-50/90 border border-teal-200/80 rounded-xl flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-teal-100 text-teal-900 flex items-center justify-center font-bold text-xs shrink-0">
+                  {stats.pendingReviewsCount}
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-teal-950">Reviews Pending Approval</h3>
+                  <p className="text-[10px] text-teal-800">Student feedback to publish</p>
+                </div>
+              </div>
+              <Button asChild size="sm" variant="outline" className="h-7 text-xs border-teal-300 hover:bg-teal-100 bg-white shrink-0">
+                <Link href="/admin/reviews">Inspect</Link>
+              </Button>
+            </div>
+          )}
+
           {stats.pendingVerifications > 0 && (
             <div className="p-3.5 bg-amber-50/80 border border-amber-200/80 rounded-xl flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-900 flex items-center justify-center font-bold text-xs">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-900 flex items-center justify-center font-bold text-xs shrink-0">
                   {stats.pendingVerifications}
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold text-amber-950">Verification Documents Pending</h3>
-                  <p className="text-[11px] text-amber-800">Review government IDs and degree transcripts</p>
+                  <h3 className="text-xs font-bold text-amber-950">Verification Documents</h3>
+                  <p className="text-[10px] text-amber-800">IDs and degree transcripts</p>
                 </div>
               </div>
-              <Button asChild size="sm" variant="outline" className="h-7 text-xs border-amber-300 hover:bg-amber-100 bg-white">
+              <Button asChild size="sm" variant="outline" className="h-7 text-xs border-amber-300 hover:bg-amber-100 bg-white shrink-0">
                 <Link href="/admin/verifications">Inspect</Link>
               </Button>
             </div>
@@ -91,16 +127,16 @@ export default async function AdminDashboardPage() {
 
           {stats.pendingFlagsCount > 0 && (
             <div className="p-3.5 bg-red-50/80 border border-red-200/80 rounded-xl flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-red-100 text-red-900 flex items-center justify-center font-bold text-xs">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-red-100 text-red-900 flex items-center justify-center font-bold text-xs shrink-0">
                   {stats.pendingFlagsCount}
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold text-red-950">Flagged Messages Requiring Action</h3>
-                  <p className="text-[11px] text-red-800">Off-platform payment / phone number alerts</p>
+                  <h3 className="text-xs font-bold text-red-950">Rule 19 Safety Flags</h3>
+                  <p className="text-[10px] text-red-800">Off-platform contact/payment alerts</p>
                 </div>
               </div>
-              <Button asChild size="sm" variant="destructive" className="h-7 text-xs">
+              <Button asChild size="sm" variant="destructive" className="h-7 text-xs shrink-0">
                 <Link href="/admin/flags">Review</Link>
               </Button>
             </div>
@@ -238,6 +274,20 @@ export default async function AdminDashboardPage() {
 
           <div className="space-y-2">
             <Button asChild variant="outline" className="w-full justify-between text-xs h-9 border-slate-200">
+              <Link href="/admin/classes" className="flex items-center justify-between w-full">
+                <span className="flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-emerald-600" />
+                  <span>Class Approvals</span>
+                </span>
+                {stats.pendingClassesCount > 0 && (
+                  <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800">
+                    {stats.pendingClassesCount}
+                  </span>
+                )}
+              </Link>
+            </Button>
+
+            <Button asChild variant="outline" className="w-full justify-between text-xs h-9 border-slate-200">
               <Link href="/admin/verifications" className="flex items-center justify-between w-full">
                 <span className="flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-teal-600" />
@@ -266,9 +316,9 @@ export default async function AdminDashboardPage() {
             </Button>
 
             <Button asChild variant="outline" className="w-full justify-start text-xs h-9 border-slate-200">
-              <Link href="/admin/commissions" className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-teal-600" />
-                <span>Adjust Commission Tier</span>
+              <Link href="/admin/messages" className="flex items-center gap-2">
+                <Inbox className="w-4 h-4 text-teal-600" />
+                <span>Dispatch Broadcast Message</span>
               </Link>
             </Button>
 
@@ -276,13 +326,6 @@ export default async function AdminDashboardPage() {
               <Link href="/admin/audit-logs" className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-slate-600" />
                 <span>System Audit Trail</span>
-              </Link>
-            </Button>
-
-            <Button asChild variant="outline" className="w-full justify-start text-xs h-9 border-slate-200">
-              <Link href="/admin/locations" className="flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-emerald-600" />
-                <span>Manage Physical Venues</span>
               </Link>
             </Button>
           </div>

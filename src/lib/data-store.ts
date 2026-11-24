@@ -956,6 +956,8 @@ class DataStore {
       platformCommissionCents,
       tutorEarningsCents,
       pendingFlagsCount,
+      pendingClassesCount: this.state.classes.filter((c) => c.status === 'PENDING_APPROVAL').length,
+      pendingReviewsCount: this.state.reviews.filter((r) => !r.is_published).length,
       activeClasses: this.state.classes.filter((c) => c.status === 'PUBLISHED' || c.status === 'OPEN').length,
     };
   }

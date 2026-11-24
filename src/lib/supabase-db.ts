@@ -116,6 +116,8 @@ export class SupabaseDbService {
           (SELECT COALESCE(SUM(platform_fee_amount), 0) FROM booking_financial_snapshots) as commission_revenue_cents,
           (SELECT COALESCE(SUM(tutor_earnings), 0) FROM booking_financial_snapshots) as tutor_earnings_cents,
           (SELECT COUNT(*) FROM message_flags WHERE status = 'PENDING_REVIEW') as pending_flags_count,
+          (SELECT COUNT(*) FROM classes WHERE status = 'PENDING_APPROVAL') as pending_classes_count,
+          (SELECT COUNT(*) FROM reviews WHERE is_published = false) as pending_reviews_count,
           (SELECT COUNT(*) FROM classes WHERE status IN ('PUBLISHED', 'OPEN')) as active_classes
       `);
 
@@ -133,6 +135,8 @@ export class SupabaseDbService {
           platformCommissionCents: parseInt(r.commission_revenue_cents || '0', 10),
           tutorEarningsCents: parseInt(r.tutor_earnings_cents || '0', 10),
           pendingFlagsCount: parseInt(r.pending_flags_count || '0', 10),
+          pendingClassesCount: parseInt(r.pending_classes_count || '0', 10),
+          pendingReviewsCount: parseInt(r.pending_reviews_count || '0', 10),
           activeClasses: parseInt(r.active_classes || '0', 10),
         };
       }
