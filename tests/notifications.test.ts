@@ -86,7 +86,6 @@ describe("Notification Center, Multi-Channel Dispatch & Preferences", () => {
       conversationId: "conv-admin-broadcast",
       senderId: "usr-admin-1",
       body: "[Announcement: Welcome New Cohort] Welcome to the academic semester!",
-      hasFlag: false,
     });
 
     expect(announcementMsg.has_flag).toBe(false);

@@ -104,7 +104,6 @@ export async function POST(request: NextRequest) {
             conversationId: `conv-admin-${recipient.id}`,
             senderId: adminId,
             body: `[Announcement: ${subject}]\n\n${content}`,
-            hasFlag: false,
           });
         }
 

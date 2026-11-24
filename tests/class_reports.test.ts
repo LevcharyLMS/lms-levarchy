@@ -100,6 +100,7 @@ describe("Post-Class Reports, Admin Moderation & Feedback Review Alerts", () => 
       format: "VIRTUAL",
       duration_minutes: 90,
       price: 4500,
+      currency: "USD",
       capacity: 12,
       status: "PENDING_APPROVAL",
     });

@@ -7,6 +7,9 @@ import { MessageFlagType, FlagSeverity } from '@/types';
 
 export interface ModerationResult {
   hasFlags: boolean;
+  isFlagged?: boolean;
+  severity?: FlagSeverity;
+  matches: string[];
   flags: Array<{
     type: MessageFlagType;
     snippet: string;
