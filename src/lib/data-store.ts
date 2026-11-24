@@ -800,7 +800,7 @@ class DataStore {
       rating: review.rating,
       comment: review.comment,
       is_moderated: false,
-      is_published: true,
+      is_published: false,
       is_featured_testimonial: false,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),

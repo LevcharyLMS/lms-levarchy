@@ -152,7 +152,7 @@ export default function AdminReviewsPage() {
       list = list.filter((r) => r.is_featured_testimonial);
     } else if (selectedTab === "PUBLISHED") {
       list = list.filter((r) => r.is_published);
-    } else if (selectedTab === "HIDDEN") {
+    } else if (selectedTab === "PENDING" || selectedTab === "HIDDEN") {
       list = list.filter((r) => !r.is_published);
     } else if (selectedTab === "FIVE_STARS") {
       list = list.filter((r) => r.rating === 5);
@@ -182,24 +182,24 @@ export default function AdminReviewsPage() {
   const tabOptions: FilterTabOption[] = [
     { id: "ALL", label: "All Reviews", count: reviews.length },
     {
+      id: "PENDING",
+      label: "Pending Approval",
+      count: reviews.filter((r) => !r.is_published).length,
+    },
+    {
+      id: "PUBLISHED",
+      label: "Approved & Live",
+      count: reviews.filter((r) => r.is_published).length,
+    },
+    {
       id: "FEATURED",
-      label: "Featured on Homepage",
+      label: "Homepage Testimonials",
       count: reviews.filter((r) => r.is_featured_testimonial).length,
     },
     {
       id: "FIVE_STARS",
       label: "5 Stars",
       count: reviews.filter((r) => r.rating === 5).length,
-    },
-    {
-      id: "PUBLISHED",
-      label: "Published",
-      count: reviews.filter((r) => r.is_published).length,
-    },
-    {
-      id: "HIDDEN",
-      label: "Hidden",
-      count: reviews.filter((r) => !r.is_published).length,
     },
   ];
 

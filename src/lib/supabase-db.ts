@@ -1489,9 +1489,9 @@ export class SupabaseDbService {
     try {
       const rows = await this.query(
         `INSERT INTO reviews (booking_id, student_id, instructor_id, rating, comment, is_published, is_moderated)
-         VALUES ($1, $2, $3, $4, $5, true, true)
+         VALUES ($1, $2, $3, $4, $5, false, false)
          ON CONFLICT (booking_id) DO UPDATE 
-         SET rating = EXCLUDED.rating, comment = EXCLUDED.comment, updated_at = NOW()
+         SET rating = EXCLUDED.rating, comment = EXCLUDED.comment, is_published = false, is_moderated = false, updated_at = NOW()
          RETURNING *`,
         [bookingId, studentId, instructorId, rating, comment]
       );
