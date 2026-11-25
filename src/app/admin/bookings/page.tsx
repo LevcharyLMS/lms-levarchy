@@ -94,12 +94,12 @@ export default function AdminBookingsPage() {
       key: "class",
       header: "Class Session",
       render: (b) => (
-        <div className="max-w-xs space-y-0.5">
+        <div className="max-w-xs space-y-1">
           <p className="font-bold text-navy-950 truncate text-xs">
             {b.class_item?.title || "Class Session"}
           </p>
-          <div className="flex items-center gap-1.5">
-            <StatusBadge status={b.format} />
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <StatusBadge status={b.format || "VIRTUAL"} />
             <span className="text-[10px] text-slate-400 font-medium">
               {b.class_item?.duration_minutes || 60} min
             </span>
@@ -150,15 +150,14 @@ export default function AdminBookingsPage() {
       key: "gross_amount",
       header: "Tuition",
       sortable: true,
-      render: (b) => (
-        <div className="font-bold text-navy-950 text-xs">
-          {b.financial_snapshot ? (
-            <MoneyDisplay cents={b.financial_snapshot.gross_amount} />
-          ) : (
-            "—"
-          )}
-        </div>
-      ),
+      render: (b) => {
+        const gross = b.financial_snapshot?.gross_amount ?? b.class_item?.price;
+        return (
+          <div className="font-bold text-navy-950 text-xs">
+            {gross ? <MoneyDisplay cents={gross} /> : "$35.00"}
+          </div>
+        );
+      },
     },
     {
       key: "status",
@@ -315,10 +314,8 @@ export default function AdminBookingsPage() {
               className="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-700 font-semibold"
             >
               <option value="ALL">All Formats</option>
-              <option value="ONLINE_1ON1">Online 1-on-1</option>
-              <option value="ONLINE_GROUP">Online Group</option>
-              <option value="PHYSICAL_STUDENT_HOME">Student Home</option>
-              <option value="PHYSICAL_CENTER">Learning Center</option>
+              <option value="VIRTUAL">Virtual Class</option>
+              <option value="PHYSICAL">In-Person (Learning Center)</option>
             </select>
           </div>
 

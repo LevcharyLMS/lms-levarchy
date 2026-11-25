@@ -135,9 +135,9 @@ export default function AdminClassesPage() {
       key: "format",
       header: "Format & Type",
       render: (c) => (
-        <div className="flex flex-col gap-1 items-start">
-          <StatusBadge status={c.class_type} />
-          <StatusBadge status={c.format} />
+        <div className="flex flex-wrap items-center gap-1.5">
+          <StatusBadge status={c.class_type || "ONE_ON_ONE"} />
+          <StatusBadge status={c.format || "VIRTUAL"} />
         </div>
       ),
     },
@@ -147,7 +147,7 @@ export default function AdminClassesPage() {
       sortable: true,
       render: (c) => (
         <span className="font-bold text-navy-950 text-xs">
-          <MoneyDisplay cents={c.price} />
+          {c.price ? <MoneyDisplay cents={c.price} /> : "$35.00 / hr"}
         </span>
       ),
     },
@@ -340,9 +340,8 @@ export default function AdminClassesPage() {
               className="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-700 font-semibold"
             >
               <option value="ALL">All Formats</option>
-              <option value="ONLINE_1ON1">Online Class</option>
-              <option value="PHYSICAL_STUDENT_HOME">Home Visit</option>
-              <option value="PHYSICAL_CENTER">Learning Center</option>
+              <option value="VIRTUAL">Virtual Class</option>
+              <option value="PHYSICAL">In-Person (Learning Center)</option>
             </select>
           </div>
 
