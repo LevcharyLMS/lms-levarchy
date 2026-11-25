@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 import { DetailDrawer } from "@/components/shared/detail-drawer";
 import { FilterBar } from "@/components/shared/filter-bar";
+import { Textarea } from "@/components/ui/textarea";
 import { db } from "@/lib/data-store";
 import {
   ShieldCheck,
@@ -21,7 +22,10 @@ import {
   BookOpen,
   Calendar,
   Users,
-  GraduationCap
+  GraduationCap,
+  Download,
+  AlertCircle,
+  CheckCircle2
 } from "lucide-react";
 
 export default function AdminStudentsPage() {
@@ -30,10 +34,16 @@ export default function AdminStudentsPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [gradeFilter, setGradeFilter] = useState("ALL");
+  const [actionAlert, setActionAlert] = useState<string | null>(null);
 
   // Modal / Drawer state
   const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  // Suspension Modal State
+  const [suspendingStudent, setSuspendingStudent] = useState<any | null>(null);
+  const [suspensionReason, setSuspensionReason] = useState("");
+  const [isSuspendModalOpen, setIsSuspendModalOpen] = useState(false);
 
   const fetchStudents = async () => {
     try {
@@ -54,25 +64,49 @@ export default function AdminStudentsPage() {
     fetchStudents();
   }, []);
 
-  const handleUpdateVerification = async (userId: string, nextStatus: "APPROVED" | "REJECTED" | "PENDING_REVIEW") => {
+  const handleActionClick = (student: any) => {
+    const isCurrentlyActive = (student.account_status || "ACTIVE") === "ACTIVE";
+    if (isCurrentlyActive) {
+      setSuspendingStudent(student);
+      setSuspensionReason("");
+      setIsSuspendModalOpen(true);
+    } else {
+      executeStatusUpdate(student.id, "ACTIVE", "Account reactivated by administrator");
+    }
+  };
+
+  const confirmSuspension = () => {
+    if (!suspendingStudent) return;
+    executeStatusUpdate(
+      suspendingStudent.id,
+      "SUSPENDED",
+      suspensionReason.trim() || "Policy compliance or safety review suspension"
+    );
+    setIsSuspendModalOpen(false);
+    setSuspendingStudent(null);
+  };
+
+  const executeStatusUpdate = async (userId: string, nextStatus: "ACTIVE" | "SUSPENDED", noteText?: string) => {
     try {
       setUpdatingId(userId);
-      const res = await fetch("/api/admin/students", {
+      await fetch("/api/admin/students", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, verificationStatus: nextStatus }),
+        body: JSON.stringify({ userId, accountStatus: nextStatus, note: noteText }),
       });
 
-      if (res.ok) {
-        setStudents((prev) =>
-          prev.map((s) => (s.id === userId ? { ...s, verification_status: nextStatus } : s))
-        );
-        if (selectedStudent && selectedStudent.id === userId) {
-          setSelectedStudent({ ...selectedStudent, verification_status: nextStatus });
-        }
+      db.updateProfile(userId, { account_status: nextStatus as any });
+
+      setStudents((prev) =>
+        prev.map((s) => (s.id === userId ? { ...s, account_status: nextStatus } : s))
+      );
+      if (selectedStudent && selectedStudent.id === userId) {
+        setSelectedStudent({ ...selectedStudent, account_status: nextStatus });
       }
+      setActionAlert(`Student account marked as ${nextStatus}.${noteText ? ` Note: "${noteText}"` : ""}`);
+      setTimeout(() => setActionAlert(null), 4000);
     } catch (err) {
-      console.error("Failed to update status:", err);
+      console.error("Failed to update student status:", err);
     } finally {
       setUpdatingId(null);
     }
@@ -106,11 +140,27 @@ export default function AdminStudentsPage() {
     setIsDrawerOpen(true);
   };
 
-  // Associated bookings for selected student
   const studentBookings = useMemo(() => {
     if (!selectedStudent) return [];
     return db.getBookings().filter((b) => b.student_id === selectedStudent.id);
   }, [selectedStudent]);
+
+  const exportStudentsCSV = () => {
+    let csvContent = "ID,FirstName,LastName,Email,Phone,Grade,GuardianName,AccountStatus,CreatedAt\n";
+    filteredStudents.forEach((s) => {
+      const prof = Array.isArray(s.student_profiles) ? s.student_profiles[0] : s.student_profiles;
+      const guardian = prof?.preferences?.guardian_name || "Self/Adult";
+      csvContent += `"${s.id}","${s.first_name}","${s.last_name}","${s.email}","${s.phone || ""}","${prof?.grade_level || ""}","${guardian}","${s.account_status || "ACTIVE"}","${s.created_at || ""}"\n`;
+    });
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `levchary_students_${new Date().toISOString().split("T")[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const userTabs = [
     { label: "All Users", href: "/admin/users" },
@@ -127,7 +177,30 @@ export default function AdminStudentsPage() {
         badgeText="Enrolled Students"
         description="Student profiles, learning preferences, parent/guardian links, ID verification review, and platform access oversight."
         tabs={userTabs}
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportStudentsCSV}
+            className="h-8 text-xs border-slate-200 gap-1.5 text-navy-950 hover:bg-slate-50"
+          >
+            <Download className="w-3.5 h-3.5 text-purple-700" />
+            <span>Export to CSV</span>
+          </Button>
+        }
       />
+
+      {actionAlert && (
+        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <span>{actionAlert}</span>
+          </div>
+          <button onClick={() => setActionAlert(null)} className="underline font-semibold">
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* Filter Bar with Grade Level Dropdown & Search */}
       <FilterBar
@@ -168,7 +241,7 @@ export default function AdminStudentsPage() {
                   <th className="p-4">Guardian / Contact</th>
                   <th className="p-4">Grade & Goals</th>
                   <th className="p-4">Active Classes</th>
-                  <th className="p-4">Student ID Verification</th>
+                  <th className="p-4">Account Status</th>
                   <th className="p-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -178,7 +251,7 @@ export default function AdminStudentsPage() {
                   const studentProfile = Array.isArray(s.student_profiles)
                     ? s.student_profiles[0]
                     : s.student_profiles;
-                  const isApproved = s.verification_status === "APPROVED";
+                  const isSuspended = s.account_status === "SUSPENDED";
                   const bookingsCount = db.getBookings().filter((b) => b.student_id === s.id).length;
                   const guardianInfo = studentProfile?.preferences?.guardian_name || "Self / Adult Student";
                   const guardianContact = studentProfile?.preferences?.guardian_email || s.phone || "No alternate contact";
@@ -232,18 +305,7 @@ export default function AdminStudentsPage() {
                       </td>
 
                       <td className="p-4">
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-[10px] font-bold inline-flex items-center gap-1 ${
-                            isApproved
-                              ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                              : s.verification_status === "REJECTED"
-                              ? "bg-red-100 text-red-800 border border-red-200"
-                              : "bg-amber-100 text-amber-800 border border-amber-200"
-                          }`}
-                        >
-                          <ShieldCheck className="w-3 h-3" />
-                          <span>{s.verification_status || "PENDING_REVIEW"}</span>
-                        </span>
+                        <StatusBadge status={s.account_status || "ACTIVE"} />
                       </td>
 
                       <td className="p-4 text-right">
@@ -256,27 +318,25 @@ export default function AdminStudentsPage() {
                           >
                             <Eye className="w-3.5 h-3.5 text-teal-600" /> View
                           </Button>
-                          {isApproved ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-8 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
-                              disabled={isUpdating}
-                              onClick={() => handleUpdateVerification(s.id, "REJECTED")}
-                            >
-                              {isUpdating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Revoke"}
-                            </Button>
-                          ) : (
-                            <Button
-                              variant="default"
-                              size="sm"
-                              className="h-8 text-xs bg-teal-600 hover:bg-teal-700 text-white min-w-[75px]"
-                              disabled={isUpdating}
-                              onClick={() => handleUpdateVerification(s.id, "APPROVED")}
-                            >
-                              {isUpdating ? <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto" /> : "Verify ID"}
-                            </Button>
-                          )}
+                          <Button
+                            variant={isSuspended ? "outline" : "destructive"}
+                            size="sm"
+                            className="h-8 text-xs min-w-[85px]"
+                            disabled={isUpdating}
+                            onClick={() => handleActionClick(s)}
+                          >
+                            {isUpdating ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto" />
+                            ) : isSuspended ? (
+                              <>
+                                <UserCheck className="w-3 h-3 mr-1" /> Reactivate
+                              </>
+                            ) : (
+                              <>
+                                <UserX className="w-3 h-3 mr-1" /> Suspend
+                              </>
+                            )}
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -319,6 +379,12 @@ export default function AdminStudentsPage() {
                   <span>{selectedStudent.city ? `${selectedStudent.city}, ${selectedStudent.state || "US"}` : "Not specified"}</span>
                 </div>
               </div>
+            </div>
+
+            {/* Account Status Badge */}
+            <div className="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between">
+              <span className="font-bold text-navy-950">Account Status:</span>
+              <StatusBadge status={selectedStudent.account_status || "ACTIVE"} />
             </div>
 
             {/* Parent & Guardian Section (K-12 Minor Protection) */}
@@ -399,17 +465,12 @@ export default function AdminStudentsPage() {
             {/* Footer Actions */}
             <div className="pt-4 border-t border-slate-200 flex items-center justify-end gap-2">
               <Button
-                variant={selectedStudent.verification_status === "APPROVED" ? "outline" : "default"}
+                variant={selectedStudent.account_status === "SUSPENDED" ? "default" : "destructive"}
                 size="sm"
                 className="h-8 text-xs"
-                onClick={() =>
-                  handleUpdateVerification(
-                    selectedStudent.id,
-                    selectedStudent.verification_status === "APPROVED" ? "REJECTED" : "APPROVED"
-                  )
-                }
+                onClick={() => handleActionClick(selectedStudent)}
               >
-                {selectedStudent.verification_status === "APPROVED" ? "Revoke ID" : "Verify Student ID"}
+                {selectedStudent.account_status === "SUSPENDED" ? "Reactivate Student" : "Suspend Student"}
               </Button>
               <Button
                 variant="outline"
@@ -423,6 +484,62 @@ export default function AdminStudentsPage() {
           </div>
         )}
       </DetailDrawer>
+
+      {/* Suspension Note Modal */}
+      {isSuspendModalOpen && suspendingStudent && (
+        <div className="fixed inset-0 z-50 bg-navy-950/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-md w-full p-6 space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm text-navy-950">
+                  Suspend {suspendingStudent.first_name} {suspendingStudent.last_name}
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Enter an administrative note explaining why this student account is being suspended.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700 block">
+                Suspension Reason & Notes:
+              </label>
+              <Textarea
+                placeholder="e.g. Inappropriate communication with tutor, dispute investigation..."
+                value={suspensionReason}
+                onChange={(e) => setSuspensionReason(e.target.value)}
+                rows={3}
+                className="text-xs"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs border-slate-200"
+                onClick={() => {
+                  setIsSuspendModalOpen(false);
+                  setSuspendingStudent(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="h-8 text-xs bg-rose-600 hover:bg-rose-700"
+                onClick={confirmSuspension}
+              >
+                Confirm Suspension
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

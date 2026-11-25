@@ -3,12 +3,12 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { RatingStars } from "@/components/ui/rating-stars";
 import { MoneyDisplay } from "@/components/ui/money-display";
 import { Button } from "@/components/ui/button";
 import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 import { DetailDrawer } from "@/components/shared/detail-drawer";
 import { FilterBar } from "@/components/shared/filter-bar";
+import { Textarea } from "@/components/ui/textarea";
 import { db } from "@/lib/data-store";
 import {
   ShieldCheck,
@@ -17,14 +17,13 @@ import {
   Loader2,
   Eye,
   BookOpen,
-  DollarSign,
   Calendar,
-  CreditCard,
   GraduationCap,
   Mail,
   MapPin,
   CheckCircle2,
-  Clock
+  Download,
+  AlertCircle
 } from "lucide-react";
 
 export default function AdminInstructorsPage() {
@@ -33,10 +32,16 @@ export default function AdminInstructorsPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [formatFilter, setFormatFilter] = useState("ALL");
+  const [actionAlert, setActionAlert] = useState<string | null>(null);
 
   // Instructor Modal / Drawer
   const [selectedInstructor, setSelectedInstructor] = useState<any | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  // Suspension Note Modal State
+  const [suspendingInstructor, setSuspendingInstructor] = useState<any | null>(null);
+  const [suspensionReason, setSuspensionReason] = useState("");
+  const [isSuspendModalOpen, setIsSuspendModalOpen] = useState(false);
 
   const fetchInstructors = async () => {
     try {
@@ -57,42 +62,68 @@ export default function AdminInstructorsPage() {
     fetchInstructors();
   }, []);
 
-  const toggleApproval = async (userId: string, currentApproved: boolean) => {
+  const handleActionClick = (t: any) => {
+    const isCurrentlyActive = (t.user?.account_status || "ACTIVE") === "ACTIVE";
+    if (isCurrentlyActive) {
+      setSuspendingInstructor(t);
+      setSuspensionReason("");
+      setIsSuspendModalOpen(true);
+    } else {
+      executeStatusUpdate(t.user_id, "ACTIVE", "Teaching account reactivated by administrator");
+    }
+  };
+
+  const confirmSuspension = () => {
+    if (!suspendingInstructor) return;
+    executeStatusUpdate(
+      suspendingInstructor.user_id,
+      "SUSPENDED",
+      suspensionReason.trim() || "Policy compliance or credential audit suspension"
+    );
+    setIsSuspendModalOpen(false);
+    setSuspendingInstructor(null);
+  };
+
+  const executeStatusUpdate = async (userId: string, nextStatus: "ACTIVE" | "SUSPENDED", noteText?: string) => {
     try {
       setUpdatingId(userId);
-      const nextApproved = !currentApproved;
-      const res = await fetch("/api/admin/instructors", {
+      const isApproved = nextStatus === "ACTIVE";
+      await fetch("/api/admin/instructors", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, approve: nextApproved }),
+        body: JSON.stringify({ userId, approve: isApproved, accountStatus: nextStatus, note: noteText }),
       });
 
-      if (res.ok) {
-        setInstructors((prev) =>
-          prev.map((inst) =>
-            inst.user_id === userId
-              ? {
-                  ...inst,
-                  is_approved: nextApproved,
-                  user: {
-                    ...inst.user,
-                    verification_status: nextApproved ? "APPROVED" : "PENDING_REVIEW",
-                  },
-                }
-              : inst
-          )
-        );
-        if (selectedInstructor && selectedInstructor.user_id === userId) {
-          setSelectedInstructor({
-            ...selectedInstructor,
-            is_approved: nextApproved,
-            user: {
-              ...selectedInstructor.user,
-              verification_status: nextApproved ? "APPROVED" : "PENDING_REVIEW",
-            },
-          });
-        }
+      db.updateProfile(userId, { account_status: nextStatus as any });
+
+      setInstructors((prev) =>
+        prev.map((inst) =>
+          inst.user_id === userId
+            ? {
+                ...inst,
+                is_approved: isApproved,
+                user: {
+                  ...inst.user,
+                  account_status: nextStatus,
+                  verification_status: isApproved ? "APPROVED" : "SUSPENDED",
+                },
+              }
+            : inst
+        )
+      );
+      if (selectedInstructor && selectedInstructor.user_id === userId) {
+        setSelectedInstructor({
+          ...selectedInstructor,
+          is_approved: isApproved,
+          user: {
+            ...selectedInstructor.user,
+            account_status: nextStatus,
+            verification_status: isApproved ? "APPROVED" : "SUSPENDED",
+          },
+        });
       }
+      setActionAlert(`Instructor account marked as ${nextStatus}.${noteText ? ` Note: "${noteText}"` : ""}`);
+      setTimeout(() => setActionAlert(null), 4000);
     } catch (err) {
       console.error("Failed to update status:", err);
     } finally {
@@ -124,6 +155,21 @@ export default function AdminInstructorsPage() {
     return db.state.classes.filter((c) => c.tutor_id === selectedInstructor.user_id);
   }, [selectedInstructor]);
 
+  const exportInstructorsCSV = () => {
+    let csvContent = "UserID,FirstName,LastName,Email,HourlyRate,Format,AccountStatus,VerificationStatus\n";
+    filteredInstructors.forEach((t) => {
+      csvContent += `"${t.user_id}","${t.user?.first_name || ""}","${t.user?.last_name || ""}","${t.user?.email || ""}",${((t.hourly_rate || 3500) / 100).toFixed(2)},"${t.preferred_format || "BOTH"}","${t.user?.account_status || "ACTIVE"}","${t.user?.verification_status || "APPROVED"}"\n`;
+    });
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `levchary_instructors_${new Date().toISOString().split("T")[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const userTabs = [
     { label: "All Users", href: "/admin/users" },
     { label: "Students", href: "/admin/students" },
@@ -137,9 +183,32 @@ export default function AdminInstructorsPage() {
       <AdminHubHeader
         title="People & Accounts Hub"
         badgeText="Faculty & Instructors"
-        description="Directory of all instructors, authorized teaching subjects, background check expiration, Stripe payout status, and teaching authorization."
+        description="Directory of all instructors, authorized subjects, hourly rates, and account access controls."
         tabs={userTabs}
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportInstructorsCSV}
+            className="h-8 text-xs border-slate-200 gap-1.5 text-navy-950 hover:bg-slate-50"
+          >
+            <Download className="w-3.5 h-3.5 text-purple-700" />
+            <span>Export to CSV</span>
+          </Button>
+        }
       />
+
+      {actionAlert && (
+        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <span>{actionAlert}</span>
+          </div>
+          <button onClick={() => setActionAlert(null)} className="underline font-semibold">
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* Filter Bar with Format Chips and Search */}
       <FilterBar
@@ -177,9 +246,8 @@ export default function AdminInstructorsPage() {
                 <tr>
                   <th className="p-4">Instructor</th>
                   <th className="p-4">Taught Subjects</th>
-                  <th className="p-4">Background Check</th>
-                  <th className="p-4">Hourly & Payout</th>
-                  <th className="p-4">Teaching Authorization</th>
+                  <th className="p-4">Hourly Rate</th>
+                  <th className="p-4">Account Status</th>
                   <th className="p-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -189,10 +257,7 @@ export default function AdminInstructorsPage() {
                   const subjectsList = t.subjects && t.subjects.length > 0
                     ? t.subjects.join(", ")
                     : "AP Biology, Mathematics, Science";
-                  const bgCheckStatus = t.background_check_expires
-                    ? `Exp: ${t.background_check_expires.split("T")[0]}`
-                    : "Cleared (Exp: 2027-01-15)";
-                  const stripeStatus = t.stripe_connect_id ? "Stripe Active" : "Stripe Connected";
+                  const isSuspended = (t.user?.account_status || "ACTIVE") === "SUSPENDED";
 
                   return (
                     <tr key={t.user_id} className="hover:bg-slate-50/60 transition-colors">
@@ -225,33 +290,12 @@ export default function AdminInstructorsPage() {
                         </div>
                       </td>
 
-                      <td className="p-4">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 inline-flex items-center gap-1">
-                          <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                          <span>{bgCheckStatus}</span>
-                        </span>
+                      <td className="p-4 font-bold text-navy-950">
+                        <MoneyDisplay cents={t.hourly_rate || 3500} label="/hr" />
                       </td>
 
                       <td className="p-4">
-                        <div className="font-bold text-navy-950">
-                          <MoneyDisplay cents={t.hourly_rate || 3500} label="/hr" />
-                        </div>
-                        <div className="text-[10px] text-purple-700 font-medium mt-0.5 flex items-center gap-1">
-                          <CreditCard className="w-3 h-3" />
-                          <span>80% Payout • {stripeStatus}</span>
-                        </div>
-                      </td>
-
-                      <td className="p-4">
-                        <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                            t.is_approved
-                              ? "bg-emerald-100 text-emerald-800"
-                              : "bg-amber-100 text-amber-800"
-                          }`}
-                        >
-                          {t.is_approved ? "APPROVED INSTRUCTOR" : "PENDING AUDIT"}
-                        </span>
+                        <StatusBadge status={t.user?.account_status || "ACTIVE"} />
                       </td>
 
                       <td className="p-4 text-right">
@@ -265,18 +309,22 @@ export default function AdminInstructorsPage() {
                             <Eye className="w-3.5 h-3.5 text-teal-600" /> View
                           </Button>
                           <Button
-                            variant={t.is_approved ? "destructive" : "default"}
+                            variant={isSuspended ? "outline" : "destructive"}
                             size="sm"
                             className="h-8 text-xs min-w-[85px]"
                             disabled={isUpdating}
-                            onClick={() => toggleApproval(t.user_id, t.is_approved)}
+                            onClick={() => handleActionClick(t)}
                           >
                             {isUpdating ? (
                               <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto" />
-                            ) : t.is_approved ? (
-                              "Revoke"
+                            ) : isSuspended ? (
+                              <>
+                                <UserCheck className="w-3 h-3 mr-1" /> Reactivate
+                              </>
                             ) : (
-                              "Authorize"
+                              <>
+                                <UserX className="w-3 h-3 mr-1" /> Suspend
+                              </>
                             )}
                           </Button>
                         </div>
@@ -323,31 +371,23 @@ export default function AdminInstructorsPage() {
               </div>
             </div>
 
-            {/* Payout & Financial Terms Card */}
-            <div className="p-4 bg-purple-50/50 border border-purple-200 rounded-xl space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-purple-950 flex items-center gap-1.5">
-                  <CreditCard className="w-4 h-4 text-purple-700" />
-                  <span>Commission & Payout Terms</span>
-                </span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-900">
-                  Stripe Express Connected
+            {/* Account Status Card */}
+            <div className="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between">
+              <span className="font-bold text-navy-950">Account Status:</span>
+              <StatusBadge status={selectedInstructor.user?.account_status || "ACTIVE"} />
+            </div>
+
+            {/* Hourly Rate Summary */}
+            <div className="p-4 bg-teal-50/50 border border-teal-200 rounded-xl flex items-center justify-between">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-teal-800 block">Base Teaching Rate</span>
+                <span className="font-bold text-navy-950 text-base">
+                  ${((selectedInstructor.hourly_rate || 3500) / 100).toFixed(2)} / hr
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-3 text-[11px]">
-                <div>
-                  <span className="text-slate-400 block">Base Hourly Rate:</span>
-                  <span className="font-bold text-navy-950 text-sm">
-                    ${((selectedInstructor.hourly_rate || 3500) / 100).toFixed(2)} / hr
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block">Platform Commission Split:</span>
-                  <span className="font-bold text-emerald-800 text-sm">
-                    80% Instructor / 20% Levchary
-                  </span>
-                </div>
-              </div>
+              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-teal-100 text-teal-800">
+                {selectedInstructor.preferred_format || "BOTH"}
+              </span>
             </div>
 
             {/* Background Check Compliance */}
@@ -355,14 +395,14 @@ export default function AdminInstructorsPage() {
               <div className="flex items-center justify-between">
                 <span className="font-bold text-navy-950 flex items-center gap-1.5">
                   <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                  <span>Criminal Background Clearance</span>
+                  <span>Background Verification Status</span>
                 </span>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                  Verified & Cleared
+                  Verified
                 </span>
               </div>
               <p className="text-[11px] text-slate-500">
-                Annual background check is current. Valid for in-person home tutoring and physical venue instruction until <strong className="text-navy-950">January 15, 2027</strong>.
+                Instructor credentials and background review cleared for both virtual classes and physical venues.
               </p>
             </div>
 
@@ -413,12 +453,14 @@ export default function AdminInstructorsPage() {
             {/* Quick Actions Drawer Footer */}
             <div className="pt-4 border-t border-slate-200 flex items-center justify-end gap-2">
               <Button
-                variant={selectedInstructor.is_approved ? "destructive" : "default"}
+                variant={(selectedInstructor.user?.account_status || "ACTIVE") === "ACTIVE" ? "destructive" : "default"}
                 size="sm"
                 className="h-8 text-xs min-w-[90px]"
-                onClick={() => toggleApproval(selectedInstructor.user_id, selectedInstructor.is_approved)}
+                onClick={() => handleActionClick(selectedInstructor)}
               >
-                {selectedInstructor.is_approved ? "Revoke Teaching Authority" : "Authorize Instructor"}
+                {(selectedInstructor.user?.account_status || "ACTIVE") === "ACTIVE"
+                  ? "Suspend Instructor"
+                  : "Reactivate Instructor"}
               </Button>
               <Button
                 variant="outline"
@@ -432,6 +474,62 @@ export default function AdminInstructorsPage() {
           </div>
         )}
       </DetailDrawer>
+
+      {/* Suspension Note Modal */}
+      {isSuspendModalOpen && suspendingInstructor && (
+        <div className="fixed inset-0 z-50 bg-navy-950/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-md w-full p-6 space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm text-navy-950">
+                  Suspend {suspendingInstructor.user?.first_name} {suspendingInstructor.user?.last_name}
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Enter an administrative note explaining why this instructor is being suspended.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700 block">
+                Suspension Reason & Notes:
+              </label>
+              <Textarea
+                placeholder="e.g. Incomplete credentials, student dispute under investigation..."
+                value={suspensionReason}
+                onChange={(e) => setSuspensionReason(e.target.value)}
+                rows={3}
+                className="text-xs"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs border-slate-200"
+                onClick={() => {
+                  setIsSuspendModalOpen(false);
+                  setSuspendingInstructor(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="h-8 text-xs bg-rose-600 hover:bg-rose-700"
+                onClick={confirmSuspension}
+              >
+                Confirm Suspension
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -12,12 +12,12 @@ import { DataTable, Column } from "@/components/shared/data-table";
 import { FilterBar } from "@/components/shared/filter-bar";
 import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 import { DetailDrawer } from "@/components/shared/detail-drawer";
+import { Textarea } from "@/components/ui/textarea";
 import {
   UserX,
   UserCheck,
   Shield,
   CheckCircle2,
-  RefreshCw,
   Eye,
   Download,
   Calendar,
@@ -40,6 +40,11 @@ export default function AdminUsersPage() {
   // Detail Modal State
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  // Suspension Note Modal State
+  const [suspendingUser, setSuspendingUser] = useState<UserProfile | null>(null);
+  const [suspensionReason, setSuspensionReason] = useState("");
+  const [isSuspendModalOpen, setIsSuspendModalOpen] = useState(false);
 
   const loadUsers = async () => {
     try {
@@ -75,34 +80,54 @@ export default function AdminUsersPage() {
     });
   }, [users, roleFilter, searchQuery]);
 
-  const toggleAccountStatus = async (userId: string, currentStatus: string) => {
-    const newStatus = currentStatus === "ACTIVE" ? "SUSPENDED" : "ACTIVE";
+  const handleActionClick = (u: UserProfile) => {
+    if (u.account_status === "ACTIVE") {
+      setSuspendingUser(u);
+      setSuspensionReason("");
+      setIsSuspendModalOpen(true);
+    } else {
+      executeStatusUpdate(u.id, "ACTIVE", "Account reactivated by administrator");
+    }
+  };
+
+  const confirmSuspension = () => {
+    if (!suspendingUser) return;
+    executeStatusUpdate(
+      suspendingUser.id,
+      "SUSPENDED",
+      suspensionReason.trim() || "Policy compliance or safety review suspension"
+    );
+    setIsSuspendModalOpen(false);
+    setSuspendingUser(null);
+  };
+
+  const executeStatusUpdate = async (userId: string, nextStatus: "ACTIVE" | "SUSPENDED", noteText?: string) => {
     try {
       await fetch("/api/admin/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, accountStatus: newStatus }),
+        body: JSON.stringify({ userId, accountStatus: nextStatus, note: noteText }),
       });
     } catch {}
 
-    db.updateProfile(userId, { account_status: newStatus as any });
+    db.updateProfile(userId, { account_status: nextStatus as any });
 
     db.logAudit({
       actor_id: currentAdmin?.id || "usr-admin-1",
       actor_role: "ADMIN",
-      action: `USER_STATUS_${newStatus}`,
+      action: `USER_STATUS_${nextStatus}`,
       entity_type: "USER_PROFILE",
       entity_id: userId,
-      metadata: { previous_status: currentStatus, new_status: newStatus },
+      metadata: { new_status: nextStatus, note: noteText },
     });
 
     setUsers((prev) =>
-      prev.map((u) => (u.id === userId ? { ...u, account_status: newStatus as any } : u))
+      prev.map((u) => (u.id === userId ? { ...u, account_status: nextStatus as any } : u))
     );
     if (selectedUser && selectedUser.id === userId) {
-      setSelectedUser({ ...selectedUser, account_status: newStatus as any });
+      setSelectedUser({ ...selectedUser, account_status: nextStatus as any });
     }
-    setActionAlert(`User status updated to ${newStatus}. Logged in audit trail.`);
+    setActionAlert(`User marked as ${nextStatus}.${noteText ? ` Note logged: "${noteText}"` : ""}`);
     setTimeout(() => setActionAlert(null), 4000);
   };
 
@@ -122,6 +147,21 @@ export default function AdminUsersPage() {
     const bookingIds = new Set(userBookings.map((b) => b.id).filter(Boolean));
     return db.state.transactions.filter((t) => t.booking_id && bookingIds.has(t.booking_id));
   }, [selectedUser, userBookings]);
+
+  const exportUsersCSV = () => {
+    let csvContent = "ID,FirstName,LastName,Email,Role,AccountStatus,VerificationStatus,CreatedAt\n";
+    filteredUsers.forEach((u) => {
+      csvContent += `"${u.id}","${u.first_name}","${u.last_name}","${u.email}","${u.role}","${u.account_status}","${u.verification_status}","${u.created_at || ""}"\n`;
+    });
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `levchary_users_${new Date().toISOString().split("T")[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const columns: Column<UserProfile>[] = [
     {
@@ -202,7 +242,7 @@ export default function AdminUsersPage() {
               variant={u.account_status === "ACTIVE" ? "destructive" : "outline"}
               size="sm"
               className="h-7 text-[11px] gap-1 px-2.5"
-              onClick={() => toggleAccountStatus(u.id, u.account_status)}
+              onClick={() => handleActionClick(u)}
             >
               {u.account_status === "ACTIVE" ? (
                 <>
@@ -245,24 +285,15 @@ export default function AdminUsersPage() {
         description="Oversee student enrollments, faculty profiles, candidate applications, and credential document verification."
         tabs={userTabs}
         actions={
-          <div className="flex items-center gap-2">
-            <Button asChild variant="outline" size="sm" className="h-8 text-xs border-slate-200 gap-1.5">
-              <Link href="/admin/reports">
-                <Download className="w-3.5 h-3.5 text-purple-700" />
-                <span>Export to CSV</span>
-              </Link>
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={loadUsers}
-              disabled={loading}
-              className="h-8 text-xs border-slate-200 gap-1.5"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-              <span>Refresh</span>
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportUsersCSV}
+            className="h-8 text-xs border-slate-200 gap-1.5 text-navy-950 hover:bg-slate-50"
+          >
+            <Download className="w-3.5 h-3.5 text-purple-700" />
+            <span>Export to CSV</span>
+          </Button>
         }
       />
 
@@ -442,7 +473,7 @@ export default function AdminUsersPage() {
                   variant={selectedUser.account_status === "ACTIVE" ? "destructive" : "default"}
                   size="sm"
                   className="h-8 text-xs gap-1"
-                  onClick={() => toggleAccountStatus(selectedUser.id, selectedUser.account_status)}
+                  onClick={() => handleActionClick(selectedUser)}
                 >
                   {selectedUser.account_status === "ACTIVE" ? (
                     <>
@@ -467,6 +498,62 @@ export default function AdminUsersPage() {
           </div>
         )}
       </DetailDrawer>
+
+      {/* Suspension Note Modal */}
+      {isSuspendModalOpen && suspendingUser && (
+        <div className="fixed inset-0 z-50 bg-navy-950/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-md w-full p-6 space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm text-navy-950">
+                  Suspend {suspendingUser.first_name} {suspendingUser.last_name}
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Enter an administrative reason or audit note for suspending this account.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700 block">
+                Suspension Reason & Notes:
+              </label>
+              <Textarea
+                placeholder="e.g. Inappropriate conduct during session, identity clarification needed..."
+                value={suspensionReason}
+                onChange={(e) => setSuspensionReason(e.target.value)}
+                rows={3}
+                className="text-xs"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs border-slate-200"
+                onClick={() => {
+                  setIsSuspendModalOpen(false);
+                  setSuspendingUser(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="h-8 text-xs bg-rose-600 hover:bg-rose-700"
+                onClick={confirmSuspension}
+              >
+                Confirm Suspension
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
