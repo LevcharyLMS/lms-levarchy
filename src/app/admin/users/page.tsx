@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { db } from "@/lib/data-store";
 import { useAuth } from "@/context/auth-context";
 import { UserProfile, UserRole } from "@/types";
@@ -10,14 +10,36 @@ import { Button } from "@/components/ui/button";
 import { DataTable, Column } from "@/components/shared/data-table";
 import { FilterBar } from "@/components/shared/filter-bar";
 import { AdminHubHeader } from "@/components/admin/admin-hub-header";
-import { UserX, UserCheck, Shield, CheckCircle2 } from "lucide-react";
+import { UserX, UserCheck, Shield, CheckCircle2, RefreshCw } from "lucide-react";
 
 export default function AdminUsersPage() {
   const { user: currentAdmin } = useAuth();
-  const [users, setUsers] = useState<UserProfile[]>(db.getProfiles());
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [loading, setLoading] = useState(true);
   const [roleFilter, setRoleFilter] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [actionAlert, setActionAlert] = useState<string | null>(null);
+
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/admin/users");
+      if (res.ok) {
+        const data = await res.json();
+        setUsers(data.users || []);
+      } else {
+        setUsers(db.getProfiles());
+      }
+    } catch {
+      setUsers(db.getProfiles());
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
 
   const filteredUsers = useMemo(() => {
     return users.filter((u) => {
@@ -25,31 +47,39 @@ export default function AdminUsersPage() {
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchesName = `${u.first_name} ${u.last_name}`.toLowerCase().includes(q);
-        const matchesEmail = u.email.toLowerCase().includes(q);
+        const matchesEmail = (u.email || "").toLowerCase().includes(q);
         return matchesName || matchesEmail;
       }
       return true;
     });
   }, [users, roleFilter, searchQuery]);
 
-  const toggleAccountStatus = (userId: string, currentStatus: string) => {
+  const toggleAccountStatus = async (userId: string, currentStatus: string) => {
     const newStatus = currentStatus === "ACTIVE" ? "SUSPENDED" : "ACTIVE";
-    const updated = db.updateProfile(userId, { account_status: newStatus as any });
-
-    if (updated) {
-      db.logAudit({
-        actor_id: currentAdmin?.id || "usr-admin-1",
-        actor_role: "ADMIN",
-        action: `USER_STATUS_${newStatus}`,
-        entity_type: "USER_PROFILE",
-        entity_id: userId,
-        metadata: { previous_status: currentStatus, new_status: newStatus },
+    try {
+      await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, accountStatus: newStatus }),
       });
+    } catch {}
 
-      setUsers([...db.getProfiles()]);
-      setActionAlert(`User status updated to ${newStatus}. Logged in audit trail.`);
-      setTimeout(() => setActionAlert(null), 4000);
-    }
+    db.updateProfile(userId, { account_status: newStatus as any });
+
+    db.logAudit({
+      actor_id: currentAdmin?.id || "usr-admin-1",
+      actor_role: "ADMIN",
+      action: `USER_STATUS_${newStatus}`,
+      entity_type: "USER_PROFILE",
+      entity_id: userId,
+      metadata: { previous_status: currentStatus, new_status: newStatus },
+    });
+
+    setUsers((prev) =>
+      prev.map((u) => (u.id === userId ? { ...u, account_status: newStatus as any } : u))
+    );
+    setActionAlert(`User status updated to ${newStatus}. Logged in audit trail.`);
+    setTimeout(() => setActionAlert(null), 4000);
   };
 
   const columns: Column<UserProfile>[] = [
@@ -136,22 +166,42 @@ export default function AdminUsersPage() {
     },
   ];
 
+  const pendingVerificationsCount = db.state.verification_documents.filter(
+    (d) => d.status === "PENDING_REVIEW"
+  ).length;
+
   const userTabs = [
     { label: "All Users", href: "/admin/users" },
     { label: "Students", href: "/admin/students" },
     { label: "Instructors", href: "/admin/instructors" },
     { label: "Applications", href: "/admin/instructor-applications" },
-    { label: "Verifications", href: "/admin/verifications", badge: "1" },
+    {
+      label: "Verifications",
+      href: "/admin/verifications",
+      badge: pendingVerificationsCount > 0 ? pendingVerificationsCount : undefined,
+    },
   ];
 
   return (
     <div className="space-y-5 max-w-7xl mx-auto">
       {/* Modern Hub Header with Sub-Tabs */}
       <AdminHubHeader
-        title="Users & Directory Hub"
+        title="People & Accounts Hub"
         badgeText="RBAC Authority"
-        description="Oversee student enrollments, faculty profiles, vetting applications, and document verification."
+        description="Oversee student enrollments, faculty profiles, candidate applications, and credential document verification."
         tabs={userTabs}
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={loadUsers}
+            disabled={loading}
+            className="h-8 text-xs border-slate-200 gap-1.5"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            <span>Refresh</span>
+          </Button>
+        }
       />
 
       {actionAlert && (

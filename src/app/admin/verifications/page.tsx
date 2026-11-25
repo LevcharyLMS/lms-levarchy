@@ -118,18 +118,26 @@ export default function AdminVerificationsPage() {
     },
   ];
 
+  const pendingDocsCount = documents.filter(
+    (d) => d.status === "PENDING_REVIEW"
+  ).length;
+
   const userTabs = [
     { label: "All Users", href: "/admin/users" },
     { label: "Students", href: "/admin/students" },
     { label: "Instructors", href: "/admin/instructors" },
     { label: "Applications", href: "/admin/instructor-applications" },
-    { label: "Verifications", href: "/admin/verifications", badge: "1" },
+    {
+      label: "Verifications",
+      href: "/admin/verifications",
+      badge: pendingDocsCount > 0 ? pendingDocsCount : undefined,
+    },
   ];
 
   return (
     <div className="space-y-5 max-w-7xl mx-auto">
       <AdminHubHeader
-        title="Users & Directory Hub"
+        title="People & Accounts Hub"
         badgeText="Document Verification"
         description="Review government photo IDs and university degrees with 15-minute expiring signed URLs before granting teaching authority."
         tabs={userTabs}

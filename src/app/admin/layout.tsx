@@ -96,7 +96,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           description: "Curriculum, Subjects & Syllabus",
         },
         {
-          label: "Users & Directory",
+          label: "People & Accounts",
           href: "/admin/users",
           icon: Users,
           subRoutes: [
@@ -108,7 +108,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             "/admin/tutors",
             "/admin/verifications",
           ],
-          badge: "1",
           description: "Students, Faculty & Approvals",
         },
       ],

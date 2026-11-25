@@ -72,13 +72,13 @@ export default function AdminInstructorsPage() {
     { label: "Students", href: "/admin/students" },
     { label: "Instructors", href: "/admin/instructors" },
     { label: "Applications", href: "/admin/instructor-applications" },
-    { label: "Verifications", href: "/admin/verifications", badge: "1" },
+    { label: "Verifications", href: "/admin/verifications" },
   ];
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <AdminHubHeader
-        title="Users & Directory Hub"
+        title="People & Accounts Hub"
         badgeText="Faculty & Instructors"
         description="Directory of all instructors (tutors & faculty), verification oversight, and teaching authorization."
         tabs={userTabs}

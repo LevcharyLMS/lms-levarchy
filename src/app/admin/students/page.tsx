@@ -57,13 +57,13 @@ export default function AdminStudentsPage() {
     { label: "Students", href: "/admin/students" },
     { label: "Instructors", href: "/admin/instructors" },
     { label: "Applications", href: "/admin/instructor-applications" },
-    { label: "Verifications", href: "/admin/verifications", badge: "1" },
+    { label: "Verifications", href: "/admin/verifications" },
   ];
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <AdminHubHeader
-        title="Users & Directory Hub"
+        title="People & Accounts Hub"
         badgeText="Enrolled Students"
         description="Student profiles, learning preferences, ID verification review, and platform access oversight."
         tabs={userTabs}
