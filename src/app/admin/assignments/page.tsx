@@ -20,8 +20,10 @@ import {
   Edit2,
   AlertCircle,
   ExternalLink,
+  RefreshCw,
 } from "lucide-react";
 import { Assignment } from "@/types";
+import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 
 export default function AdminAssignmentsPage() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -99,35 +101,43 @@ export default function AdminAssignmentsPage() {
     );
   });
 
+  const bookingTabs = [
+    { label: "Bookings Ledger", href: "/admin/bookings" },
+    { label: "Assignments Oversight", href: "/admin/assignments" },
+  ];
+
   return (
     <PageTransition>
-      <div className="space-y-6 max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold tracking-tight text-navy-950">
-                Post-Class Assignments Oversight
-              </h1>
-              <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold">
-                Platform Admin
-              </span>
+      <div className="space-y-6 max-w-7xl mx-auto">
+        <AdminHubHeader
+          title="Sessions & Bookings Hub"
+          badgeText="Assignments Oversight"
+          description="Inspect, edit, or put assignments under review across all instructor cohorts. Pre-approval is not mandated."
+          tabs={bookingTabs}
+          actions={
+            <div className="flex items-center gap-3">
+              <div className="relative w-48 sm:w-64">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Input
+                  placeholder="Search assignments or tutors..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="text-xs pl-8 h-8 bg-slate-50 border-slate-200"
+                />
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={loadAssignments}
+                disabled={loading}
+                className="h-8 text-xs border-slate-200 gap-1.5"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+                <span>Refresh</span>
+              </Button>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Inspect, edit, or put assignments under review across all instructor cohorts. Pre-approval is not mandated.
-            </p>
-          </div>
-
-          <div className="relative w-full sm:w-64">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <Input
-              placeholder="Search assignments or tutors..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="text-xs pl-8 h-9 bg-slate-50 border-slate-200"
-            />
-          </div>
-        </div>
+          }
+        />
 
         {/* Directory List */}
         {loading ? (

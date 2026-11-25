@@ -9,6 +9,7 @@ import { DataTable, Column } from "@/components/shared/data-table";
 import { FilterBar } from "@/components/shared/filter-bar";
 import { DetailDrawer } from "@/components/shared/detail-drawer";
 import { StatCard } from "@/components/ui/stat-card";
+import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 import {
   BookOpen,
   Calendar,
@@ -19,6 +20,7 @@ import {
   CheckCircle2,
   Lock,
   ExternalLink,
+  RefreshCw,
 } from "lucide-react";
 
 export default function AdminBookingsPage() {
@@ -173,34 +175,31 @@ export default function AdminBookingsPage() {
     },
   ];
 
+  const bookingTabs = [
+    { label: "Bookings Ledger", href: "/admin/bookings" },
+    { label: "Assignments Oversight", href: "/admin/assignments" },
+  ];
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs">
-        <div>
-          <div className="flex items-center gap-2 mb-0.5">
-            <h1 className="text-xl font-bold tracking-tight text-navy-950">
-              Marketplace Bookings Master Ledger
-            </h1>
-            <span className="px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[10px] font-bold">
-              Rule 11 Immutable Snapshots
-            </span>
-          </div>
-          <p className="text-xs text-slate-500">
-            Audit-grade record of student session reservations, locked financial snapshots, and meeting credentials.
-          </p>
-        </div>
-
-        <Button
-          onClick={loadBookings}
-          variant="outline"
-          size="sm"
-          className="h-8 text-xs border-slate-200"
-          disabled={loading}
-        >
-          Refresh Ledger
-        </Button>
-      </div>
+      <AdminHubHeader
+        title="Sessions & Bookings Hub"
+        badgeText="Rule 11 Snapshots"
+        description="Audit-grade ledger of student reservations, locked financial snapshots, meeting credentials, and assignment oversight."
+        tabs={bookingTabs}
+        actions={
+          <Button
+            onClick={loadBookings}
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs border-slate-200 gap-1.5"
+            disabled={loading}
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            <span>Refresh Ledger</span>
+          </Button>
+        }
+      />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-3.5">
