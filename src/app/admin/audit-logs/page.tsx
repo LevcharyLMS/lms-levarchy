@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { db } from "@/lib/data-store";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,28 +17,52 @@ import {
   User,
   Activity,
   FileCode,
-  Globe
+  Globe,
+  Loader2,
+  RefreshCw
 } from "lucide-react";
 
 export default function AdminAuditLogsPage() {
-  const logs = db.getAuditLogs();
+  const [logs, setLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("ALL");
   const [selectedLog, setSelectedLog] = useState<any | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  const fetchLogs = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/admin/audit-logs");
+      if (res.ok) {
+        const data = await res.json();
+        setLogs(data.logs || []);
+      } else {
+        setLogs(db.getAuditLogs());
+      }
+    } catch {
+      setLogs(db.getAuditLogs());
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLogs();
+  }, []);
 
   // Filter logs by search text and category chips
   const filteredLogs = useMemo(() => {
     return logs.filter((log) => {
       // Category filtering
       if (categoryFilter !== "ALL") {
-        if (categoryFilter === "USER" && !log.action.includes("USER") && !log.action.includes("APPLICATION"))
+        if (categoryFilter === "USER" && !log.action?.includes("USER") && !log.action?.includes("APPLICATION"))
           return false;
-        if (categoryFilter === "FINANCIAL" && !log.action.includes("REFUND") && !log.action.includes("PAYMENT") && !log.action.includes("COMMISSION"))
+        if (categoryFilter === "FINANCIAL" && !log.action?.includes("REFUND") && !log.action?.includes("PAYMENT") && !log.action?.includes("COMMISSION"))
           return false;
-        if (categoryFilter === "MODERATION" && !log.action.includes("FLAG") && !log.action.includes("REPORT") && !log.action.includes("REVIEW"))
+        if (categoryFilter === "MODERATION" && !log.action?.includes("FLAG") && !log.action?.includes("REPORT") && !log.action?.includes("REVIEW"))
           return false;
-        if (categoryFilter === "CONFIG" && !log.action.includes("CONFIG") && !log.action.includes("SETTING"))
+        if (categoryFilter === "CONFIG" && !log.action?.includes("CONFIG") && !log.action?.includes("SETTING") && !log.action?.includes("SYSTEM"))
           return false;
       }
 
@@ -80,6 +104,7 @@ export default function AdminAuditLogsPage() {
   const settingsTabs = [
     { label: "Configuration", href: "/admin/settings" },
     { label: "Audit Trail", href: "/admin/audit-logs" },
+    { label: "Legal Documents", href: "/admin/legal" },
   ];
 
   return (
@@ -90,15 +115,27 @@ export default function AdminAuditLogsPage() {
         description="Immutable forensic ledger recording every administrative decision, verification transition, and configuration update."
         tabs={settingsTabs}
         actions={
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={exportAuditCSV}
-            className="h-8 text-xs border-slate-200 gap-1.5 text-navy-950 hover:bg-slate-50"
-          >
-            <Download className="w-3.5 h-3.5 text-purple-700" />
-            <span>Export Audit CSV</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={exportAuditCSV}
+              className="h-8 text-xs border-slate-200 gap-1.5 text-navy-950 hover:bg-slate-50"
+            >
+              <Download className="w-3.5 h-3.5 text-purple-700" />
+              <span>Export Audit CSV</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchLogs}
+              disabled={loading}
+              className="h-8 text-xs border-slate-200 gap-1 text-slate-600"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-teal-600" : ""}`} />
+              <span>Refresh</span>
+            </Button>
+          </div>
         }
       />
 
@@ -123,7 +160,12 @@ export default function AdminAuditLogsPage() {
       />
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-        {filteredLogs.length === 0 ? (
+        {loading ? (
+          <div className="p-16 text-center text-slate-400 text-xs">
+            <Loader2 className="w-6 h-6 animate-spin text-teal-600 mx-auto mb-2" />
+            Loading security audit ledger...
+          </div>
+        ) : filteredLogs.length === 0 ? (
           <div className="p-16 text-center text-slate-400 text-xs">
             <History className="w-8 h-8 text-slate-300 mx-auto mb-2" />
             No audit log entries found matching the active search or category filters.

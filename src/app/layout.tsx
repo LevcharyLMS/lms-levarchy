@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Navbar } from "@/components/navigation/navbar";
 import { Footer } from "@/components/navigation/footer";
+import { MaintenanceBanner } from "@/components/navigation/maintenance-banner";
 import { AuthProvider } from "@/context/auth-context";
 
 export const metadata: Metadata = {
@@ -42,6 +43,7 @@ export default function RootLayout({
     <html lang="en" className="h-full scroll-smooth">
       <body className="flex min-h-full flex-col font-sans bg-slate-50 text-slate-900 antialiased">
         <AuthProvider>
+          <MaintenanceBanner />
           <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />

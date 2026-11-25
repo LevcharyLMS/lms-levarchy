@@ -267,7 +267,41 @@ const initialTransactions: Transaction[] = [];
 const initialReviews: Review[] = [];
 const initialFlags: MessageFlag[] = [];
 const initialNotifications: Notification[] = [];
-const initialAuditLogs: AuditLog[] = [];
+const initialAuditLogs: AuditLog[] = [
+  {
+    id: "aud-001",
+    actor_id: "6e983f2f-472f-43f9-a666-33521966ff8a",
+    actor_role: "ADMIN",
+    action: "SYSTEM_INITIALIZED",
+    entity_type: "SYSTEM",
+    entity_id: "sys-core",
+    metadata: { version: "2.4.0", environment: "production" },
+    ip_address: "127.0.0.1",
+    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
+  },
+  {
+    id: "aud-002",
+    actor_id: "6e983f2f-472f-43f9-a666-33521966ff8a",
+    actor_role: "ADMIN",
+    action: "USER_STATUS_ACTIVE",
+    entity_type: "USER_PROFILE",
+    entity_id: "usr-tut-1",
+    metadata: { status: "ACTIVE", note: "Initial educator identity verification cleared" },
+    ip_address: "192.168.1.102",
+    created_at: new Date(Date.now() - 86400000).toISOString(),
+  },
+  {
+    id: "aud-003",
+    actor_id: "6e983f2f-472f-43f9-a666-33521966ff8a",
+    actor_role: "ADMIN",
+    action: "PLATFORM_CONFIG_UPDATED",
+    entity_type: "SYSTEM_CONFIG",
+    entity_id: "cfg-platform",
+    metadata: { cancellation_hours: 24, full_refund_hours: 48, min_lead_hours: 2 },
+    ip_address: "127.0.0.1",
+    created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
+  },
+];
 const initialAvailability: TutorAvailability[] = [];
 const initialMessages: Message[] = [];
 const initialConversations: Conversation[] = [];

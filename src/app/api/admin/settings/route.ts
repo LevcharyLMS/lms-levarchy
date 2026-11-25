@@ -40,6 +40,12 @@ export async function POST(req: NextRequest) {
       minLeadTimeHours,
       maintenanceMode,
       maintenanceMessage,
+      socialInstagram,
+      socialYouTube,
+      socialWhatsApp,
+      socialSpotify,
+      landingContactNumber,
+      landingAddress,
       adminId,
     } = body;
 
@@ -59,40 +65,46 @@ export async function POST(req: NextRequest) {
       partial_refund_percent: 50,
     };
 
+    const landingInfo = {
+      contact_number: landingContactNumber || "+1 (800) 555-0199",
+      address: landingAddress || "100 Innovation Way, Suite 400, Boston, MA 02110",
+      social_links: {
+        instagram: socialInstagram || "https://instagram.com/levchary",
+        youtube: socialYouTube || "https://youtube.com/@levchary",
+        whatsapp: socialWhatsApp || "https://wa.me/18005550199",
+        spotify: socialSpotify || "https://open.spotify.com/user/levchary",
+      },
+    };
+
     // 1. Try persisting to Supabase platform_settings table
     try {
       await supabaseAdmin.from("platform_settings").upsert([
         { key: "platform_info", value: platformInfo, updated_at: new Date().toISOString() },
         { key: "refund_policy", value: refundPolicy, updated_at: new Date().toISOString() },
+        { key: "landing_info", value: landingInfo, updated_at: new Date().toISOString() },
       ]);
     } catch (dbErr) {
       console.warn("Could not upsert into Supabase platform_settings, updating local store:", dbErr);
     }
 
     // 2. Synchronize memory store
-    const infoIdx = db.state.platform_settings.findIndex((s) => s.key === "platform_info");
-    if (infoIdx >= 0) {
-      db.state.platform_settings[infoIdx].value = platformInfo;
-      db.state.platform_settings[infoIdx].updated_at = new Date().toISOString();
-    } else {
-      db.state.platform_settings.push({
-        key: "platform_info",
-        value: platformInfo,
-        updated_at: new Date().toISOString(),
-      });
-    }
+    const updateStoreKey = (k: string, val: any) => {
+      const idx = db.state.platform_settings.findIndex((s) => s.key === k);
+      if (idx >= 0) {
+        db.state.platform_settings[idx].value = val;
+        db.state.platform_settings[idx].updated_at = new Date().toISOString();
+      } else {
+        db.state.platform_settings.push({
+          key: k,
+          value: val,
+          updated_at: new Date().toISOString(),
+        });
+      }
+    };
 
-    const refundIdx = db.state.platform_settings.findIndex((s) => s.key === "refund_policy");
-    if (refundIdx >= 0) {
-      db.state.platform_settings[refundIdx].value = refundPolicy;
-      db.state.platform_settings[refundIdx].updated_at = new Date().toISOString();
-    } else {
-      db.state.platform_settings.push({
-        key: "refund_policy",
-        value: refundPolicy,
-        updated_at: new Date().toISOString(),
-      });
-    }
+    updateStoreKey("platform_info", platformInfo);
+    updateStoreKey("refund_policy", refundPolicy);
+    updateStoreKey("landing_info", landingInfo);
 
     // 3. Log into audit trail
     db.logAudit({
@@ -112,6 +124,7 @@ export async function POST(req: NextRequest) {
       settings: {
         platform_info: platformInfo,
         refund_policy: refundPolicy,
+        landing_info: landingInfo,
       },
     });
   } catch (err: any) {

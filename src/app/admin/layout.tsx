@@ -232,11 +232,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           label: "Settings & Audit",
           href: "/admin/settings",
           icon: Settings,
-          subRoutes: ["/admin/settings", "/admin/audit-logs"],
-          description: "Rules, Logs & Platform Config",
+          subRoutes: ["/admin/settings", "/admin/audit-logs", "/admin/legal"],
+          description: "Rules, Logs, Legal & Platform Config",
           tabs: [
             { label: "Platform Settings", href: "/admin/settings", description: "System configuration, brand tokens, and maintenance" },
-            { label: "Audit Logs", href: "/admin/audit-logs", description: "Immutable chronological admin security trail" }
+            { label: "Audit Logs", href: "/admin/audit-logs", description: "Immutable chronological admin security trail" },
+            { label: "Legal Documents", href: "/admin/legal", description: "Terms of service, privacy policy & instructor agreement" }
           ],
         },
       ],
@@ -510,11 +511,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <LogOut className="w-3.5 h-3.5" />
             </button>
           </div>
-
-          <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-[10px] text-slate-400">
-            <span>Admin Console</span>
-            <span className="font-mono">v2.4.0</span>
-          </div>
         </div>
       </aside>
 
@@ -546,7 +542,35 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            {/* Moderation Safety Flags Counter Badge */}
+            <Link
+              href="/admin/flags"
+              title="Moderation Safety Flags"
+              className="relative p-2 rounded-lg text-slate-500 hover:text-navy-950 hover:bg-slate-50 transition-colors"
+            >
+              <ShieldAlert className="w-4 h-4 text-slate-600" />
+              {pendingFlagsCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-600 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white">
+                  {pendingFlagsCount}
+                </span>
+              )}
+            </Link>
+
+            {/* Notifications Counter Badge */}
+            <Link
+              href="/admin/notifications"
+              title="System Notifications"
+              className="relative p-2 rounded-lg text-slate-500 hover:text-navy-950 hover:bg-slate-50 transition-colors"
+            >
+              <Bell className="w-4 h-4 text-slate-600" />
+              {unreadNotifications > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-teal-600 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white">
+                  {unreadNotifications}
+                </span>
+              )}
+            </Link>
+
             <Link
               href="/"
               target="_blank"

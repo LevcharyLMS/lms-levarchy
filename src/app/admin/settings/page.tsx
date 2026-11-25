@@ -18,7 +18,10 @@ import {
   Power,
   DollarSign,
   Loader2,
-  Sliders
+  Sliders,
+  Globe,
+  Share2,
+  MapPin
 } from "lucide-react";
 
 export default function AdminSettingsPage() {
@@ -27,7 +30,7 @@ export default function AdminSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [savedAlert, setSavedAlert] = useState<string | null>(null);
 
-  // Form State
+  // Form State - Platform
   const [platformName, setPlatformName] = useState("Levchary LMS");
   const [supportEmail, setSupportEmail] = useState("support@levchary.com");
   const [emergencyPhone, setEmergencyPhone] = useState("+1 (800) 555-0199");
@@ -39,6 +42,14 @@ export default function AdminSettingsPage() {
     "Levchary is undergoing scheduled maintenance. We'll be back shortly."
   );
 
+  // Form State - Landing Page & Social Media
+  const [landingContactNumber, setLandingContactNumber] = useState("+1 (800) 555-0199");
+  const [landingAddress, setLandingAddress] = useState("100 Innovation Way, Suite 400, Boston, MA 02110");
+  const [socialInstagram, setSocialInstagram] = useState("https://instagram.com/levchary");
+  const [socialYouTube, setSocialYouTube] = useState("https://youtube.com/@levchary");
+  const [socialWhatsApp, setSocialWhatsApp] = useState("https://wa.me/18005550199");
+  const [socialSpotify, setSocialSpotify] = useState("https://open.spotify.com/user/levchary");
+
   const fetchSettings = async () => {
     try {
       setLoading(true);
@@ -47,6 +58,7 @@ export default function AdminSettingsPage() {
         const data = await res.json();
         const info = data.settings?.platform_info;
         const refund = data.settings?.refund_policy;
+        const landing = data.settings?.landing_info;
 
         if (info) {
           if (info.name) setPlatformName(info.name);
@@ -63,6 +75,17 @@ export default function AdminSettingsPage() {
             setFullRefundHours(refund.full_refund_window_hours);
           if (refund.min_lead_time_hours !== undefined)
             setMinLeadTimeHours(refund.min_lead_time_hours);
+        }
+
+        if (landing) {
+          if (landing.contact_number) setLandingContactNumber(landing.contact_number);
+          if (landing.address) setLandingAddress(landing.address);
+          if (landing.social_links) {
+            if (landing.social_links.instagram) setSocialInstagram(landing.social_links.instagram);
+            if (landing.social_links.youtube) setSocialYouTube(landing.social_links.youtube);
+            if (landing.social_links.whatsapp) setSocialWhatsApp(landing.social_links.whatsapp);
+            if (landing.social_links.spotify) setSocialSpotify(landing.social_links.spotify);
+          }
         }
       }
     } catch (err) {
@@ -92,6 +115,12 @@ export default function AdminSettingsPage() {
           minLeadTimeHours,
           maintenanceMode,
           maintenanceMessage,
+          socialInstagram,
+          socialYouTube,
+          socialWhatsApp,
+          socialSpotify,
+          landingContactNumber,
+          landingAddress,
           adminId: currentAdmin?.id,
         }),
       });
@@ -110,6 +139,7 @@ export default function AdminSettingsPage() {
   const settingsTabs = [
     { label: "Configuration", href: "/admin/settings" },
     { label: "Audit Trail", href: "/admin/audit-logs" },
+    { label: "Legal Documents", href: "/admin/legal" },
   ];
 
   return (
@@ -117,7 +147,7 @@ export default function AdminSettingsPage() {
       <AdminHubHeader
         title="Settings & Audit Hub"
         badgeText="System Configuration"
-        description="Global platform parameters, cancellation thresholds, refund time windows, and emergency maintenance controls."
+        description="Global platform parameters, cancellation thresholds, refund time windows, landing page footer links, and emergency maintenance controls."
         tabs={settingsTabs}
       />
 
@@ -193,7 +223,86 @@ export default function AdminSettingsPage() {
             </CardContent>
           </Card>
 
-          {/* Section 2: Booking, Cancellation & Refund Policies */}
+          {/* Section 2: Landing Page Contact & Social Media Links */}
+          <Card className="border-slate-200 shadow-xs">
+            <CardContent className="p-6 space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2 text-navy-950 font-bold text-sm">
+                  <Share2 className="w-4 h-4 text-teal-600" />
+                  <span>Landing Page Footer & Social Media Channels</span>
+                </div>
+                <span className="text-[10px] uppercase font-bold text-slate-400">Public Front-End</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1.5 flex items-center gap-1.5">
+                    <Phone className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Public Contact Number (Shown on Landing Page & Footer)</span>
+                  </label>
+                  <Input
+                    value={landingContactNumber}
+                    onChange={(e) => setLandingContactNumber(e.target.value)}
+                    className="h-9 text-xs"
+                    placeholder="+1 (800) 555-0199"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1.5 flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Headquarters Office Address</span>
+                  </label>
+                  <Input
+                    value={landingAddress}
+                    onChange={(e) => setLandingAddress(e.target.value)}
+                    className="h-9 text-xs"
+                    placeholder="100 Innovation Way, Boston, MA"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs pt-2">
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1.5">Instagram URL</label>
+                  <Input
+                    value={socialInstagram}
+                    onChange={(e) => setSocialInstagram(e.target.value)}
+                    className="h-9 text-xs"
+                    placeholder="https://instagram.com/..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1.5">YouTube URL</label>
+                  <Input
+                    value={socialYouTube}
+                    onChange={(e) => setSocialYouTube(e.target.value)}
+                    className="h-9 text-xs"
+                    placeholder="https://youtube.com/@..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1.5">WhatsApp Contact Link</label>
+                  <Input
+                    value={socialWhatsApp}
+                    onChange={(e) => setSocialWhatsApp(e.target.value)}
+                    className="h-9 text-xs"
+                    placeholder="https://wa.me/..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1.5">Spotify Channel</label>
+                  <Input
+                    value={socialSpotify}
+                    onChange={(e) => setSocialSpotify(e.target.value)}
+                    className="h-9 text-xs"
+                    placeholder="https://open.spotify.com/..."
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Section 3: Booking, Cancellation & Refund Policies */}
           <Card className="border-slate-200 shadow-xs">
             <CardContent className="p-6 space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -262,7 +371,7 @@ export default function AdminSettingsPage() {
             </CardContent>
           </Card>
 
-          {/* Section 3: Platform Operational State & Maintenance Mode */}
+          {/* Section 4: Platform Operational State & Maintenance Mode */}
           <Card className="border-slate-200 shadow-xs">
             <CardContent className="p-6 space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
