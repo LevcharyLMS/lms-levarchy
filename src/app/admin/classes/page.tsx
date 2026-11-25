@@ -210,18 +210,18 @@ export default function AdminClassesPage() {
   ];
 
   const bookingTabs = [
-    { label: "Bookings Ledger", href: "/admin/bookings" },
     {
       label: "Classes & Approvals",
       href: "/admin/classes",
       badge: pendingCount > 0 ? pendingCount : undefined,
     },
+    { label: "Bookings Ledger", href: "/admin/bookings" },
   ];
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <AdminHubHeader
-        title="Sessions & Bookings Hub"
+        title="Classes & Bookings Hub"
         badgeText="Catalog & Approvals"
         description="Oversee cohort & 1-on-1 class listings, review pending approvals, and manage live instructional offerings."
         tabs={bookingTabs}

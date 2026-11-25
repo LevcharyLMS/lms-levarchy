@@ -140,13 +140,13 @@ export default function AdminCategoriesPage() {
     { label: "Categories", href: "/admin/categories" },
     { label: "Subjects", href: "/admin/subjects" },
     { label: "Grades", href: "/admin/grades" },
+    { label: "Physical Venues", href: "/admin/locations" },
     { label: "Assignment Oversight", href: "/admin/assignments" },
     {
       label: "Curriculum Suggestions",
       href: "/admin/suggestions",
       badge: pendingSuggestions.length > 0 ? pendingSuggestions.length : undefined,
     },
-    { label: "Physical Venues", href: "/admin/locations" },
   ];
 
   return (
