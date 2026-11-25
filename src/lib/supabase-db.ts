@@ -868,39 +868,51 @@ export class SupabaseDbService {
       sql += ` ORDER BY b.start_time DESC`;
 
       const rows = await this.query(sql, params);
-      return rows.map((r) => ({
-        ...r,
-        instructor_id: r.instructor_id,
-        tutor_id: r.instructor_id, // alias
-        class_item: {
-          title: r.class_title,
-          format: r.class_format,
-          duration_minutes: r.class_duration,
-        },
-        student: {
-          first_name: r.student_first_name,
-          last_name: r.student_last_name,
-          email: r.student_email,
-        },
-        instructor: {
-          first_name: r.tutor_first_name,
-          last_name: r.tutor_last_name,
-          avatar_url: r.tutor_avatar_url,
-        },
-        tutor: {
-          first_name: r.tutor_first_name,
-          last_name: r.tutor_last_name,
-          avatar_url: r.tutor_avatar_url,
-        },
-        financial_snapshot: r.gross_amount
-          ? {
-              gross_amount: r.gross_amount,
-              platform_fee_amount: r.platform_fee_amount,
-              tutor_earnings: r.tutor_earnings,
-            }
-          : undefined,
-        location: r.location_name ? { name: r.location_name } : undefined,
-      }));
+      const now = new Date().getTime();
+
+      return rows.map((r) => {
+        let currentStatus = r.status;
+        if (r.end_time && (currentStatus === 'CONFIRMED' || currentStatus === 'IN_PROGRESS')) {
+          if (now > new Date(r.end_time).getTime()) {
+            currentStatus = 'COMPLETED';
+          }
+        }
+
+        return {
+          ...r,
+          status: currentStatus,
+          instructor_id: r.instructor_id,
+          tutor_id: r.instructor_id, // alias
+          class_item: {
+            title: r.class_title,
+            format: r.class_format,
+            duration_minutes: r.class_duration,
+          },
+          student: {
+            first_name: r.student_first_name,
+            last_name: r.student_last_name,
+            email: r.student_email,
+          },
+          instructor: {
+            first_name: r.tutor_first_name,
+            last_name: r.tutor_last_name,
+            avatar_url: r.tutor_avatar_url,
+          },
+          tutor: {
+            first_name: r.tutor_first_name,
+            last_name: r.tutor_last_name,
+            avatar_url: r.tutor_avatar_url,
+          },
+          financial_snapshot: r.gross_amount
+            ? {
+                gross_amount: r.gross_amount,
+                platform_fee_amount: r.platform_fee_amount,
+                tutor_earnings: r.tutor_earnings,
+              }
+            : undefined,
+          location: r.location_name ? { name: r.location_name } : undefined,
+        };
+      });
     } catch {
       return memoryDb.state.bookings as any[];
     }

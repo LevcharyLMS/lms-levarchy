@@ -786,6 +786,18 @@ class DataStore {
 
   // --- BOOKINGS & SNAPSHOTS ---
   getBookings(filter?: { studentId?: string; tutorId?: string; status?: string }) {
+    const now = new Date().getTime();
+
+    // Auto-complete past confirmed sessions whose scheduled end_time has passed
+    this.state.bookings.forEach((b) => {
+      if (b.end_time && b.status === 'CONFIRMED') {
+        const endTimeMs = new Date(b.end_time).getTime();
+        if (now > endTimeMs) {
+          b.status = 'COMPLETED';
+        }
+      }
+    });
+
     let list = [...this.state.bookings];
     if (filter?.studentId) list = list.filter((b) => b.student_id === filter.studentId);
     if (filter?.tutorId) list = list.filter((b) => b.tutor_id === filter.tutorId);

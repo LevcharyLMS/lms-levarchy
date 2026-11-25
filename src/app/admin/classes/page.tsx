@@ -390,8 +390,8 @@ export default function AdminClassesPage() {
       <DetailDrawer
         isOpen={!!selectedClass}
         onClose={() => setSelectedClass(null)}
-        title="Class Session Details"
-        subtitle={`ID: ${selectedClass?.id || ""}`}
+        title={selectedClass?.title || "Class Session Details"}
+        subtitle={`${selectedClass?.category?.name || "Academic"} • ${selectedClass?.duration_minutes || 60} min session`}
       >
         {selectedClass && (
           <div className="space-y-6 text-xs">
