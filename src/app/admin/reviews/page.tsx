@@ -3,9 +3,10 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { RatingStars } from "@/components/ui/rating-stars";
 import { Button } from "@/components/ui/button";
-import { Star, CheckCircle2, AlertCircle, Home } from "lucide-react";
+import { Star, CheckCircle2, AlertCircle, Home, RefreshCw } from "lucide-react";
 import { PageTransition, FadeIn } from "@/components/animations";
 import { DataFilterToolbar, SortOption, FilterTabOption } from "@/components/shared/data-filter-toolbar";
+import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 
 interface ReviewItem {
   id: string;
@@ -203,25 +204,46 @@ export default function AdminReviewsPage() {
     },
   ];
 
+  const moderationTabs = [
+    { label: "Safety Flags", href: "/admin/flags" },
+    {
+      label: "Review Approvals",
+      href: "/admin/reviews",
+      badge: reviews.filter((r) => !r.is_published).length || undefined,
+    },
+    { label: "Class Reports", href: "/admin/reports" },
+    { label: "Support Queue", href: "/admin/support" },
+  ];
+
   return (
     <PageTransition>
-      <div className="space-y-6 max-w-6xl">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-navy-950">
-              Review Moderation & Homepage Testimonials
-            </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Audit student feedback, rank by rating, and toggle reviews to feature on the homepage.
-            </p>
-          </div>
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-teal-50 border border-teal-200/80 text-teal-800 text-xs font-semibold">
-            <Home className="w-4 h-4 text-teal-600" />
-            <span>
-              {reviews.filter((r) => r.is_featured_testimonial).length} Active Homepage Testimonials
-            </span>
-          </div>
-        </div>
+      <div className="space-y-6 max-w-7xl mx-auto">
+        <AdminHubHeader
+          title="Moderation & Support Hub"
+          badgeText="Student Reviews"
+          description="Audit student feedback, rank by rating, approve comments, and toggle reviews to feature on the homepage."
+          tabs={moderationTabs}
+          actions={
+            <div className="flex items-center gap-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-teal-50 border border-teal-200/80 text-teal-800 text-xs font-semibold">
+                <Home className="w-4 h-4 text-teal-600" />
+                <span>
+                  {reviews.filter((r) => r.is_featured_testimonial).length} Featured
+                </span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={loadReviews}
+                disabled={loading}
+                className="h-8 text-xs border-slate-200 gap-1.5"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+                <span>Refresh</span>
+              </Button>
+            </div>
+          }
+        />
 
         {notice && (
           <FadeIn>

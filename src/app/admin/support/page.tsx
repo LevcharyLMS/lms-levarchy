@@ -6,6 +6,7 @@ import { SupportTicket } from "@/types";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { LifeBuoy, CheckCircle2 } from "lucide-react";
+import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 
 export default function AdminSupportPage() {
   const [tickets, setTickets] = useState<SupportTicket[]>(db.getSupportTickets());
@@ -21,16 +22,27 @@ export default function AdminSupportPage() {
     }
   };
 
+  const openTicketsCount = tickets.filter((t) => t.status !== "RESOLVED").length;
+
+  const moderationTabs = [
+    { label: "Safety Flags", href: "/admin/flags" },
+    { label: "Review Approvals", href: "/admin/reviews" },
+    { label: "Class Reports", href: "/admin/reports" },
+    {
+      label: "Support Queue",
+      href: "/admin/support",
+      badge: openTicketsCount > 0 ? openTicketsCount : undefined,
+    },
+  ];
+
   return (
-    <div className="space-y-8 max-w-5xl">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-navy-950">
-          Student & Tutor Support Queue
-        </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Address inquiries regarding physical facility parking, rescheduling, and technical questions.
-        </p>
-      </div>
+    <div className="space-y-6 max-w-7xl mx-auto">
+      <AdminHubHeader
+        title="Moderation & Support Hub"
+        badgeText="Customer Support Queue"
+        description="Address student and tutor inquiries regarding classroom venue parking, scheduling adjustments, and technical help."
+        tabs={moderationTabs}
+      />
 
       {notice && (
         <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center justify-between">

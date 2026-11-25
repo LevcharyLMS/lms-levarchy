@@ -2,12 +2,15 @@
 
 import React, { useState } from "react";
 import { db } from "@/lib/data-store";
+import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FileSpreadsheet, Download, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { AdminClassReportsQueue } from "@/components/admin/class-reports-queue";
+import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 
 export default function AdminReportsPage() {
+  const { user: currentAdmin } = useAuth();
   const [downloadSuccess, setDownloadSuccess] = useState<string | null>(null);
 
   const exportCSV = (type: "BOOKINGS" | "USERS" | "TRANSACTIONS" | "REVIEWS") => {
@@ -52,7 +55,7 @@ export default function AdminReportsPage() {
     document.body.removeChild(link);
 
     db.logAudit({
-      actor_id: "usr-admin-1",
+      actor_id: currentAdmin?.id || "usr-admin-1",
       actor_role: "ADMIN",
       action: `REPORT_EXPORTED_${type}`,
       entity_type: "SYSTEM_REPORT",
@@ -62,16 +65,21 @@ export default function AdminReportsPage() {
     setDownloadSuccess(`Generated and downloaded ${filename}`);
   };
 
+  const moderationTabs = [
+    { label: "Safety Flags", href: "/admin/flags" },
+    { label: "Review Approvals", href: "/admin/reviews" },
+    { label: "Class Reports", href: "/admin/reports" },
+    { label: "Support Queue", href: "/admin/support" },
+  ];
+
   return (
-    <div className="space-y-8 max-w-5xl">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-navy-950">
-          Financial & Marketplace Reports (CSV)
-        </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Generate sanitized, compliant spreadsheet exports for accounting and operational analysis.
-        </p>
-      </div>
+    <div className="space-y-6 max-w-7xl mx-auto">
+      <AdminHubHeader
+        title="Moderation & Support Hub"
+        badgeText="Class Reports & Data Exports"
+        description="Inspect post-class feedback reports submitted by instructors and download sanitized CSV datasets with Rule 79 data minimization."
+        tabs={moderationTabs}
+      />
 
       {downloadSuccess && (
         <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center justify-between">
