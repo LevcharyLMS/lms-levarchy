@@ -3,6 +3,7 @@ import { SupabaseDbService } from "@/lib/supabase-db";
 import { StatCard } from "@/components/ui/stat-card";
 import { MoneyDisplay } from "@/components/ui/money-display";
 import { EmptyState } from "@/components/ui/empty-state";
+import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 import {
   BarChart3,
   TrendingUp,
@@ -21,15 +22,14 @@ export default async function AdminAnalyticsPage() {
   let bookings: any[] = [];
 
   try {
-    stats = await SupabaseDbService.getAdminKPIs();
+    const [fetchedKPIs, fetchedBookings] = await Promise.all([
+      SupabaseDbService.getAdminKPIs(),
+      SupabaseDbService.getBookings(),
+    ]);
+    stats = fetchedKPIs || {};
+    bookings = fetchedBookings || [];
   } catch (err) {
-    console.error("Error fetching admin KPIs:", err);
-  }
-
-  try {
-    bookings = await SupabaseDbService.getBookings();
-  } catch (err) {
-    console.error("Error fetching bookings for analytics:", err);
+    console.error("Error fetching admin analytics data:", err);
   }
 
   // Class format breakdown — derived from real booking records
@@ -44,16 +44,20 @@ export default async function AdminAnalyticsPage() {
   const fillRatePct =
     bookings.length > 0 ? Math.round((completedCount / bookings.length) * 100) : 0;
 
+  const settingsTabs = [
+    { label: "Configuration", href: "/admin/settings" },
+    { label: "Audit Trail", href: "/admin/audit-logs" },
+    { label: "Marketplace Analytics", href: "/admin/analytics" },
+  ];
+
   return (
-    <div className="space-y-8 max-w-6xl">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-navy-950">
-          Marketplace Intelligence & Growth Analytics
-        </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Real-time aggregations calculated from authoritative Supabase database records.
-        </p>
-      </div>
+    <div className="space-y-6 max-w-7xl mx-auto">
+      <AdminHubHeader
+        title="Settings & Audit Hub"
+        badgeText="Real-Time Analytics"
+        description="Marketplace intelligence and platform growth metrics calculated directly from authoritative Supabase database records."
+        tabs={settingsTabs}
+      />
 
       {/* KPI Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

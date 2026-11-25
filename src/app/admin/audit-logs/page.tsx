@@ -4,26 +4,25 @@ import React from "react";
 import { db } from "@/lib/data-store";
 import { Card } from "@/components/ui/card";
 import { History, ShieldCheck, Lock } from "lucide-react";
+import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 
 export default function AdminAuditLogsPage() {
   const logs = db.getAuditLogs();
 
+  const settingsTabs = [
+    { label: "Configuration", href: "/admin/settings" },
+    { label: "Audit Trail", href: "/admin/audit-logs" },
+    { label: "Marketplace Analytics", href: "/admin/analytics" },
+  ];
+
   return (
-    <div className="space-y-8 max-w-6xl">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-navy-950">
-            System Activity Audit Trail
-          </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Immutable, append-only security ledger capturing administrative, verification, and financial events.
-          </p>
-        </div>
-        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 text-purple-900 border border-purple-200 text-xs font-semibold">
-          <Lock className="w-3.5 h-3.5 text-purple-700" />
-          <span>Append-Only Enforced</span>
-        </div>
-      </div>
+    <div className="space-y-6 max-w-7xl mx-auto">
+      <AdminHubHeader
+        title="Settings & Audit Hub"
+        badgeText="Append-Only Security Log"
+        description="Immutable security ledger capturing all administrative actions, verification transitions, and financial events."
+        tabs={settingsTabs}
+      />
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">

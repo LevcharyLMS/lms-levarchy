@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Settings, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 
 export default function AdminSettingsPage() {
   const [platformName, setPlatformName] = useState("Levchary LMS");
@@ -19,16 +20,20 @@ export default function AdminSettingsPage() {
     setTimeout(() => setSaved(false), 3000);
   };
 
+  const settingsTabs = [
+    { label: "Configuration", href: "/admin/settings" },
+    { label: "Audit Trail", href: "/admin/audit-logs" },
+    { label: "Marketplace Analytics", href: "/admin/analytics" },
+  ];
+
   return (
-    <div className="space-y-8 max-w-4xl">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-navy-950">
-          Platform Configuration & Marketplace Rules
-        </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Global platform parameters, refund time windows, and communication channels.
-        </p>
-      </div>
+    <div className="space-y-6 max-w-7xl mx-auto">
+      <AdminHubHeader
+        title="Settings & Audit Hub"
+        badgeText="System Configuration"
+        description="Global platform parameters, refund time windows, cancellation thresholds, and communication settings."
+        tabs={settingsTabs}
+      />
 
       {saved && (
         <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center gap-2">
