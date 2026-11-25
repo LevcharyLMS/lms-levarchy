@@ -211,7 +211,7 @@ export default function AdminReviewsPage() {
       href: "/admin/reviews",
       badge: reviews.filter((r) => !r.is_published).length || undefined,
     },
-    { label: "Class Reports", href: "/admin/reports" },
+    { label: "Reports", href: "/admin/reports" },
   ];
 
   return (

@@ -107,6 +107,7 @@ export default function AdminSuggestionsPage() {
       href: "/admin/suggestions",
       badge: pendingCount > 0 ? pendingCount : undefined,
     },
+    { label: "Post-Class Reports", href: "/admin/post-class-reports" },
   ];
 
   return (

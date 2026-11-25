@@ -107,6 +107,7 @@ export default function AdminAssignmentsPage() {
     { label: "Grades", href: "/admin/grades" },
     { label: "Assignment Oversight", href: "/admin/assignments" },
     { label: "Curriculum Suggestions", href: "/admin/suggestions" },
+    { label: "Post-Class Reports", href: "/admin/post-class-reports" },
   ];
 
   return (

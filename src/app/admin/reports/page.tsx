@@ -6,7 +6,6 @@ import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FileSpreadsheet, Download, ShieldCheck, CheckCircle2 } from "lucide-react";
-import { AdminClassReportsQueue } from "@/components/admin/class-reports-queue";
 import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 
 export default function AdminReportsPage() {
@@ -68,15 +67,15 @@ export default function AdminReportsPage() {
   const moderationTabs = [
     { label: "Safety Flags", href: "/admin/flags" },
     { label: "Review Approvals", href: "/admin/reviews" },
-    { label: "Class Reports", href: "/admin/reports" },
+    { label: "Reports", href: "/admin/reports" },
   ];
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <AdminHubHeader
         title="Moderation & Support Hub"
-        badgeText="Class Reports & Data Exports"
-        description="Inspect post-class feedback reports submitted by instructors and download sanitized CSV datasets with Rule 79 data minimization."
+        badgeText="Data Exports & Audit Ledgers"
+        description="Download sanitized CSV datasets with Rule 79 data minimization across bookings, transactions, users, and ratings."
         tabs={moderationTabs}
       />
 
@@ -182,11 +181,6 @@ export default function AdminReportsPage() {
             </Button>
           </CardContent>
         </Card>
-      </div>
-
-      {/* SECTION 2: Post-Class Reports & Moderation Queue */}
-      <div className="pt-6 border-t border-slate-200">
-        <AdminClassReportsQueue />
       </div>
     </div>
   );

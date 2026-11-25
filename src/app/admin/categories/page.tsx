@@ -146,6 +146,7 @@ export default function AdminCategoriesPage() {
       href: "/admin/suggestions",
       badge: pendingSuggestions.length > 0 ? pendingSuggestions.length : undefined,
     },
+    { label: "Post-Class Reports", href: "/admin/post-class-reports" },
   ];
 
   return (

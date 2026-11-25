@@ -92,6 +92,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             "/admin/grades",
             "/admin/assignments",
             "/admin/suggestions",
+            "/admin/post-class-reports",
           ],
           description: "Curriculum, Subjects & Syllabus",
         },

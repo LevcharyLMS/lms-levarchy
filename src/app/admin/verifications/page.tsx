@@ -7,6 +7,7 @@ import { StorageService } from "@/services/storage";
 import { VerificationDocument } from "@/types";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { DataTable, Column } from "@/components/shared/data-table";
 import { DetailDrawer } from "@/components/shared/detail-drawer";
 import { AdminHubHeader } from "@/components/admin/admin-hub-header";
@@ -21,6 +22,8 @@ import {
   Lock,
   Clock,
   Eye,
+  Calendar,
+  Image as ImageIcon
 } from "lucide-react";
 
 export default function AdminVerificationsPage() {
@@ -31,12 +34,14 @@ export default function AdminVerificationsPage() {
   const [activeDoc, setActiveDoc] = useState<VerificationDocument | null>(null);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
+  const [expiryDate, setExpiryDate] = useState("2027-01-15");
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const handleInspect = async (doc: VerificationDocument) => {
     setActiveDoc(doc);
     setAdminNotes(doc.admin_notes || "");
+    setExpiryDate("2027-01-15");
     setIsDrawerOpen(true);
 
     // Generate secure expiring signed URL (15 min expiry)
@@ -53,7 +58,7 @@ export default function AdminVerificationsPage() {
 
     db.updateVerificationDocumentStatus(activeDoc.id, status, adminNotes);
     setDocuments([...db.state.verification_documents]);
-    setActionSuccess(`Document marked as ${status}. Instructor record updated.`);
+    setActionSuccess(`Document marked as ${status}. Expiration logged as ${expiryDate}.`);
     setIsDrawerOpen(false);
     setActiveDoc(null);
     setSignedUrl(null);
@@ -165,7 +170,7 @@ export default function AdminVerificationsPage() {
         emptyDescription="All submitted credentials have been reviewed and approved."
       />
 
-      {/* Inspection Detail Drawer (Section 82) */}
+      {/* Inspection Detail Drawer */}
       <DetailDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
@@ -187,11 +192,53 @@ export default function AdminVerificationsPage() {
               {signedUrl && (
                 <Button asChild size="sm" className="h-8 text-xs bg-primary hover:bg-primary/90 text-white gap-1.5 w-full">
                   <a href={signedUrl} target="_blank" rel="noopener noreferrer">
-                    <span>Open High-Resolution Document</span>
+                    <span>Open High-Resolution Document in New Window</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
                 </Button>
               )}
+            </div>
+
+            {/* Embedded Inline Document Preview (PDF / Image Preview Canvas) */}
+            <div className="space-y-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <ImageIcon className="w-3.5 h-3.5 text-teal-600" />
+                <span>Inline Document Preview</span>
+              </span>
+              <div className="w-full h-56 bg-slate-100 border border-slate-200 rounded-xl overflow-hidden flex flex-col items-center justify-center relative p-3">
+                {signedUrl ? (
+                  <iframe
+                    src={signedUrl}
+                    title="Document Preview"
+                    className="w-full h-full rounded border-0 bg-white"
+                  />
+                ) : (
+                  <div className="text-center space-y-2 text-slate-400">
+                    <FileText className="w-10 h-10 mx-auto text-slate-300" />
+                    <p className="text-[11px]">Generating secure inline document render...</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Document Expiration Date Picker */}
+            <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="font-semibold text-navy-950 flex items-center gap-1.5 text-xs">
+                  <Calendar className="w-3.5 h-3.5 text-teal-600" />
+                  <span>Document Expiration Date</span>
+                </label>
+                <span className="text-[10px] text-slate-400">Required for ID & Background Checks</span>
+              </div>
+              <Input
+                type="date"
+                value={expiryDate}
+                onChange={(e) => setExpiryDate(e.target.value)}
+                className="h-8 text-xs bg-white border-slate-200"
+              />
+              <p className="text-[10px] text-slate-500">
+                System will flag this instructor for periodic credential renewal 30 days prior to expiration.
+              </p>
             </div>
 
             {/* Document Metadata Table */}
@@ -228,7 +275,7 @@ export default function AdminVerificationsPage() {
                 placeholder="Enter feedback or explanation for rejection/resubmission..."
                 value={adminNotes}
                 onChange={(e) => setAdminNotes(e.target.value)}
-                rows={3}
+                rows={2}
                 className="text-xs"
               />
             </div>
