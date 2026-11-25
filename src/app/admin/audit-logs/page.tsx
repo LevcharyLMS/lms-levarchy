@@ -59,6 +59,18 @@ function formatAuditSummary(action: string, entityType: string, meta: any): stri
   if (action === "REFUND_PROCESSED") {
     return `Refund of $${((meta.amount_cents || 0) / 100).toFixed(2)} processed for booking`;
   }
+  if (action === "ADVERT_CREATED") {
+    return `Published advert "${meta.title || "Promotional Media"}" (${meta.media_type || "IMAGE"})`;
+  }
+  if (action === "ADVERT_ACTIVATED") {
+    return `Activated advert "${meta.title || "Promotional Media"}" on homepage dock`;
+  }
+  if (action === "ADVERT_DEACTIVATED") {
+    return `Deactivated advert "${meta.title || "Promotional Media"}"`;
+  }
+  if (action === "ADVERT_DELETED") {
+    return `Deleted promotional advert (${meta.id || "ID"})`;
+  }
 
   // Fallback: extract the most informative key-value pairs
   const summaryEntries = Object.entries(meta)

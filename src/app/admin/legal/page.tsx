@@ -29,6 +29,7 @@ import {
   Sparkles,
   ChevronRight,
   Info,
+  Download,
 } from "lucide-react";
 
 interface LegalSectionItem {
@@ -332,6 +333,32 @@ export default function AdminLegalDocumentsPage() {
     });
   };
 
+  const exportCurrentDocument = () => {
+    const doc = documents[selectedKey];
+    if (!doc) return;
+
+    let content = `${doc.title}\n${doc.effectiveDate || `Effective Date: ${effectiveDate} • Last Updated: ${lastUpdatedDate}`}\n\n`;
+    content += "============================================================\n\n";
+
+    sections.forEach((sec, idx) => {
+      content += `${idx + 1}. ${sec.title.toUpperCase()}\n\n`;
+      sec.paragraphs.forEach((p) => {
+        content += `${p}\n\n`;
+      });
+      content += "------------------------------------------------------------\n\n";
+    });
+
+    const filename = `levchary_${selectedKey}_${new Date().toISOString().split("T")[0]}.txt`;
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <AdminHubHeader
@@ -339,6 +366,20 @@ export default function AdminLegalDocumentsPage() {
         badgeText="Legal Policies & Governance"
         description="Review and update official platform legal policies including User Agreement, Terms of Service, Privacy Policy, and Instructor Agreements."
         tabs={settingsTabs}
+        actions={
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={exportCurrentDocument}
+              className="h-8 text-xs border-slate-200 gap-1.5 text-teal-700 hover:bg-teal-50"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Export Selected Document</span>
+            </Button>
+          </div>
+        }
       />
 
       {saveAlert && (

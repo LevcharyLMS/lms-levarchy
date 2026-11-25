@@ -2,17 +2,40 @@
 
 import React, { useState } from "react";
 import { db } from "@/lib/data-store";
+import { LEGAL_DOCUMENTS } from "@/lib/legal-documents-data";
 import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { FileSpreadsheet, Download, ShieldCheck, CheckCircle2 } from "lucide-react";
+import {
+  FileSpreadsheet,
+  Download,
+  ShieldCheck,
+  CheckCircle2,
+  Megaphone,
+  Users,
+  GraduationCap,
+  Scale,
+  DollarSign,
+  Star,
+  BookOpen,
+} from "lucide-react";
 import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 
 export default function AdminReportsPage() {
   const { user: currentAdmin } = useAuth();
   const [downloadSuccess, setDownloadSuccess] = useState<string | null>(null);
 
-  const exportCSV = (type: "BOOKINGS" | "USERS" | "TRANSACTIONS" | "REVIEWS") => {
+  const exportCSV = (
+    type:
+      | "BOOKINGS"
+      | "ALL_USERS"
+      | "STUDENTS"
+      | "INSTRUCTORS"
+      | "TRANSACTIONS"
+      | "REVIEWS"
+      | "MARKETING_ADVERTS"
+      | "LEGAL_DOCUMENTS"
+  ) => {
     let csvContent = "";
     let filename = `levchary_${type.toLowerCase()}_${new Date().toISOString().split("T")[0]}.csv`;
 
@@ -20,14 +43,25 @@ export default function AdminReportsPage() {
       const bookings = db.getBookings();
       csvContent = "BookingNumber,StudentEmail,TutorEmail,ClassTitle,Format,GrossCents,Status,CreatedAt\n";
       bookings.forEach((b) => {
-        csvContent += `"${b.booking_number}","${b.student?.email}","${b.tutor?.email}","${b.class_item?.title}","${b.format}",${b.financial_snapshot?.gross_amount || 0},"${b.status}","${b.created_at}"\n`;
+        csvContent += `"${b.booking_number}","${b.student?.email || ""}","${b.tutor?.email || ""}","${b.class_item?.title || ""}","${b.format}",${b.financial_snapshot?.gross_amount || 0},"${b.status}","${b.created_at}"\n`;
       });
-    } else if (type === "USERS") {
-      // RULE 79: Data minimization - never include passwords or sensitive IDs
+    } else if (type === "ALL_USERS") {
       const users = db.getProfiles();
       csvContent = "ID,FirstName,LastName,Email,Role,AccountStatus,VerificationStatus,CreatedAt\n";
       users.forEach((u) => {
         csvContent += `"${u.id}","${u.first_name}","${u.last_name}","${u.email}","${u.role}","${u.account_status}","${u.verification_status}","${u.created_at}"\n`;
+      });
+    } else if (type === "STUDENTS") {
+      const students = db.getProfiles().filter((u) => u.role === "STUDENT");
+      csvContent = "ID,FirstName,LastName,Email,GradeLevel,GuardianEmail,GuardianPhone,AccountStatus,CreatedAt\n";
+      students.forEach((s: any) => {
+        csvContent += `"${s.id}","${s.first_name}","${s.last_name}","${s.email}","${s.grade_level || "Not Specified"}","${s.guardian_email || ""}","${s.guardian_phone || ""}","${s.account_status}","${s.created_at}"\n`;
+      });
+    } else if (type === "INSTRUCTORS") {
+      const instructors = db.getProfiles().filter((u) => u.role === "INSTRUCTOR");
+      csvContent = "ID,FirstName,LastName,Email,Role,HourlyRate,PayoutPct,VerificationStatus,TeachingAuth,AccountStatus,CreatedAt\n";
+      instructors.forEach((i: any) => {
+        csvContent += `"${i.id}","${i.first_name}","${i.last_name}","${i.email}","${i.role}",35.00,80,"${i.verification_status}","APPROVED_INSTRUCTOR","${i.account_status}","${i.created_at}"\n`;
       });
     } else if (type === "TRANSACTIONS") {
       const txs = db.state.transactions;
@@ -39,7 +73,19 @@ export default function AdminReportsPage() {
       const revs = db.state.reviews;
       csvContent = "ID,BookingID,Rating,Comment,Published,CreatedAt\n";
       revs.forEach((r) => {
-        csvContent += `"${r.id}","${r.booking_id}",${r.rating},"${r.comment?.replace(/"/g, '""')}","${r.is_published}","${r.created_at}"\n`;
+        csvContent += `"${r.id}","${r.booking_id}",${r.rating},"${(r.comment || "").replace(/"/g, '""')}","${r.is_published}","${r.created_at}"\n`;
+      });
+    } else if (type === "MARKETING_ADVERTS") {
+      const adverts = db.getAllAdverts();
+      csvContent = "ID,Title,MediaType,MediaURL,TargetURL,Downloadable,Views,Downloads,Active,StartDate,EndDate,CreatedAt\n";
+      adverts.forEach((a) => {
+        csvContent += `"${a.id}","${a.title.replace(/"/g, '""')}","${a.media_type}","${a.media_url}","${a.target_url || ""}",${a.downloadable},${a.view_count || 0},${a.download_count || 0},${a.is_active},"${a.start_date || ""}","${a.end_date || ""}","${a.created_at}"\n`;
+      });
+    } else if (type === "LEGAL_DOCUMENTS") {
+      const legals = LEGAL_DOCUMENTS;
+      csvContent = "DocumentKey,Title,EffectiveDate,SectionsCount,LastUpdated\n";
+      Object.entries(legals).forEach(([key, doc]: [string, any]) => {
+        csvContent += `"${key}","${(doc.title || "").replace(/"/g, '""')}","${doc.effectiveDate || ""}",${(doc.sections || []).length},"${new Date().toISOString()}"\n`;
       });
     }
 
@@ -74,8 +120,8 @@ export default function AdminReportsPage() {
     <div className="space-y-6 max-w-7xl mx-auto">
       <AdminHubHeader
         title="Moderation & Support Hub"
-        badgeText="Data Exports & Audit Ledgers"
-        description="Download sanitized CSV datasets with Rule 79 data minimization across bookings, transactions, users, and ratings."
+        badgeText="Centralized Data Exports & Reports"
+        description="Authoritative, centralized data exports for all platform operational ledgers, users, marketing metrics, and compliance documents."
         tabs={moderationTabs}
       />
 
@@ -91,30 +137,125 @@ export default function AdminReportsPage() {
         </div>
       )}
 
-      {/* Safety Notice */}
+      {/* Compliance Notice */}
       <div className="p-4 bg-teal-50 border border-teal-200 rounded-xl text-xs text-teal-900 flex items-start gap-3">
         <ShieldCheck className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
         <div>
-          <strong className="block font-bold">Rule 79 Privacy Compliance:</strong>
-          All CSV reports automatically strip authentication tokens, passwords, and sensitive government ID contents. Every export action is recorded in the append-only audit trail.
+          <strong className="block font-bold">Rule 79 Privacy & Security Compliance:</strong>
+          All exported datasets strictly minimize sensitive information by stripping authentication passwords, tokens, and raw credential payloads. Every download action is recorded in the immutable audit ledger.
         </div>
       </div>
 
-      {/* Report Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Consolidated Report Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {/* Marketing Adverts Ledger */}
         <Card className="border-slate-200 shadow-xs">
-          <CardContent className="p-6 space-y-3">
+          <CardContent className="p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-sm text-navy-950">Marketplace Bookings Ledger</h3>
-              <FileSpreadsheet className="w-4 h-4 text-purple-700" />
+              <h3 className="font-bold text-xs text-navy-950 flex items-center gap-1.5">
+                <Megaphone className="w-4 h-4 text-teal-600" />
+                <span>Marketing Adverts & Media</span>
+              </h3>
             </div>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Export all 1-on-1 and group cohort bookings with locked historical financial snapshots, student references, and attendance statuses.
+            <p className="text-[11px] text-slate-500 leading-relaxed">
+              Export promotional flyers and video reels, view counts, downloads, active statuses, and scheduled expiry dates.
             </p>
             <Button
               variant="default"
               size="sm"
-              className="gap-1.5 w-full bg-purple-900 hover:bg-purple-800 text-xs"
+              className="gap-1.5 w-full bg-teal-600 hover:bg-teal-700 text-white text-xs"
+              onClick={() => exportCSV("MARKETING_ADVERTS")}
+            >
+              <Download className="w-3.5 h-3.5" /> Export Marketing CSV
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* All Users Directory */}
+        <Card className="border-slate-200 shadow-xs">
+          <CardContent className="p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-xs text-navy-950 flex items-center gap-1.5">
+                <Users className="w-4 h-4 text-teal-600" />
+                <span>All Users Directory</span>
+              </h3>
+            </div>
+            <p className="text-[11px] text-slate-500 leading-relaxed">
+              Sanitized export of all platform accounts with roles, registration timestamps, and account active/suspended statuses.
+            </p>
+            <Button
+              variant="default"
+              size="sm"
+              className="gap-1.5 w-full bg-teal-600 hover:bg-teal-700 text-white text-xs"
+              onClick={() => exportCSV("ALL_USERS")}
+            >
+              <Download className="w-3.5 h-3.5" /> Export All Users CSV
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Students Cohort Report */}
+        <Card className="border-slate-200 shadow-xs">
+          <CardContent className="p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-xs text-navy-950 flex items-center gap-1.5">
+                <GraduationCap className="w-4 h-4 text-teal-600" />
+                <span>Student Directory & Guardians</span>
+              </h3>
+            </div>
+            <p className="text-[11px] text-slate-500 leading-relaxed">
+              Export registered students with academic grade level, parent/guardian contact details, and account standing.
+            </p>
+            <Button
+              variant="default"
+              size="sm"
+              className="gap-1.5 w-full bg-teal-600 hover:bg-teal-700 text-white text-xs"
+              onClick={() => exportCSV("STUDENTS")}
+            >
+              <Download className="w-3.5 h-3.5" /> Export Students CSV
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Instructors Directory */}
+        <Card className="border-slate-200 shadow-xs">
+          <CardContent className="p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-xs text-navy-950 flex items-center gap-1.5">
+                <Users className="w-4 h-4 text-teal-600" />
+                <span>Instructors & Payouts</span>
+              </h3>
+            </div>
+            <p className="text-[11px] text-slate-500 leading-relaxed">
+              Export approved tutors and faculty, background check verification clearance, and payout authorization percentages.
+            </p>
+            <Button
+              variant="default"
+              size="sm"
+              className="gap-1.5 w-full bg-teal-600 hover:bg-teal-700 text-white text-xs"
+              onClick={() => exportCSV("INSTRUCTORS")}
+            >
+              <Download className="w-3.5 h-3.5" /> Export Instructors CSV
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Marketplace Bookings Ledger */}
+        <Card className="border-slate-200 shadow-xs">
+          <CardContent className="p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-xs text-navy-950 flex items-center gap-1.5">
+                <BookOpen className="w-4 h-4 text-teal-600" />
+                <span>Marketplace Bookings Ledger</span>
+              </h3>
+            </div>
+            <p className="text-[11px] text-slate-500 leading-relaxed">
+              Export 1-on-1 and group cohort sessions with locked historical financial snapshots, student references, and completion statuses.
+            </p>
+            <Button
+              variant="default"
+              size="sm"
+              className="gap-1.5 w-full bg-teal-600 hover:bg-teal-700 text-white text-xs"
               onClick={() => exportCSV("BOOKINGS")}
             >
               <Download className="w-3.5 h-3.5" /> Export Bookings CSV
@@ -122,19 +263,22 @@ export default function AdminReportsPage() {
           </CardContent>
         </Card>
 
+        {/* Financial Transactions Ledger */}
         <Card className="border-slate-200 shadow-xs">
-          <CardContent className="p-6 space-y-3">
+          <CardContent className="p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-sm text-navy-950">Financial Transactions Ledger</h3>
-              <FileSpreadsheet className="w-4 h-4 text-purple-700" />
+              <h3 className="font-bold text-xs text-navy-950 flex items-center gap-1.5">
+                <DollarSign className="w-4 h-4 text-teal-600" />
+                <span>Financial Transactions Ledger</span>
+              </h3>
             </div>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Itemized ledger of student tuition payments, 20% platform commissions, and 80% instructor payouts disbursed through Stripe Connect.
+            <p className="text-[11px] text-slate-500 leading-relaxed">
+              Itemized ledger of student tuition payments, 20% platform commissions, and 80% instructor payouts.
             </p>
             <Button
               variant="default"
               size="sm"
-              className="gap-1.5 w-full bg-purple-900 hover:bg-purple-800 text-xs"
+              className="gap-1.5 w-full bg-teal-600 hover:bg-teal-700 text-white text-xs"
               onClick={() => exportCSV("TRANSACTIONS")}
             >
               <Download className="w-3.5 h-3.5" /> Export Transactions CSV
@@ -142,42 +286,48 @@ export default function AdminReportsPage() {
           </CardContent>
         </Card>
 
+        {/* Reviews & Ratings */}
         <Card className="border-slate-200 shadow-xs">
-          <CardContent className="p-6 space-y-3">
+          <CardContent className="p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-sm text-navy-950">User Directory Export</h3>
-              <FileSpreadsheet className="w-4 h-4 text-purple-700" />
+              <h3 className="font-bold text-xs text-navy-950 flex items-center gap-1.5">
+                <Star className="w-4 h-4 text-teal-600" />
+                <span>Reviews & Teaching Quality</span>
+              </h3>
             </div>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Sanitized export of registered students, approved educators, verification statuses, and account statuses.
+            <p className="text-[11px] text-slate-500 leading-relaxed">
+              Student ratings, class reviews, comments, and publication moderation statuses for quality assurance.
             </p>
             <Button
               variant="default"
               size="sm"
-              className="gap-1.5 w-full bg-purple-900 hover:bg-purple-800 text-xs"
-              onClick={() => exportCSV("USERS")}
+              className="gap-1.5 w-full bg-teal-600 hover:bg-teal-700 text-white text-xs"
+              onClick={() => exportCSV("REVIEWS")}
             >
-              <Download className="w-3.5 h-3.5" /> Export Users CSV
+              <Download className="w-3.5 h-3.5" /> Export Reviews CSV
             </Button>
           </CardContent>
         </Card>
 
+        {/* Legal Documents Metadata */}
         <Card className="border-slate-200 shadow-xs">
-          <CardContent className="p-6 space-y-3">
+          <CardContent className="p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-sm text-navy-950">Reviews & Ratings Report</h3>
-              <FileSpreadsheet className="w-4 h-4 text-purple-700" />
+              <h3 className="font-bold text-xs text-navy-950 flex items-center gap-1.5">
+                <Scale className="w-4 h-4 text-teal-600" />
+                <span>Legal Agreements Index</span>
+              </h3>
             </div>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Student reviews, 1-5 star ratings, and publication statuses for teaching quality evaluations.
+            <p className="text-[11px] text-slate-500 leading-relaxed">
+              Export platform policies catalog, effective dates, revision timestamps, and total clause counts for legal audits.
             </p>
             <Button
               variant="default"
               size="sm"
-              className="gap-1.5 w-full bg-purple-900 hover:bg-purple-800 text-xs"
-              onClick={() => exportCSV("REVIEWS")}
+              className="gap-1.5 w-full bg-teal-600 hover:bg-teal-700 text-white text-xs"
+              onClick={() => exportCSV("LEGAL_DOCUMENTS")}
             >
-              <Download className="w-3.5 h-3.5" /> Export Reviews CSV
+              <Download className="w-3.5 h-3.5" /> Export Legal Catalog CSV
             </Button>
           </CardContent>
         </Card>

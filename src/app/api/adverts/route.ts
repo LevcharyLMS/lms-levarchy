@@ -72,6 +72,26 @@ export async function POST(req: NextRequest) {
       display_order: body.display_order ? Number(body.display_order) : 0,
     });
 
+    // Record in immutable audit trail
+    try {
+      const { db } = await import("@/lib/data-store");
+      db.logAudit({
+        actor_id: body.admin_id || "admin",
+        actor_role: "ADMIN",
+        action: "ADVERT_CREATED",
+        entity_type: "ADVERT",
+        entity_id: newAdvert.id,
+        metadata: {
+          title: newAdvert.title,
+          media_type: newAdvert.media_type,
+          media_url: newAdvert.media_url,
+          end_date: newAdvert.end_date,
+        },
+      });
+    } catch (auditErr) {
+      console.error("Audit log error:", auditErr);
+    }
+
     return NextResponse.json({ advert: newAdvert }, { status: 201 });
   } catch (err: any) {
     console.error("Error in POST /api/adverts:", err);

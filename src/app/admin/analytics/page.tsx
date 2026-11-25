@@ -1,9 +1,11 @@
 import React from "react";
+import Link from "next/link";
 import { SupabaseDbService } from "@/lib/supabase-db";
 import { StatCard } from "@/components/ui/stat-card";
 import { MoneyDisplay } from "@/components/ui/money-display";
 import { EmptyState } from "@/components/ui/empty-state";
 import { AdminHubHeader } from "@/components/admin/admin-hub-header";
+import { Button } from "@/components/ui/button";
 import {
   BarChart3,
   TrendingUp,
@@ -13,6 +15,8 @@ import {
   MapPin,
   CheckCircle2,
   BookOpen,
+  FileSpreadsheet,
+  ArrowUpRight,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -56,6 +60,14 @@ export default async function AdminAnalyticsPage() {
         badgeText="Real-Time Analytics"
         description="Marketplace intelligence and platform growth metrics calculated directly from authoritative Supabase database records."
         tabs={marketingTabs}
+        actions={
+          <Button asChild variant="outline" size="sm" className="h-8 text-xs border-slate-200 gap-1.5 text-teal-700 hover:bg-teal-50">
+            <Link href="/admin/reports">
+              <FileSpreadsheet className="w-3.5 h-3.5" />
+              <span>Full Analytics CSV Export in Reports</span>
+            </Link>
+          </Button>
+        }
       />
 
       {/* KPI Overview */}
