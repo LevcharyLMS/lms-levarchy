@@ -21,6 +21,8 @@ import {
   Layers,
   RefreshCw,
   FileSpreadsheet,
+  Search,
+  Filter,
 } from "lucide-react";
 
 export default function AdminClassesPage() {
@@ -299,78 +301,80 @@ export default function AdminClassesPage() {
         />
       </div>
 
-      {/* Filters */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs space-y-3">
-        <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-semibold text-slate-500">Type:</span>
-            {[
-              { id: "ALL", label: "All Types" },
-              { id: "ONE_ON_ONE", label: "1-on-1" },
-              { id: "GROUP_COHORT", label: "Group Cohort" },
-            ].map((tp) => (
-              <button
-                key={tp.id}
-                onClick={() => setTypeFilter(tp.id)}
-                className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
-                  typeFilter === tp.id
-                    ? "bg-primary text-white"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                {tp.label}
-              </button>
-            ))}
+      {/* Compact & Clean Filter Bar */}
+      <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
+        {/* Search Input */}
+        <div className="relative w-full md:w-80">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="Search class title, instructor, or subject..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white transition-all text-navy-950 font-medium"
+          />
+        </div>
 
-            <div className="h-4 w-px bg-slate-200 mx-1 hidden sm:block" />
-
-            <span className="text-xs font-semibold text-slate-500">Format:</span>
-            {[
-              { id: "ALL", label: "All Formats" },
-              { id: "ONLINE_1ON1", label: "Online" },
-              { id: "PHYSICAL_STUDENT_HOME", label: "Home Visit" },
-              { id: "PHYSICAL_CENTER", label: "Learning Center" },
-            ].map((fmt) => (
-              <button
-                key={fmt.id}
-                onClick={() => setFormatFilter(fmt.id)}
-                className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
-                  formatFilter === fmt.id
-                    ? "bg-primary text-white"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                {fmt.label}
-              </button>
-            ))}
-
-            <div className="h-4 w-px bg-slate-200 mx-1 hidden sm:block" />
-
-            <span className="text-xs font-semibold text-slate-500">Status:</span>
-            {["ALL", "PENDING_APPROVAL", "PUBLISHED", "OPEN", "CANCELLED"].map((st) => (
-              <button
-                key={st}
-                onClick={() => setStatusFilter(st)}
-                className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
-                  statusFilter === st
-                    ? "bg-primary text-white"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                {st === "PENDING_APPROVAL" ? "Pending Approval" : st}
-              </button>
-            ))}
+        {/* Dropdown Filters */}
+        <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+          {/* Type Dropdown */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-slate-400 font-medium">Type:</span>
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-700 font-semibold"
+            >
+              <option value="ALL">All Types</option>
+              <option value="ONE_ON_ONE">1-on-1</option>
+              <option value="GROUP_COHORT">Group Cohort</option>
+            </select>
           </div>
 
-          <div className="w-full sm:w-64">
-            <input
-              type="text"
-              placeholder="Search class or instructor..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-8 px-3 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-primary"
-            />
+          {/* Format Dropdown */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-slate-400 font-medium">Format:</span>
+            <select
+              value={formatFilter}
+              onChange={(e) => setFormatFilter(e.target.value)}
+              className="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-700 font-semibold"
+            >
+              <option value="ALL">All Formats</option>
+              <option value="ONLINE_1ON1">Online Class</option>
+              <option value="PHYSICAL_STUDENT_HOME">Home Visit</option>
+              <option value="PHYSICAL_CENTER">Learning Center</option>
+            </select>
           </div>
+
+          {/* Status Dropdown */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-slate-400 font-medium">Status:</span>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-700 font-semibold"
+            >
+              <option value="ALL">All Statuses</option>
+              <option value="PENDING_APPROVAL">Pending Approval</option>
+              <option value="PUBLISHED">Published</option>
+              <option value="OPEN">Open Enrollment</option>
+              <option value="CANCELLED">Cancelled</option>
+            </select>
+          </div>
+
+          {(typeFilter !== "ALL" || formatFilter !== "ALL" || statusFilter !== "ALL" || searchQuery) && (
+            <button
+              onClick={() => {
+                setTypeFilter("ALL");
+                setFormatFilter("ALL");
+                setStatusFilter("ALL");
+                setSearchQuery("");
+              }}
+              className="text-xs text-teal-700 hover:underline px-2 py-1 font-semibold"
+            >
+              Reset
+            </button>
+          )}
         </div>
       </div>
 
