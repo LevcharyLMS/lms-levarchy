@@ -44,19 +44,18 @@ export default async function AdminAnalyticsPage() {
   const fillRatePct =
     bookings.length > 0 ? Math.round((completedCount / bookings.length) * 100) : 0;
 
-  const settingsTabs = [
-    { label: "Configuration", href: "/admin/settings" },
-    { label: "Audit Trail", href: "/admin/audit-logs" },
+  const marketingTabs = [
+    { label: "Adverts & Flyers", href: "/admin/adverts" },
     { label: "Marketplace Analytics", href: "/admin/analytics" },
   ];
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <AdminHubHeader
-        title="Settings & Audit Hub"
+        title="Marketing & Analytics Hub"
         badgeText="Real-Time Analytics"
         description="Marketplace intelligence and platform growth metrics calculated directly from authoritative Supabase database records."
-        tabs={settingsTabs}
+        tabs={marketingTabs}
       />
 
       {/* KPI Overview */}

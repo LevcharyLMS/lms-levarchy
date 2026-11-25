@@ -209,21 +209,22 @@ export default function AdminClassesPage() {
     },
   ];
 
-  const academicTabs = [
-    { label: "Classes & Approvals", href: "/admin/classes", badge: pendingCount > 0 ? pendingCount : undefined },
-    { label: "Categories", href: "/admin/categories" },
-    { label: "Subjects", href: "/admin/subjects" },
-    { label: "Grades", href: "/admin/grades" },
-    { label: "Physical Venues", href: "/admin/locations" },
+  const bookingTabs = [
+    { label: "Bookings Ledger", href: "/admin/bookings" },
+    {
+      label: "Classes & Approvals",
+      href: "/admin/classes",
+      badge: pendingCount > 0 ? pendingCount : undefined,
+    },
   ];
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <AdminHubHeader
-        title="Academics & Curriculum Hub"
+        title="Sessions & Bookings Hub"
         badgeText="Catalog & Approvals"
-        description="Oversee virtual classrooms, curriculum subjects, grade taxonomies, physical home visits, and learning centers."
-        tabs={academicTabs}
+        description="Oversee cohort & 1-on-1 class listings, review pending approvals, and manage live instructional offerings."
+        tabs={bookingTabs}
         actions={
           <Button
             onClick={loadClasses}

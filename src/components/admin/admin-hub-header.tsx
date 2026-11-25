@@ -47,7 +47,7 @@ export function AdminHubHeader({
       </div>
 
       {/* Horizontal Sub-Navigation Tabs */}
-      <div className="px-5 bg-slate-50/50 flex items-center gap-1 overflow-x-auto scrollbar-none">
+      <div className="px-5 bg-slate-50/50 flex items-center gap-1 overflow-x-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         {tabs.map((tab) => {
           const isActive =
             pathname === tab.href ||

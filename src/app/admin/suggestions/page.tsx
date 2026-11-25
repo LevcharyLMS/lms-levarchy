@@ -97,22 +97,26 @@ export default function AdminSuggestionsPage() {
     return true;
   });
 
-  const marketingTabs = [
-    { label: "Adverts & Flyers", href: "/admin/adverts" },
+  const academicTabs = [
+    { label: "Categories", href: "/admin/categories" },
+    { label: "Subjects", href: "/admin/subjects" },
+    { label: "Grades", href: "/admin/grades" },
+    { label: "Assignment Oversight", href: "/admin/assignments" },
     {
       label: "Curriculum Suggestions",
       href: "/admin/suggestions",
       badge: pendingCount > 0 ? pendingCount : undefined,
     },
+    { label: "Physical Venues", href: "/admin/locations" },
   ];
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <AdminHubHeader
-        title="Marketing & Growth Hub"
+        title="Academics & Curriculum Hub"
         badgeText="Curriculum Proposals"
         description="Review, verify, and approve academic categories, subjects, and grade levels proposed by instructors."
-        tabs={marketingTabs}
+        tabs={academicTabs}
         actions={
           <Button
             variant="outline"

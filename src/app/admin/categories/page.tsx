@@ -30,14 +30,6 @@ export default function AdminCategoriesPage() {
   const [loading, setLoading] = useState(true);
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
 
-  const academicTabs = [
-    { label: "Classes & Approvals", href: "/admin/classes" },
-    { label: "Categories", href: "/admin/categories" },
-    { label: "Subjects", href: "/admin/subjects" },
-    { label: "Grades", href: "/admin/grades" },
-    { label: "Physical Venues", href: "/admin/locations" },
-  ];
-
   const [newCatName, setNewCatName] = useState("");
   const [newSubName, setNewSubName] = useState("");
   const [selectedCatId, setSelectedCatId] = useState("");
@@ -143,6 +135,19 @@ export default function AdminCategoriesPage() {
 
   const pendingSuggestions = suggestions.filter((s) => s.status === "PENDING");
   const reviewedSuggestions = suggestions.filter((s) => s.status !== "PENDING");
+
+  const academicTabs = [
+    { label: "Categories", href: "/admin/categories" },
+    { label: "Subjects", href: "/admin/subjects" },
+    { label: "Grades", href: "/admin/grades" },
+    { label: "Assignment Oversight", href: "/admin/assignments" },
+    {
+      label: "Curriculum Suggestions",
+      href: "/admin/suggestions",
+      badge: pendingSuggestions.length > 0 ? pendingSuggestions.length : undefined,
+    },
+    { label: "Physical Venues", href: "/admin/locations" },
+  ];
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">

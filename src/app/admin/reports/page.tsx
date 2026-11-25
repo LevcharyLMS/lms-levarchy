@@ -69,7 +69,6 @@ export default function AdminReportsPage() {
     { label: "Safety Flags", href: "/admin/flags" },
     { label: "Review Approvals", href: "/admin/reviews" },
     { label: "Class Reports", href: "/admin/reports" },
-    { label: "Support Queue", href: "/admin/support" },
   ];
 
   return (

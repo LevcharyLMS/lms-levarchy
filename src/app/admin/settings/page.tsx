@@ -23,7 +23,6 @@ export default function AdminSettingsPage() {
   const settingsTabs = [
     { label: "Configuration", href: "/admin/settings" },
     { label: "Audit Trail", href: "/admin/audit-logs" },
-    { label: "Marketplace Analytics", href: "/admin/analytics" },
   ];
 
   return (

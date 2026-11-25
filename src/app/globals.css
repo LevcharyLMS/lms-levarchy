@@ -77,3 +77,12 @@
     @apply bg-background text-foreground antialiased selection:bg-teal-500/20 selection:text-teal-900;
   }
 }
+
+/* Utility to completely hide scrollbars while preserving scrolling */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

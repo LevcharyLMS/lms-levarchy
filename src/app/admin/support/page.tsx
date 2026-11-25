@@ -24,12 +24,11 @@ export default function AdminSupportPage() {
 
   const openTicketsCount = tickets.filter((t) => t.status !== "RESOLVED").length;
 
-  const moderationTabs = [
-    { label: "Safety Flags", href: "/admin/flags" },
-    { label: "Review Approvals", href: "/admin/reviews" },
-    { label: "Class Reports", href: "/admin/reports" },
+  const commTabs = [
+    { label: "Broadcast Announcements", href: "/admin/messages" },
+    { label: "Notifications Feed", href: "/admin/notifications" },
     {
-      label: "Support Queue",
+      label: "Support Tickets",
       href: "/admin/support",
       badge: openTicketsCount > 0 ? openTicketsCount : undefined,
     },
@@ -38,10 +37,10 @@ export default function AdminSupportPage() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <AdminHubHeader
-        title="Moderation & Support Hub"
-        badgeText="Customer Support Queue"
+        title="Communications & Support Hub"
+        badgeText="Support Queue"
         description="Address student and tutor inquiries regarding classroom venue parking, scheduling adjustments, and technical help."
-        tabs={moderationTabs}
+        tabs={commTabs}
       />
 
       {notice && (

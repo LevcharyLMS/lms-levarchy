@@ -221,15 +221,15 @@ export default function AdminAdvertsPage() {
 
   const marketingTabs = [
     { label: "Adverts & Flyers", href: "/admin/adverts" },
-    { label: "Curriculum Suggestions", href: "/admin/suggestions" },
+    { label: "Marketplace Analytics", href: "/admin/analytics" },
   ];
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <AdminHubHeader
-        title="Marketing & Growth Hub"
-        badgeText="Homepage Arc Carousel"
-        description="Publish interactive flyers and promotional short videos directly to the homepage arc carousel with custom duration timers."
+        title="Marketing & Analytics Hub"
+        badgeText="Homepage Arc & Intelligence"
+        description="Publish interactive flyers and promotional short videos, and track high-level marketplace intelligence."
         tabs={marketingTabs}
         actions={
           <div className="flex items-center gap-2">

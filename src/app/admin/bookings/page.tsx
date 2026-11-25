@@ -177,7 +177,7 @@ export default function AdminBookingsPage() {
 
   const bookingTabs = [
     { label: "Bookings Ledger", href: "/admin/bookings" },
-    { label: "Assignments Oversight", href: "/admin/assignments" },
+    { label: "Classes & Approvals", href: "/admin/classes" },
   ];
 
   return (
@@ -185,7 +185,7 @@ export default function AdminBookingsPage() {
       <AdminHubHeader
         title="Sessions & Bookings Hub"
         badgeText="Rule 11 Snapshots"
-        description="Audit-grade ledger of student reservations, locked financial snapshots, meeting credentials, and assignment oversight."
+        description="Audit-grade ledger of student reservations, locked financial snapshots, meeting credentials, and class catalog approvals."
         tabs={bookingTabs}
         actions={
           <Button

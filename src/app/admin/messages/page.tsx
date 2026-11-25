@@ -99,6 +99,7 @@ export default function AdminMessagesPage() {
   const commTabs = [
     { label: "Broadcast Announcements", href: "/admin/messages" },
     { label: "Notifications Feed", href: "/admin/notifications" },
+    { label: "Support Tickets", href: "/admin/support" },
   ];
 
   return (

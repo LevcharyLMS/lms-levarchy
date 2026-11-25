@@ -249,7 +249,6 @@ export default function AdminMessageFlagsPage() {
     { label: "Safety Flags", href: "/admin/flags", badge: flags.filter((f) => f.status === "PENDING").length || undefined },
     { label: "Review Approvals", href: "/admin/reviews" },
     { label: "Post-Class Reports", href: "/admin/reports" },
-    { label: "Support Tickets", href: "/admin/support" },
   ];
 
   return (

@@ -101,19 +101,23 @@ export default function AdminAssignmentsPage() {
     );
   });
 
-  const bookingTabs = [
-    { label: "Bookings Ledger", href: "/admin/bookings" },
-    { label: "Assignments Oversight", href: "/admin/assignments" },
+  const academicTabs = [
+    { label: "Categories", href: "/admin/categories" },
+    { label: "Subjects", href: "/admin/subjects" },
+    { label: "Grades", href: "/admin/grades" },
+    { label: "Assignment Oversight", href: "/admin/assignments" },
+    { label: "Curriculum Suggestions", href: "/admin/suggestions" },
+    { label: "Physical Venues", href: "/admin/locations" },
   ];
 
   return (
     <PageTransition>
       <div className="space-y-6 max-w-7xl mx-auto">
         <AdminHubHeader
-          title="Sessions & Bookings Hub"
+          title="Academics & Curriculum Hub"
           badgeText="Assignments Oversight"
           description="Inspect, edit, or put assignments under review across all instructor cohorts. Pre-approval is not mandated."
-          tabs={bookingTabs}
+          tabs={academicTabs}
           actions={
             <div className="flex items-center gap-3">
               <div className="relative w-48 sm:w-64">
