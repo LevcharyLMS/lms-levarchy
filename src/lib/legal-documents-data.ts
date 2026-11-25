@@ -428,7 +428,7 @@ export const LEGAL_DOCUMENTS: Record<string, LegalDocument> = {
   "privacyPolicy": {
     "id": "privacyPolicy",
     "title": "LEVCHARY PRIVACY POLICY",
-    "effectiveDate": "Effective Date: October 7, 2026Last Updated: October 7, 2026",
+    "effectiveDate": "Effective Date: October 7, 2026 • Last Updated: October 7, 2026",
     "sections": [
       {
         "id": "section-intro",
@@ -1954,7 +1954,7 @@ export const LEGAL_DOCUMENTS: Record<string, LegalDocument> = {
   "backgroundCheck": {
     "id": "backgroundCheck",
     "title": "LEVCHARY BACKGROUND CHECK & VERIFICATION AUTHORIZATION",
-    "effectiveDate": "Effective Date: October 7, 2026Last Updated: October 7, 2026",
+    "effectiveDate": "Effective Date: October 7, 2026 • Last Updated: October 7, 2026",
     "sections": [
       {
         "id": "sec-1",
