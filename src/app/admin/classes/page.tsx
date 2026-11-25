@@ -215,6 +215,7 @@ export default function AdminClassesPage() {
       href: "/admin/classes",
       badge: pendingCount > 0 ? pendingCount : undefined,
     },
+    { label: "Physical Venues", href: "/admin/locations" },
     { label: "Bookings Ledger", href: "/admin/bookings" },
   ];
 

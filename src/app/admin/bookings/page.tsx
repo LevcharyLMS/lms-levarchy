@@ -177,6 +177,7 @@ export default function AdminBookingsPage() {
 
   const bookingTabs = [
     { label: "Classes & Approvals", href: "/admin/classes" },
+    { label: "Physical Venues", href: "/admin/locations" },
     { label: "Bookings Ledger", href: "/admin/bookings" },
   ];
 

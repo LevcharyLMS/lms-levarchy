@@ -52,22 +52,19 @@ export default function AdminLocationsPage() {
     });
   };
 
-  const academicTabs = [
-    { label: "Categories", href: "/admin/categories" },
-    { label: "Subjects", href: "/admin/subjects" },
-    { label: "Grades", href: "/admin/grades" },
+  const bookingTabs = [
+    { label: "Classes & Approvals", href: "/admin/classes" },
     { label: "Physical Venues", href: "/admin/locations" },
-    { label: "Assignment Oversight", href: "/admin/assignments" },
-    { label: "Curriculum Suggestions", href: "/admin/suggestions" },
+    { label: "Bookings Ledger", href: "/admin/bookings" },
   ];
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <AdminHubHeader
-        title="Academics & Curriculum Hub"
+        title="Classes & Bookings Hub"
         badgeText="Physical Venues"
         description="Admin-controlled classroom facilities and verified learning suites for in-person 1-on-1 and group cohort sessions."
-        tabs={academicTabs}
+        tabs={bookingTabs}
         actions={
           <Button
             onClick={() => setShowAdd(true)}

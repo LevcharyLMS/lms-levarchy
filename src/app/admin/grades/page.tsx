@@ -214,7 +214,6 @@ export default function AdminGradesPage() {
     { label: "Categories", href: "/admin/categories" },
     { label: "Subjects", href: "/admin/subjects" },
     { label: "Grades", href: "/admin/grades" },
-    { label: "Physical Venues", href: "/admin/locations" },
     { label: "Assignment Oversight", href: "/admin/assignments" },
     { label: "Curriculum Suggestions", href: "/admin/suggestions" },
   ];

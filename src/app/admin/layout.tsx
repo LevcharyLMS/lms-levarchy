@@ -77,9 +77,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           icon: Calendar,
           subRoutes: [
             "/admin/classes",
+            "/admin/locations",
             "/admin/bookings",
           ],
-          description: "Class Catalog & Bookings Ledger",
+          description: "Classes, Physical Venues & Bookings",
         },
         {
           label: "Academics",
@@ -89,7 +90,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             "/admin/categories",
             "/admin/subjects",
             "/admin/grades",
-            "/admin/locations",
             "/admin/assignments",
             "/admin/suggestions",
           ],
