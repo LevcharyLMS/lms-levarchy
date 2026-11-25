@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Bell, Send, CheckCircle2, Inbox } from "lucide-react";
+import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 
 export default function AdminNotificationsPage() {
   const { user } = useAuth();
@@ -53,50 +54,45 @@ export default function AdminNotificationsPage() {
     }
   };
 
-  return (
-    <PageTransition className="space-y-6 max-w-5xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs">
-        <div>
-          <div className="flex items-center gap-2 mb-0.5">
-            <h1 className="text-xl font-bold tracking-tight text-navy-950">
-              System Notifications & Dispatch
-            </h1>
-            <span className="px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[10px] font-bold">
-              Administrative Feed
-            </span>
-          </div>
-          <p className="text-xs text-slate-500">
-            Review incoming administrative notifications and dispatch verified platform-wide alerts.
-          </p>
-        </div>
+  const commTabs = [
+    { label: "Broadcast Announcements", href: "/admin/messages" },
+    { label: "Notifications Feed", href: "/admin/notifications" },
+  ];
 
-        {/* Tab Switcher */}
-        <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
-          <button
-            onClick={() => setActiveTab("FEED")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
-              activeTab === "FEED"
-                ? "bg-white text-navy-950 shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            <Inbox className="w-3.5 h-3.5" />
-            <span>Admin Feed</span>
-          </button>
-          <button
-            onClick={() => setActiveTab("DISPATCH")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
-              activeTab === "DISPATCH"
-                ? "bg-white text-navy-950 shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            <Send className="w-3.5 h-3.5" />
-            <span>Broadcast Alerts</span>
-          </button>
-        </div>
-      </div>
+  return (
+    <PageTransition className="space-y-6 max-w-7xl mx-auto">
+      <AdminHubHeader
+        title="Communications Hub"
+        badgeText="Notifications Feed"
+        description="Review incoming administrative notifications and dispatch verified platform-wide alerts."
+        tabs={commTabs}
+        actions={
+          <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
+            <button
+              onClick={() => setActiveTab("FEED")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                activeTab === "FEED"
+                  ? "bg-white text-navy-950 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <Inbox className="w-3.5 h-3.5" />
+              <span>Admin Feed</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("DISPATCH")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                activeTab === "DISPATCH"
+                  ? "bg-white text-navy-950 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <Send className="w-3.5 h-3.5" />
+              <span>Broadcast Alerts</span>
+            </button>
+          </div>
+        }
+      />
 
       {sentNotice && (
         <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center justify-between">

@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import { db } from "@/lib/data-store";
+import { useAuth } from "@/context/auth-context";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
+import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 import {
   ShieldAlert,
   Send,
@@ -19,6 +21,7 @@ import {
 } from "lucide-react";
 
 export default function AdminMessagesPage() {
+  const { user: currentAdmin } = useAuth();
   const [messages, setMessages] = useState<any[]>(db.state.messages || []);
   const [users, setUsers] = useState<any[]>([]);
   const [isComposerOpen, setIsComposerOpen] = useState(false);
@@ -54,6 +57,7 @@ export default function AdminMessagesPage() {
           subject,
           content,
           channels,
+          adminId: currentAdmin?.id || "usr-admin-1",
         }),
       });
       const data = await res.json();
@@ -92,32 +96,28 @@ export default function AdminMessagesPage() {
     }
   };
 
-  return (
-    <div className="space-y-6 max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs">
-        <div>
-          <div className="flex items-center gap-2 mb-0.5">
-            <h1 className="text-xl font-bold tracking-tight text-navy-950">
-              In-App Message Supervision & Announcements
-            </h1>
-            <span className="px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[10px] font-bold">
-              Broadcast Center
-            </span>
-          </div>
-          <p className="text-xs text-slate-500">
-            Supervise classroom communications, intercept safety violations, and dispatch platform announcements.
-          </p>
-        </div>
+  const commTabs = [
+    { label: "Broadcast Announcements", href: "/admin/messages" },
+    { label: "Notifications Feed", href: "/admin/notifications" },
+  ];
 
-        <Button
-          onClick={() => setIsComposerOpen(true)}
-          className="h-9 px-4 text-xs font-semibold bg-primary hover:bg-teal-700 text-white flex items-center gap-1.5 shadow-sm"
-        >
-          <Send className="w-3.5 h-3.5" />
-          <span>New Broadcast Message</span>
-        </Button>
-      </div>
+  return (
+    <div className="space-y-6 max-w-7xl mx-auto">
+      <AdminHubHeader
+        title="Communications Hub"
+        badgeText="Broadcast Center"
+        description="Supervise classroom communications, intercept safety violations, and dispatch verified platform-wide announcements."
+        tabs={commTabs}
+        actions={
+          <Button
+            onClick={() => setIsComposerOpen(true)}
+            className="h-8 px-3 text-xs font-semibold bg-teal-600 hover:bg-teal-700 text-white flex items-center gap-1.5 shadow-2xs"
+          >
+            <Send className="w-3.5 h-3.5" />
+            <span>New Broadcast Message</span>
+          </Button>
+        }
+      />
 
       {feedback && (
         <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center justify-between">
