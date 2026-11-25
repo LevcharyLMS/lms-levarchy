@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Lock, Layers, TrendingUp, AlertTriangle } from "lucide-react";
+import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 
 export default function AdminCommissionsPage() {
   const { user: currentAdmin } = useAuth();
@@ -60,16 +61,23 @@ export default function AdminCommissionsPage() {
     setSavedSuccess(`Commission policy versioned to ${currentTier}%. Historical bookings remain locked.`);
   };
 
+  const financeTabs = [
+    { label: "Payments", href: "/admin/payments" },
+    { label: "Transactions", href: "/admin/transactions" },
+    { label: "Payouts", href: "/admin/payouts" },
+    { label: "Refunds", href: "/admin/refunds" },
+    { label: "Commissions", href: "/admin/commissions" },
+    { label: "Pricing", href: "/admin/pricing" },
+  ];
+
   return (
-    <div className="space-y-8 max-w-5xl">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-navy-950">
-          Platform Pricing & Commission Engine
-        </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Versioned platform commission rates and immutable historical snapshot enforcement.
-        </p>
-      </div>
+    <div className="space-y-6 max-w-7xl mx-auto">
+      <AdminHubHeader
+        title="Financial Operations Hub"
+        badgeText="Pricing & Commission Engine"
+        description="Versioned platform commission rules, minimum platform fees, and immutable historical snapshot enforcement."
+        tabs={financeTabs}
+      />
 
       {savedSuccess && (
         <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center justify-between">

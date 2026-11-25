@@ -3,8 +3,10 @@
 import React, { useState, useEffect } from "react";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { MoneyDisplay } from "@/components/ui/money-display";
-import { CreditCard, Building } from "lucide-react";
+import { CreditCard, Building, RefreshCw } from "lucide-react";
 import { PageTransition, FadeIn } from "@/components/animations";
+import { AdminHubHeader } from "@/components/admin/admin-hub-header";
+import { Button } from "@/components/ui/button";
 
 interface PayoutRecord {
   id: string;
@@ -22,7 +24,8 @@ export default function AdminPayoutsPage() {
   const [payouts, setPayouts] = useState<PayoutRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const loadPayouts = () => {
+    setLoading(true);
     fetch("/api/admin/payouts")
       .then((res) => res.json())
       .then((data) => {
@@ -30,19 +33,42 @@ export default function AdminPayoutsPage() {
       })
       .catch((err) => console.error("Error loading payouts:", err))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadPayouts();
   }, []);
+
+  const financeTabs = [
+    { label: "Payments", href: "/admin/payments" },
+    { label: "Transactions", href: "/admin/transactions" },
+    { label: "Payouts", href: "/admin/payouts" },
+    { label: "Refunds", href: "/admin/refunds" },
+    { label: "Commissions", href: "/admin/commissions" },
+    { label: "Pricing", href: "/admin/pricing" },
+  ];
 
   return (
     <PageTransition>
-      <div className="space-y-8 max-w-6xl">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-navy-950">
-            Tutor Payout Distributions
-          </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Automated Stripe Connect transfers disbursed following completed class sessions.
-          </p>
-        </div>
+      <div className="space-y-6 max-w-7xl mx-auto">
+        <AdminHubHeader
+          title="Financial Operations Hub"
+          badgeText="Instructor Payouts"
+          description="Automated Stripe Connect transfers disbursed following completed class sessions and verified attendance."
+          tabs={financeTabs}
+          actions={
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadPayouts}
+              disabled={loading}
+              className="h-8 text-xs border-slate-200 gap-1.5"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+              <span>Refresh</span>
+            </Button>
+          }
+        />
 
         <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
           {!loading && payouts.length === 0 ? (

@@ -8,6 +8,7 @@ import { DataTable, Column } from "@/components/shared/data-table";
 import { FilterBar } from "@/components/shared/filter-bar";
 import { DetailDrawer } from "@/components/shared/detail-drawer";
 import { StatCard } from "@/components/ui/stat-card";
+import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 import {
   RotateCcw,
   CheckCircle2,
@@ -17,6 +18,7 @@ import {
   Eye,
   Clock,
   Check,
+  RefreshCw,
 } from "lucide-react";
 
 export default function AdminRefundsPage() {
@@ -189,34 +191,39 @@ export default function AdminRefundsPage() {
     },
   ];
 
+  const financeTabs = [
+    { label: "Payments", href: "/admin/payments" },
+    { label: "Transactions", href: "/admin/transactions" },
+    { label: "Payouts", href: "/admin/payouts" },
+    {
+      label: "Refunds",
+      href: "/admin/refunds",
+      badge: pendingCount > 0 ? pendingCount : undefined,
+    },
+    { label: "Commissions", href: "/admin/commissions" },
+    { label: "Pricing", href: "/admin/pricing" },
+  ];
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs">
-        <div>
-          <div className="flex items-center gap-2 mb-0.5">
-            <h1 className="text-xl font-bold tracking-tight text-navy-950">
-              Refund & Cancellation Management
-            </h1>
-            <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">
-              Rule 10 24-Hour Policy
-            </span>
-          </div>
-          <p className="text-xs text-slate-500">
-            Review student cancellation requests and execute automated or manual Stripe payment reversals with full audit logs.
-          </p>
-        </div>
-
-        <Button
-          onClick={loadRefunds}
-          variant="outline"
-          size="sm"
-          className="h-8 text-xs border-slate-200"
-          disabled={loading}
-        >
-          Refresh Refunds
-        </Button>
-      </div>
+      <AdminHubHeader
+        title="Financial Operations Hub"
+        badgeText="Refunds & Disputes"
+        description="Review student cancellation requests and execute automated or manual Stripe payment reversals with full audit logs."
+        tabs={financeTabs}
+        actions={
+          <Button
+            onClick={loadRefunds}
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs border-slate-200 gap-1.5"
+            disabled={loading}
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            <span>Refresh Refunds</span>
+          </Button>
+        }
+      />
 
       {overrideNotice && (
         <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center justify-between">
