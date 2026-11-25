@@ -71,6 +71,15 @@ function formatAuditSummary(action: string, entityType: string, meta: any): stri
   if (action === "ADVERT_DELETED") {
     return `Deleted promotional advert (${meta.id || "ID"})`;
   }
+  if (action === "CLASS_APPROVED") {
+    return `Approved class "${meta.title || "Class Session"}" for marketplace enrollment`;
+  }
+  if (action === "CLASS_STATUS_CANCELLED") {
+    return `Cancelled class "${meta.title || "Class Session"}"${meta.note ? `: "${meta.note}"` : ""}`;
+  }
+  if (action === "BOOKING_ADMIN_CANCELLED") {
+    return `Admin cancelled booking #${meta.booking_number || "Reference"}${meta.note ? `: "${meta.note}"` : ""}`;
+  }
 
   // Fallback: extract the most informative key-value pairs
   const summaryEntries = Object.entries(meta)

@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json();
-    const { classId, status, actorId = "usr-admin-1" } = body;
+    const { classId, status, actorId = "usr-admin-1", note } = body;
 
     if (!classId || !status) {
       return NextResponse.json({ error: "Missing classId or status" }, { status: 400 });
@@ -33,10 +33,10 @@ export async function PATCH(req: NextRequest) {
     db.logAudit({
       actor_id: actorId,
       actor_role: "ADMIN",
-      action: `CLASS_STATUS_${status}`,
+      action: status === "PUBLISHED" ? "CLASS_APPROVED" : `CLASS_STATUS_${status}`,
       entity_type: "CLASS",
       entity_id: classId,
-      metadata: { status },
+      metadata: { status, title: memClass?.title, note: note || undefined },
     });
 
     return NextResponse.json({ success: true, status });

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { MoneyDisplay } from "@/components/ui/money-display";
 import { Button } from "@/components/ui/button";
@@ -18,16 +19,20 @@ import {
   Eye,
   Calendar,
   Layers,
+  RefreshCw,
+  FileSpreadsheet,
 } from "lucide-react";
 
 export default function AdminClassesPage() {
   const [classes, setClasses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [formatFilter, setFormatFilter] = useState("ALL");
+  const [typeFilter, setTypeFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClass, setSelectedClass] = useState<any | null>(null);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
+  const [actionNote, setActionNote] = useState("");
 
   const loadClasses = async () => {
     try {
@@ -49,19 +54,20 @@ export default function AdminClassesPage() {
   const toggleStatus = async (id: string, currentStatus: string) => {
     const newStatus =
       currentStatus === "PUBLISHED" || currentStatus === "OPEN" ? "CANCELLED" : "PUBLISHED";
-    await updateClassStatus(id, newStatus);
+    await updateClassStatus(id, newStatus, actionNote);
   };
 
-  const updateClassStatus = async (id: string, newStatus: string) => {
+  const updateClassStatus = async (id: string, newStatus: string, note?: string) => {
     try {
       const res = await fetch("/api/admin/classes", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ classId: id, status: newStatus }),
+        body: JSON.stringify({ classId: id, status: newStatus, note }),
       });
       const data = await res.json();
       if (data.success) {
         setActionNotice(`Class status updated to ${newStatus}.`);
+        setActionNote("");
         if (selectedClass && selectedClass.id === id) {
           setSelectedClass({ ...selectedClass, status: newStatus });
         }
@@ -75,6 +81,7 @@ export default function AdminClassesPage() {
   const filteredClasses = useMemo(() => {
     return classes.filter((c) => {
       if (formatFilter !== "ALL" && c.format !== formatFilter) return false;
+      if (typeFilter !== "ALL" && c.class_type !== typeFilter) return false;
       if (statusFilter !== "ALL" && c.status !== statusFilter) return false;
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
@@ -85,7 +92,7 @@ export default function AdminClassesPage() {
       }
       return true;
     });
-  }, [classes, formatFilter, statusFilter, searchQuery]);
+  }, [classes, formatFilter, typeFilter, statusFilter, searchQuery]);
 
   const pendingCount = classes.filter((c) => c.status === "PENDING_APPROVAL").length;
   const publishedCount = classes.filter(
@@ -227,15 +234,24 @@ export default function AdminClassesPage() {
         description="Oversee cohort & 1-on-1 class listings, review pending approvals, and manage live instructional offerings."
         tabs={bookingTabs}
         actions={
-          <Button
-            onClick={loadClasses}
-            variant="outline"
-            size="sm"
-            className="h-8 text-xs border-slate-200"
-            disabled={loading}
-          >
-            Refresh Catalog
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={loadClasses}
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs border-slate-200 gap-1.5"
+              disabled={loading}
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+              <span>Refresh</span>
+            </Button>
+            <Button asChild variant="outline" size="sm" className="h-8 text-xs border-slate-200 gap-1.5 text-teal-700 hover:bg-teal-50">
+              <Link href="/admin/reports">
+                <FileSpreadsheet className="w-3.5 h-3.5" />
+                <span>Bookings & Classes CSV</span>
+              </Link>
+            </Button>
+          </div>
         }
       />
 
@@ -287,11 +303,31 @@ export default function AdminClassesPage() {
       <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs space-y-3">
         <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
           <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold text-slate-500">Type:</span>
+            {[
+              { id: "ALL", label: "All Types" },
+              { id: "ONE_ON_ONE", label: "1-on-1" },
+              { id: "GROUP_COHORT", label: "Group Cohort" },
+            ].map((tp) => (
+              <button
+                key={tp.id}
+                onClick={() => setTypeFilter(tp.id)}
+                className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+                  typeFilter === tp.id
+                    ? "bg-primary text-white"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                {tp.label}
+              </button>
+            ))}
+
+            <div className="h-4 w-px bg-slate-200 mx-1 hidden sm:block" />
+
             <span className="text-xs font-semibold text-slate-500">Format:</span>
             {[
               { id: "ALL", label: "All Formats" },
-              { id: "ONLINE_1ON1", label: "Online 1-on-1" },
-              { id: "ONLINE_GROUP", label: "Online Group" },
+              { id: "ONLINE_1ON1", label: "Online" },
               { id: "PHYSICAL_STUDENT_HOME", label: "Home Visit" },
               { id: "PHYSICAL_CENTER", label: "Learning Center" },
             ].map((fmt) => (
@@ -398,12 +434,26 @@ export default function AdminClassesPage() {
               </p>
             </div>
 
+            {/* Administrative Action Note */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-semibold text-slate-700 block">
+                Administrative Decision Note (Recorded in Audit Trail)
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. Approved curriculum after syllabus verification"
+                value={actionNote}
+                onChange={(e) => setActionNote(e.target.value)}
+                className="w-full text-xs h-8 px-3 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-teal-500"
+              />
+            </div>
+
             <div className="pt-3 border-t border-slate-200 flex flex-col sm:flex-row gap-2">
               {selectedClass.status === "PENDING_APPROVAL" && (
                 <Button
                   variant="default"
                   className="w-full h-9 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
-                  onClick={() => updateClassStatus(selectedClass.id, "PUBLISHED")}
+                  onClick={() => updateClassStatus(selectedClass.id, "PUBLISHED", actionNote)}
                 >
                   Approve & Publish Class
                 </Button>

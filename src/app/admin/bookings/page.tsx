@@ -21,6 +21,9 @@ import {
   Lock,
   ExternalLink,
   RefreshCw,
+  FileSpreadsheet,
+  AlertTriangle,
+  Loader2,
 } from "lucide-react";
 
 export default function AdminBookingsPage() {
@@ -30,6 +33,9 @@ export default function AdminBookingsPage() {
   const [formatFilter, setFormatFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
+  const [cancelNote, setCancelNote] = useState("");
+  const [cancelling, setCancelling] = useState(false);
+  const [actionAlert, setActionAlert] = useState<string | null>(null);
 
   const loadBookings = async () => {
     try {
@@ -175,6 +181,34 @@ export default function AdminBookingsPage() {
     },
   ];
 
+  const handleCancelBooking = async () => {
+    if (!selectedBooking) return;
+    try {
+      setCancelling(true);
+      const res = await fetch("/api/admin/bookings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bookingId: selectedBooking.id,
+          status: "CANCELLED",
+          note: cancelNote || "Administrative cancellation override",
+        }),
+      });
+
+      if (res.ok) {
+        setActionAlert(`Booking #${selectedBooking.booking_number} cancelled and recorded in audit trail.`);
+        setSelectedBooking((prev: any) => ({ ...prev, status: "CANCELLED" }));
+        setCancelNote("");
+        await loadBookings();
+        setTimeout(() => setActionAlert(null), 4000);
+      }
+    } catch (err) {
+      console.error("Failed to cancel booking:", err);
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   const bookingTabs = [
     { label: "Classes & Approvals", href: "/admin/classes" },
     { label: "Physical Venues", href: "/admin/locations" },
@@ -189,18 +223,38 @@ export default function AdminBookingsPage() {
         description="Audit-grade ledger of student reservations, locked financial snapshots, meeting credentials, and class catalog approvals."
         tabs={bookingTabs}
         actions={
-          <Button
-            onClick={loadBookings}
-            variant="outline"
-            size="sm"
-            className="h-8 text-xs border-slate-200 gap-1.5"
-            disabled={loading}
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-            <span>Refresh Ledger</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={loadBookings}
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs border-slate-200 gap-1.5"
+              disabled={loading}
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+              <span>Refresh Ledger</span>
+            </Button>
+            <Button asChild variant="outline" size="sm" className="h-8 text-xs border-slate-200 gap-1.5 text-teal-700 hover:bg-teal-50">
+              <Link href="/admin/reports">
+                <FileSpreadsheet className="w-3.5 h-3.5" />
+                <span>Bookings CSV in Reports</span>
+              </Link>
+            </Button>
+          </div>
         }
       />
+
+      {actionAlert && (
+        <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{actionAlert}</span>
+          </div>
+          <button onClick={() => setActionAlert(null)} className="underline font-semibold text-emerald-900">
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-3.5">
@@ -419,6 +473,36 @@ export default function AdminBookingsPage() {
                 </div>
               )}
             </div>
+
+            {/* Administrative Action Section */}
+            {selectedBooking.status !== "CANCELLED" && (
+              <div className="p-4 bg-rose-50/40 rounded-xl border border-rose-100 space-y-3">
+                <span className="font-bold text-rose-950 block text-xs flex items-center gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+                  <span>Administrative Cancellation Override</span>
+                </span>
+                <p className="text-[11px] text-rose-700">
+                  Cancel this session on behalf of participants. This immediately frees classroom resources and records an immutable audit ledger entry.
+                </p>
+                <input
+                  type="text"
+                  placeholder="Reason for administrative cancellation (e.g. Instructor emergency request)..."
+                  value={cancelNote}
+                  onChange={(e) => setCancelNote(e.target.value)}
+                  className="w-full text-xs h-8 px-3 border border-rose-200 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-rose-500"
+                />
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={cancelling}
+                  onClick={handleCancelBooking}
+                  className="w-full h-8 text-xs gap-1.5 font-semibold"
+                >
+                  {cancelling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <AlertTriangle className="w-3.5 h-3.5" />}
+                  <span>Cancel Booking</span>
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </DetailDrawer>
