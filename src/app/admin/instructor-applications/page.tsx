@@ -5,20 +5,35 @@ import Link from "next/link";
 import { db } from "@/lib/data-store";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
+import { AdminHubHeader } from "@/components/admin/admin-hub-header";
+import { FileText, ExternalLink, CheckCircle2 } from "lucide-react";
 
 export default function AdminTutorApplicationsPage() {
   const candidateTutor = db.getProfileById("usr-tut-5"); // Emily Zhao (Candidate)
+  const pendingDocsCount = db.state.verification_documents.filter(
+    (d) => d.status === "PENDING_REVIEW"
+  ).length;
+
+  const userTabs = [
+    { label: "All Users", href: "/admin/users" },
+    { label: "Students", href: "/admin/students" },
+    { label: "Instructors", href: "/admin/instructors" },
+    { label: "Applications", href: "/admin/instructor-applications", badge: 1 },
+    {
+      label: "Verifications",
+      href: "/admin/verifications",
+      badge: pendingDocsCount > 0 ? pendingDocsCount : undefined,
+    },
+  ];
 
   return (
-    <div className="space-y-8 max-w-5xl">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-navy-950">
-          Incoming Instructor Applications
-        </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Review application submissions and inspect credential verification documents for new instructors.
-        </p>
-      </div>
+    <div className="space-y-6 max-w-7xl mx-auto">
+      <AdminHubHeader
+        title="Users & Directory Hub"
+        badgeText="Instructor Applications"
+        description="Review prospective instructor onboarding submissions, requested subjects, and credential documents."
+        tabs={userTabs}
+      />
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
@@ -44,8 +59,11 @@ export default function AdminTutorApplicationsPage() {
                 <td className="p-4 text-slate-500">2026-02-01</td>
                 <td className="p-4"><StatusBadge status="PENDING_REVIEW" /></td>
                 <td className="p-4 text-right">
-                  <Button asChild variant="default" size="sm" className="h-8 text-xs bg-purple-900 hover:bg-purple-800">
-                    <Link href="/admin/verifications">Inspect Documents</Link>
+                  <Button asChild size="sm" className="h-8 text-xs bg-teal-600 hover:bg-teal-700 text-white gap-1.5 shadow-2xs">
+                    <Link href="/admin/verifications">
+                      <FileText className="w-3.5 h-3.5" />
+                      <span>Inspect Documents</span>
+                    </Link>
                   </Button>
                 </td>
               </tr>

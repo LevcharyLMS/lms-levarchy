@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { db } from "@/lib/data-store";
+import { useAuth } from "@/context/auth-context";
 import { StorageService } from "@/services/storage";
 import { VerificationDocument } from "@/types";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -23,6 +24,7 @@ import {
 } from "lucide-react";
 
 export default function AdminVerificationsPage() {
+  const { user: currentAdmin } = useAuth();
   const [documents, setDocuments] = useState<VerificationDocument[]>(
     db.state.verification_documents
   );
@@ -40,7 +42,7 @@ export default function AdminVerificationsPage() {
     // Generate secure expiring signed URL (15 min expiry)
     const url = await StorageService.getSignedUrl(
       doc.file_path,
-      "usr-admin-1",
+      currentAdmin?.id || "usr-admin-1",
       "ADMIN"
     );
     setSignedUrl(url);
