@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
-import { BookOpen, Plus, Trash2 } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { BookOpen, Plus, Trash2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { DataTable } from "@/components/shared/data-table";
+import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 
 interface SubjectItem {
   id: string;
@@ -16,37 +17,86 @@ interface SubjectItem {
 }
 
 export default function AdminSubjectsPage() {
-  const [subjects, setSubjects] = useState<SubjectItem[]>([
-    { id: "sub-1", name: "AP Calculus BC", category: "Mathematics", slug: "ap-calculus-bc", description: "Advanced limits, differentiation, and integral calculus" },
-    { id: "sub-2", name: "Linear Algebra", category: "Mathematics", slug: "linear-algebra", description: "Matrices, eigenvalues, vector transformations, and spaces" },
-    { id: "sub-3", name: "Organic Chemistry", category: "Science", slug: "organic-chemistry", description: "Reaction mechanisms, stereochemistry, and laboratory synthesis" },
-    { id: "sub-4", name: "Python & Algorithms", category: "Computer Science", slug: "python-algorithms", description: "Modern Python 3, binary search trees, and dynamic programming" },
-    { id: "sub-5", name: "Physics: Mechanics", category: "Science", slug: "physics-mechanics", description: "Kinematics, Newtonian dynamics, and conservation laws" },
-  ]);
+  const [subjects, setSubjects] = useState<SubjectItem[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [newCategory, setNewCategory] = useState("Mathematics");
   const [newDescription, setNewDescription] = useState("");
 
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/taxonomy");
+      const data = await res.json();
+      const cats = (data.categories || []).map((c: any) => ({ id: c.id, name: c.name }));
+      setCategories(cats);
+      if (cats.length > 0 && !newCategory) {
+        setNewCategory(cats[0].name);
+      }
+
+      if (data.subjects && data.subjects.length > 0) {
+        setSubjects(
+          data.subjects.map((s: any) => {
+            const cat = cats.find((c: any) => c.id === s.category_id);
+            return {
+              id: s.id,
+              name: s.name,
+              category: cat ? cat.name : "General",
+              slug: s.slug,
+              description: s.description || `${s.name} coursework and syllabus mastery`,
+            };
+          })
+        );
+      } else {
+        // Fallback default sample subjects
+        setSubjects([
+          { id: "sub-1", name: "AP Calculus BC", category: "Mathematics", slug: "ap-calculus-bc", description: "Advanced limits, differentiation, and integral calculus" },
+          { id: "sub-2", name: "Linear Algebra", category: "Mathematics", slug: "linear-algebra", description: "Matrices, eigenvalues, vector transformations, and spaces" },
+          { id: "sub-3", name: "Organic Chemistry", category: "Science", slug: "organic-chemistry", description: "Reaction mechanisms, stereochemistry, and laboratory synthesis" },
+          { id: "sub-4", name: "Python & Algorithms", category: "Computer Science", slug: "python-algorithms", description: "Modern Python 3, binary search trees, and dynamic programming" },
+          { id: "sub-5", name: "Physics: Mechanics", category: "Science", slug: "physics-mechanics", description: "Kinematics, Newtonian dynamics, and conservation laws" },
+        ]);
+      }
+    } catch (err) {
+      console.error("Failed to load taxonomy in subjects page:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName.trim()) return;
 
     setSubjects([
-      ...subjects,
       {
         id: `sub-${Date.now()}`,
         name: newName,
         category: newCategory,
         slug: newName.toLowerCase().replace(/\s+/g, "-"),
-        description: newDescription,
+        description: newDescription || `${newName} coursework and syllabus mastery`,
       },
+      ...subjects,
     ]);
     setNewName("");
     setNewDescription("");
     setIsModalOpen(false);
   };
+
+  const academicTabs = [
+    { label: "Classes & Approvals", href: "/admin/classes" },
+    { label: "Categories", href: "/admin/categories" },
+    { label: "Subjects", href: "/admin/subjects" },
+    { label: "Grades", href: "/admin/grades" },
+    { label: "Physical Venues", href: "/admin/locations" },
+  ];
 
   const columns = [
     {
@@ -90,26 +140,35 @@ export default function AdminSubjectsPage() {
   ];
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight text-navy-950">
-            Subject Catalog
-          </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Manage academic subjects, syllabus domains, and teaching specializations.
-          </p>
-        </div>
-        <Button
-          size="sm"
-          onClick={() => setIsModalOpen(true)}
-          className="text-xs h-8 bg-primary hover:bg-primary/90 text-white gap-1.5"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>Add Subject</span>
-        </Button>
-      </div>
+    <div className="space-y-6 max-w-7xl mx-auto">
+      <AdminHubHeader
+        title="Academics & Curriculum Hub"
+        badgeText="Subject Catalog"
+        description="Manage academic subjects, syllabus domains, and teaching specializations across all departments."
+        tabs={academicTabs}
+        actions={
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadData}
+              disabled={loading}
+              className="h-8 text-xs border-slate-200 gap-1.5"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+              <span>Refresh</span>
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => setIsModalOpen(true)}
+              className="text-xs h-8 bg-teal-600 hover:bg-teal-700 text-white gap-1.5 shadow-2xs"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Subject</span>
+            </Button>
+          </div>
+        }
+      />
 
       {/* Table */}
       <DataTable
@@ -145,11 +204,21 @@ export default function AdminSubjectsPage() {
                   onChange={(e) => setNewCategory(e.target.value)}
                   className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs bg-white focus:ring-primary/20"
                 >
-                  <option value="Mathematics">Mathematics</option>
-                  <option value="Science">Science</option>
-                  <option value="Computer Science">Computer Science</option>
-                  <option value="Languages">Languages</option>
-                  <option value="Test Preparation">Test Preparation</option>
+                  {categories.length > 0 ? (
+                    categories.map((c) => (
+                      <option key={c.id} value={c.name}>
+                        {c.name}
+                      </option>
+                    ))
+                  ) : (
+                    <>
+                      <option value="Mathematics">Mathematics</option>
+                      <option value="Science">Science</option>
+                      <option value="Computer Science">Computer Science</option>
+                      <option value="Languages">Languages</option>
+                      <option value="Test Preparation">Test Preparation</option>
+                    </>
+                  )}
                 </select>
               </div>
 
@@ -173,7 +242,7 @@ export default function AdminSubjectsPage() {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" size="sm" className="text-xs bg-primary hover:bg-primary/90 text-white">
+                <Button type="submit" size="sm" className="text-xs bg-teal-600 hover:bg-teal-700 text-white font-medium">
                   Save Subject
                 </Button>
               </div>

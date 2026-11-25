@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { useAuth } from "@/context/auth-context";
+import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 import {
   Tag,
   BookOpen,
@@ -28,6 +29,14 @@ export default function AdminCategoriesPage() {
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
+
+  const academicTabs = [
+    { label: "Classes & Approvals", href: "/admin/classes" },
+    { label: "Categories", href: "/admin/categories" },
+    { label: "Subjects", href: "/admin/subjects" },
+    { label: "Grades", href: "/admin/grades" },
+    { label: "Physical Venues", href: "/admin/locations" },
+  ];
 
   const [newCatName, setNewCatName] = useState("");
   const [newSubName, setNewSubName] = useState("");
@@ -136,28 +145,25 @@ export default function AdminCategoriesPage() {
   const reviewedSuggestions = suggestions.filter((s) => s.status !== "PENDING");
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200 shadow-2xs">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight text-navy-950 flex items-center gap-2">
-            Academic Categories & Subject Disciplines
-          </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Define marketplace taxonomy, academic disciplines, and moderate instructor taxonomy proposals.
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={loadData}
-          disabled={loading}
-          className="h-8 text-xs border-slate-200 gap-1.5"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-          <span>Refresh</span>
-        </Button>
-      </div>
+    <div className="space-y-6 max-w-7xl mx-auto">
+      <AdminHubHeader
+        title="Academics & Curriculum Hub"
+        badgeText="Categories & Taxonomy"
+        description="Define marketplace categories, manage academic disciplines, and moderate instructor curriculum proposals."
+        tabs={academicTabs}
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={loadData}
+            disabled={loading}
+            className="h-8 text-xs border-slate-200 gap-1.5"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            <span>Refresh</span>
+          </Button>
+        }
+      />
 
       {/* Instructor Suggestions Moderation Panel */}
       <div className="bg-white rounded-2xl border border-teal-200 shadow-xs overflow-hidden">

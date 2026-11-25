@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MapPin, Plus, CheckCircle2 } from "lucide-react";
+import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 
 export default function AdminLocationsPage() {
   const { user: currentAdmin } = useAuth();
@@ -51,22 +52,32 @@ export default function AdminLocationsPage() {
     });
   };
 
-  return (
-    <div className="space-y-8 max-w-5xl">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-navy-950">
-            Approved Physical Learning Hubs
-          </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Admin-controlled classroom facilities for in-person 1-on-1 and group cohort sessions.
-          </p>
-        </div>
+  const academicTabs = [
+    { label: "Classes & Approvals", href: "/admin/classes" },
+    { label: "Categories", href: "/admin/categories" },
+    { label: "Subjects", href: "/admin/subjects" },
+    { label: "Grades", href: "/admin/grades" },
+    { label: "Physical Venues", href: "/admin/locations" },
+  ];
 
-        <Button onClick={() => setShowAdd(true)} variant="default" size="sm" className="gap-1.5 shadow-xs">
-          <Plus className="w-4 h-4" /> Add Academic Facility
-        </Button>
-      </div>
+  return (
+    <div className="space-y-6 max-w-7xl mx-auto">
+      <AdminHubHeader
+        title="Academics & Curriculum Hub"
+        badgeText="Physical Venues"
+        description="Admin-controlled classroom facilities and verified learning suites for in-person 1-on-1 and group cohort sessions."
+        tabs={academicTabs}
+        actions={
+          <Button
+            onClick={() => setShowAdd(true)}
+            size="sm"
+            className="text-xs h-8 bg-teal-600 hover:bg-teal-700 text-white gap-1.5 shadow-2xs"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Academic Facility</span>
+          </Button>
+        }
+      />
 
       {showAdd && (
         <Card className="border-slate-200 shadow-sm animate-accordion-down">

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 import {
   Plus,
   Trash2,
@@ -209,27 +210,32 @@ export default function AdminGradesPage() {
     );
   };
 
+  const academicTabs = [
+    { label: "Classes & Approvals", href: "/admin/classes" },
+    { label: "Categories", href: "/admin/categories" },
+    { label: "Subjects", href: "/admin/subjects" },
+    { label: "Grades", href: "/admin/grades" },
+    { label: "Physical Venues", href: "/admin/locations" },
+  ];
+
   return (
-    <div className="space-y-6 max-w-5xl mx-auto py-2">
-      {/* Clean Admin Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight text-navy-950">
-            Academic Grade Tiers
-          </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Configure educational grade levels, student targeting brackets, and difficulty tiers.
-          </p>
-        </div>
-        <Button
-          size="sm"
-          onClick={handleOpenModal}
-          className="text-xs h-8 bg-teal-600 hover:bg-indigo-700 text-white gap-1.5 shadow-xs"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>Add Grade Tier</span>
-        </Button>
-      </div>
+    <div className="space-y-6 max-w-7xl mx-auto">
+      <AdminHubHeader
+        title="Academics & Curriculum Hub"
+        badgeText="Grade Tiers"
+        description="Configure educational grade levels, student targeting brackets, and tutor/faculty instructional eligibility."
+        tabs={academicTabs}
+        actions={
+          <Button
+            size="sm"
+            onClick={handleOpenModal}
+            className="text-xs h-8 bg-teal-600 hover:bg-teal-700 text-white gap-1.5 shadow-2xs"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Grade Tier</span>
+          </Button>
+        }
+      />
 
       {/* Search and Table View */}
       <div className="space-y-3">
