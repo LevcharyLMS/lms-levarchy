@@ -19,8 +19,56 @@ import {
   FileCode,
   Globe,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  CheckCircle2,
+  AlertTriangle,
+  Info
 } from "lucide-react";
+
+// Formatter to produce natural, human-readable sentence summaries instead of raw JSON
+function formatAuditSummary(action: string, entityType: string, meta: any): string {
+  if (!meta || Object.keys(meta).length === 0) {
+    return `${action.replace(/_/g, " ").toLowerCase()} performed on ${entityType.toLowerCase()}`;
+  }
+
+  if (action === "PLATFORM_INITIALIZED" || action === "SYSTEM_INITIALIZED") {
+    return `System initialized in ${meta.environment || "production"} (v${meta.version || "1.0.0"})`;
+  }
+  if (action === "USER_STATUS_SUSPENDED") {
+    return `Account suspended${meta.note ? `: "${meta.note}"` : ""}`;
+  }
+  if (action === "USER_STATUS_ACTIVE") {
+    return `Account reactivated${meta.note ? `: "${meta.note}"` : " by administrator"}`;
+  }
+  if (action === "PLATFORM_CONFIG_UPDATED") {
+    const parts = [];
+    if (meta.cancel_hours !== undefined) parts.push(`Cancel window: ${meta.cancel_hours}h`);
+    if (meta.maintenance_mode !== undefined) parts.push(`Maintenance: ${meta.maintenance_mode ? "ON" : "OFF"}`);
+    if (meta.platform_name) parts.push(`Brand: ${meta.platform_name}`);
+    return `Settings saved: ${parts.join(", ") || "Configuration parameters updated"}`;
+  }
+  if (action === "LEGAL_DOCUMENT_UPDATED") {
+    return `Updated "${meta.title || "legal agreement"}" (${meta.sectionsCount || 0} sections)`;
+  }
+  if (action === "INSTRUCTOR_APPLICATION_APPROVED") {
+    return `Approved instructor application and teaching credentials authorized`;
+  }
+  if (action === "INSTRUCTOR_APPLICATION_REJECTED") {
+    return `Rejected instructor application${meta.rejection_reason ? `: "${meta.rejection_reason}"` : ""}`;
+  }
+  if (action === "REFUND_PROCESSED") {
+    return `Refund of $${((meta.amount_cents || 0) / 100).toFixed(2)} processed for booking`;
+  }
+
+  // Fallback: extract the most informative key-value pairs
+  const summaryEntries = Object.entries(meta)
+    .filter(([k]) => !k.includes("token") && !k.includes("secret"))
+    .slice(0, 2)
+    .map(([k, v]) => `${k.replace(/_/g, " ")}: ${v}`)
+    .join(" • ");
+
+  return summaryEntries || action.replace(/_/g, " ").toLowerCase();
+}
 
 export default function AdminAuditLogsPage() {
   const [logs, setLogs] = useState<any[]>([]);
@@ -62,7 +110,7 @@ export default function AdminAuditLogsPage() {
           return false;
         if (categoryFilter === "MODERATION" && !log.action?.includes("FLAG") && !log.action?.includes("REPORT") && !log.action?.includes("REVIEW"))
           return false;
-        if (categoryFilter === "CONFIG" && !log.action?.includes("CONFIG") && !log.action?.includes("SETTING") && !log.action?.includes("SYSTEM"))
+        if (categoryFilter === "CONFIG" && !log.action?.includes("CONFIG") && !log.action?.includes("SETTING") && !log.action?.includes("SYSTEM") && !log.action?.includes("LEGAL"))
           return false;
       }
 
@@ -86,10 +134,11 @@ export default function AdminAuditLogsPage() {
   };
 
   const exportAuditCSV = () => {
-    let csvContent = "TimestampUTC,ActorRole,ActorID,Action,EntityType,EntityID,IPAddress,Metadata\n";
+    let csvContent = "TimestampUTC,ActorRole,ActorID,Action,EntityType,EntityID,IPAddress,Description,Metadata\n";
     filteredLogs.forEach((l) => {
+      const desc = formatAuditSummary(l.action, l.entity_type, l.metadata).replace(/"/g, '""');
       const meta = JSON.stringify(l.metadata || {}).replace(/"/g, '""');
-      csvContent += `"${l.created_at}","${l.actor_role || "SYSTEM"}","${l.actor_id}","${l.action}","${l.entity_type}","${l.entity_id || ""}","${l.ip_address || "127.0.0.1"}","${meta}"\n`;
+      csvContent += `"${l.created_at}","${l.actor_role || "SYSTEM"}","${l.actor_id}","${l.action}","${l.entity_type}","${l.entity_id || ""}","${l.ip_address || "127.0.0.1"}","${desc}","${meta}"\n`;
     });
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -112,7 +161,7 @@ export default function AdminAuditLogsPage() {
       <AdminHubHeader
         title="Settings & Audit Hub"
         badgeText="Append-Only Security Log"
-        description="Immutable forensic ledger recording every administrative decision, verification transition, and configuration update."
+        description="Immutable forensic ledger recording every administrative decision, verification transition, policy edit, and configuration update."
         tabs={settingsTabs}
         actions={
           <div className="flex items-center gap-2">
@@ -148,7 +197,7 @@ export default function AdminAuditLogsPage() {
           { id: "USER", label: "User & Roles" },
           { id: "FINANCIAL", label: "Financials & Refunds" },
           { id: "MODERATION", label: "Moderation & Safety" },
-          { id: "CONFIG", label: "System Config" },
+          { id: "CONFIG", label: "System Config & Legal" },
         ]}
         selectedCategory={categoryFilter}
         onCategorySelect={setCategoryFilter}
@@ -179,53 +228,82 @@ export default function AdminAuditLogsPage() {
                   <th className="p-4">Actor</th>
                   <th className="p-4">Action</th>
                   <th className="p-4">Target Entity</th>
-                  <th className="p-4">Event Details</th>
+                  <th className="p-4">Event Description</th>
                   <th className="p-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
-                {filteredLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="p-4 text-slate-500 whitespace-nowrap">
-                      {new Date(log.created_at).toLocaleString()}
-                    </td>
-                    <td className="p-4">
-                      <span className="font-semibold text-navy-950 block">
-                        {log.actor_role || "SYSTEM"}
-                      </span>
-                      <span className="text-[10px] text-slate-400 font-mono">
-                        {log.actor_id}
-                      </span>
-                    </td>
-                    <td className="p-4 font-mono font-bold text-teal-800">
-                      {log.action}
-                    </td>
-                    <td className="p-4">
-                      <span className="font-semibold text-slate-800 block">
-                        {log.entity_type}
-                      </span>
-                      {log.entity_id && (
-                        <span className="text-[10px] text-slate-400 font-mono">
-                          {log.entity_id}
+                {filteredLogs.map((log) => {
+                  const summaryText = formatAuditSummary(log.action, log.entity_type, log.metadata);
+                  const isSystem = log.actor_role === "SYSTEM";
+
+                  return (
+                    <tr key={log.id} className="hover:bg-slate-50/60 transition-colors">
+                      <td className="p-4 text-slate-500 whitespace-nowrap">
+                        <div className="font-medium text-slate-800">
+                          {new Date(log.created_at).toLocaleDateString()}
+                        </div>
+                        <div className="text-[10px] text-slate-400">
+                          {new Date(log.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                        </div>
+                      </td>
+
+                      <td className="p-4">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              isSystem
+                                ? "bg-slate-100 text-slate-700"
+                                : log.actor_role === "ADMIN"
+                                ? "bg-purple-100 text-purple-900"
+                                : "bg-teal-100 text-teal-900"
+                            }`}
+                          >
+                            {log.actor_role || "SYSTEM"}
+                          </span>
+                        </div>
+                        <div className="text-[10px] text-slate-400 mt-0.5 font-mono">
+                          {log.ip_address || "127.0.0.1"}
+                        </div>
+                      </td>
+
+                      <td className="p-4">
+                        <span className="font-mono font-bold text-teal-800 text-[11px] block">
+                          {log.action}
                         </span>
-                      )}
-                    </td>
-                    <td className="p-4 max-w-xs truncate text-[11px] text-slate-600 font-mono bg-slate-50/50 rounded">
-                      {JSON.stringify(log.metadata)}
-                    </td>
-                    <td className="p-4 text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 text-xs border-slate-200 text-slate-600 gap-1"
-                        onClick={() => openLogDetail(log)}
-                      >
-                        <Eye className="w-3.5 h-3.5 text-teal-600" />
-                        <span>Inspect</span>
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+
+                      <td className="p-4">
+                        <span className="font-semibold text-slate-800 block text-xs">
+                          {log.entity_type}
+                        </span>
+                        {log.entity_id && (
+                          <span className="text-[10px] text-slate-400 font-mono truncate max-w-[120px] block">
+                            {log.entity_id.length > 12 ? `${log.entity_id.substring(0, 8)}...` : log.entity_id}
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="p-4 max-w-sm">
+                        <div className="text-slate-700 text-xs font-normal leading-relaxed">
+                          {summaryText}
+                        </div>
+                      </td>
+
+                      <td className="p-4 text-right">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs border-slate-200 text-slate-600 hover:text-navy-950 gap-1"
+                          onClick={() => openLogDetail(log)}
+                        >
+                          <Eye className="w-3.5 h-3.5 text-teal-600" />
+                          <span>Inspect</span>
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -252,8 +330,8 @@ export default function AdminAuditLogsPage() {
                   {selectedLog.entity_type}
                 </span>
               </div>
-              <p className="text-[11px] text-slate-600">
-                Action recorded in compliance with Rule 80 security audit retention standards.
+              <p className="text-[11px] text-slate-700 leading-relaxed font-medium">
+                {formatAuditSummary(selectedLog.action, selectedLog.entity_type, selectedLog.metadata)}
               </p>
             </div>
 
@@ -261,7 +339,7 @@ export default function AdminAuditLogsPage() {
             <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5">
               <span className="font-bold text-navy-950 flex items-center gap-1.5 uppercase text-[10px] tracking-wider text-slate-400">
                 <User className="w-3.5 h-3.5 text-teal-600" />
-                <span>Actor Credentials</span>
+                <span>Security & Actor Context</span>
               </span>
               <div className="grid grid-cols-2 gap-3 text-[11px]">
                 <div>
@@ -269,16 +347,20 @@ export default function AdminAuditLogsPage() {
                   <span className="font-bold text-navy-950">{selectedLog.actor_role}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block">Actor UUID:</span>
-                  <span className="font-mono text-slate-700">{selectedLog.actor_id}</span>
+                  <span className="text-slate-400 block">Actor System ID:</span>
+                  <span className="font-mono text-slate-700 truncate block" title={selectedLog.actor_id}>
+                    {selectedLog.actor_id}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block">IP Address:</span>
+                  <span className="text-slate-400 block">Client IP Address:</span>
                   <span className="font-mono text-slate-700">{selectedLog.ip_address || "127.0.0.1"}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block">Target Entity ID:</span>
-                  <span className="font-mono text-slate-700">{selectedLog.entity_id || "N/A"}</span>
+                  <span className="text-slate-400 block">Target Entity Identifier:</span>
+                  <span className="font-mono text-slate-700 truncate block" title={selectedLog.entity_id}>
+                    {selectedLog.entity_id || "SYSTEM_ROOT"}
+                  </span>
                 </div>
               </div>
             </div>
@@ -287,9 +369,9 @@ export default function AdminAuditLogsPage() {
             <div className="space-y-2">
               <span className="font-bold text-navy-950 flex items-center gap-1.5 uppercase text-[10px] tracking-wider text-slate-400">
                 <FileCode className="w-3.5 h-3.5 text-purple-700" />
-                <span>Event Metadata Payload</span>
+                <span>Complete Event Payload (JSON)</span>
               </span>
-              <div className="p-4 bg-slate-900 text-slate-100 rounded-xl font-mono text-[11px] overflow-x-auto shadow-inner">
+              <div className="p-4 bg-slate-900 text-slate-100 rounded-xl font-mono text-[11px] overflow-x-auto shadow-inner leading-relaxed">
                 <pre>{JSON.stringify(selectedLog.metadata, null, 2)}</pre>
               </div>
             </div>

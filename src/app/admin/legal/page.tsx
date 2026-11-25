@@ -12,12 +12,11 @@ import {
   Shield,
   CheckCircle2,
   Calendar,
-  Eye,
-  Edit3,
   Loader2,
-  ExternalLink,
   Save,
-  Plus
+  Plus,
+  Trash2,
+  ExternalLink
 } from "lucide-react";
 
 export default function AdminLegalDocumentsPage() {
@@ -39,9 +38,14 @@ export default function AdminLegalDocumentsPage() {
       const res = await fetch("/api/admin/legal");
       if (res.ok) {
         const data = await res.json();
-        setDocuments(data.documents || {});
-        if (data.documents?.[selectedKey]) {
-          populateForm(data.documents[selectedKey]);
+        const docs = data.documents || {};
+        setDocuments(docs);
+        if (docs[selectedKey]) {
+          populateForm(docs[selectedKey]);
+        } else if (Object.keys(docs).length > 0) {
+          const firstKey = Object.keys(docs)[0];
+          setSelectedKey(firstKey);
+          populateForm(docs[firstKey]);
         }
       }
     } catch (err) {
@@ -58,7 +62,25 @@ export default function AdminLegalDocumentsPage() {
   const populateForm = (doc: any) => {
     setEditTitle(doc.title || "");
     setEditDate(doc.effectiveDate || "");
-    setSections(doc.sections ? JSON.parse(JSON.stringify(doc.sections)) : []);
+
+    // Normalizing section structure: handles both `paragraphs` array or legacy `content`
+    const normalizedSections = (doc.sections || []).map((sec: any) => {
+      let rawParagraphs: string[] = [];
+      if (Array.isArray(sec.paragraphs) && sec.paragraphs.length > 0) {
+        rawParagraphs = sec.paragraphs;
+      } else if (Array.isArray(sec.content) && sec.content.length > 0) {
+        rawParagraphs = sec.content;
+      } else if (typeof sec.content === "string") {
+        rawParagraphs = sec.content.split("\n\n").filter(Boolean);
+      }
+      return {
+        id: sec.id || `sec-${Date.now()}`,
+        title: sec.title || sec.heading || "Untitled Section",
+        paragraphs: rawParagraphs,
+      };
+    });
+
+    setSections(normalizedSections);
   };
 
   const handleSelectDoc = (key: string) => {
@@ -68,20 +90,36 @@ export default function AdminLegalDocumentsPage() {
     }
   };
 
-  const handleSectionHeadingChange = (index: number, val: string) => {
+  const handleSectionTitleChange = (index: number, val: string) => {
     setSections((prev) => {
       const next = [...prev];
-      next[index].heading = val;
+      next[index].title = val;
       return next;
     });
   };
 
-  const handleSectionContentChange = (index: number, val: string) => {
+  const handleSectionTextChange = (index: number, val: string) => {
     setSections((prev) => {
       const next = [...prev];
-      next[index].content = val.split("\n\n").filter((p) => p.trim());
+      // Splitting double newlines into distinct paragraphs
+      next[index].paragraphs = val.split("\n\n").filter((p) => p.trim().length > 0);
       return next;
     });
+  };
+
+  const handleDeleteSection = (index: number) => {
+    setSections((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleAddSection = () => {
+    setSections((prev) => [
+      ...prev,
+      {
+        id: `sec-${Date.now()}`,
+        title: `${prev.length + 1}. NEW SECTION TITLE`,
+        paragraphs: ["Enter section paragraphs here..."],
+      },
+    ]);
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -101,7 +139,17 @@ export default function AdminLegalDocumentsPage() {
       });
 
       if (res.ok) {
-        setSaveAlert(`"${editTitle}" successfully updated and recorded in audit log.`);
+        setSaveAlert(`"${editTitle}" successfully updated and recorded in audit trail.`);
+        // Refresh local cache
+        setDocuments((prev) => ({
+          ...prev,
+          [selectedKey]: {
+            ...prev[selectedKey],
+            title: editTitle,
+            effectiveDate: editDate,
+            sections,
+          },
+        }));
         setTimeout(() => setSaveAlert(null), 4000);
       }
     } catch (err) {
@@ -117,12 +165,20 @@ export default function AdminLegalDocumentsPage() {
     { label: "Legal Documents", href: "/admin/legal" },
   ];
 
+  const getPublicLink = (key: string) => {
+    if (key === "privacy") return "/privacy";
+    if (key === "terms" || key === "userAgreement") return "/terms";
+    if (key === "instructorAgreement") return "/instructor-agreement";
+    if (key === "backgroundAuthorization") return "/background-check-authorization";
+    return "/terms";
+  };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <AdminHubHeader
         title="Settings & Audit Hub"
         badgeText="Legal Policies & Governance"
-        description="Review and update Terms of Service, Privacy Policy, Tutor Honor Code, and Background Check disclosures."
+        description="Review and update official platform legal policies including User Agreement, Terms of Service, Privacy Policy, and Instructor Agreements."
         tabs={settingsTabs}
       />
 
@@ -177,31 +233,42 @@ export default function AdminLegalDocumentsPage() {
                 </div>
               ) : (
                 <form onSubmit={handleSave} className="space-y-6">
-                  {/* Document Title & Effective Date */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4 border-b border-slate-100">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                        Legal Agreement Title
-                      </label>
-                      <Input
-                        value={editTitle}
-                        onChange={(e) => setEditTitle(e.target.value)}
-                        className="h-9 text-xs"
-                        required
-                      />
+                  {/* Document Title & Effective Date Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                    <div className="flex-1 space-y-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                          Agreement Document Title
+                        </label>
+                        <Input
+                          value={editTitle}
+                          onChange={(e) => setEditTitle(e.target.value)}
+                          className="h-9 text-xs font-bold text-navy-950"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                          <span>Effective Date Display</span>
+                        </label>
+                        <Input
+                          value={editDate}
+                          onChange={(e) => setEditDate(e.target.value)}
+                          className="h-8 text-xs max-w-sm"
+                          placeholder="e.g. Effective Date: October 7, 2026"
+                          required
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                        <span>Effective Date Notice</span>
-                      </label>
-                      <Input
-                        value={editDate}
-                        onChange={(e) => setEditDate(e.target.value)}
-                        className="h-9 text-xs"
-                        placeholder="e.g. October 1, 2026"
-                        required
-                      />
+
+                    <div className="shrink-0 self-start sm:self-center">
+                      <Button asChild variant="outline" size="sm" className="h-8 text-xs border-slate-200 gap-1.5">
+                        <a href={getPublicLink(selectedKey)} target="_blank" rel="noopener noreferrer">
+                          <span>View Live Page</span>
+                          <ExternalLink className="w-3 h-3 text-slate-400" />
+                        </a>
+                      </Button>
                     </div>
                   </div>
 
@@ -216,45 +283,62 @@ export default function AdminLegalDocumentsPage() {
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="h-7 text-xs border-slate-200 gap-1"
-                        onClick={() =>
-                          setSections([
-                            ...sections,
-                            { id: `sec-${Date.now()}`, heading: "New Section", content: ["Enter text..."] },
-                          ])
-                        }
+                        className="h-7 text-xs border-slate-200 gap-1 text-teal-700 hover:bg-teal-50"
+                        onClick={handleAddSection}
                       >
-                        <Plus className="w-3 h-3 text-teal-600" /> Add Section
+                        <Plus className="w-3 h-3" /> Add Section
                       </Button>
                     </div>
 
-                    <div className="space-y-4 max-h-[500px] overflow-y-auto pr-1">
-                      {sections.map((sec, idx) => (
-                        <div key={sec.id || idx} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
-                          <label className="block text-[11px] font-bold text-navy-950">
-                            Section {idx + 1} Heading
-                          </label>
-                          <Input
-                            value={sec.heading}
-                            onChange={(e) => handleSectionHeadingChange(idx, e.target.value)}
-                            className="h-8 text-xs bg-white"
-                          />
-                          <label className="block text-[11px] font-semibold text-slate-500 mt-2">
-                            Section Paragraphs (Separate paragraphs with double newlines)
-                          </label>
-                          <Textarea
-                            value={Array.isArray(sec.content) ? sec.content.join("\n\n") : sec.content || ""}
-                            onChange={(e) => handleSectionContentChange(idx, e.target.value)}
-                            rows={3}
-                            className="text-xs bg-white font-sans leading-relaxed"
-                          />
-                        </div>
-                      ))}
+                    <div className="space-y-4 max-h-[580px] overflow-y-auto pr-1">
+                      {sections.map((sec, idx) => {
+                        const paragraphsText = Array.isArray(sec.paragraphs)
+                          ? sec.paragraphs.join("\n\n")
+                          : "";
+
+                        return (
+                          <div key={sec.id || idx} className="p-4 bg-slate-50/80 border border-slate-200 rounded-xl space-y-2.5">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                                Section {idx + 1}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteSection(idx)}
+                                title="Delete Section"
+                                className="text-slate-400 hover:text-rose-600 p-1 rounded transition-colors"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+
+                            <Input
+                              value={sec.title}
+                              onChange={(e) => handleSectionTitleChange(idx, e.target.value)}
+                              placeholder="Section title or number..."
+                              className="h-8 text-xs font-bold bg-white text-navy-950"
+                            />
+
+                            <div>
+                              <span className="block text-[10px] text-slate-400 mb-1">
+                                Section Body (Separate paragraphs with double newlines):
+                              </span>
+                              <Textarea
+                                value={paragraphsText}
+                                onChange={(e) => handleSectionTextChange(idx, e.target.value)}
+                                rows={5}
+                                className="text-xs bg-white font-sans leading-relaxed text-slate-700"
+                                placeholder="Enter section content paragraphs..."
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
 
                   {/* Submit Action */}
-                  <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
+                  <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
                     <Button
                       type="submit"
                       disabled={saving}
