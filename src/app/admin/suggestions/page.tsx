@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { StatCard } from "@/components/ui/stat-card";
 import { useAuth } from "@/context/auth-context";
+import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 import {
   Sparkles,
   CheckCircle2,
@@ -96,35 +97,35 @@ export default function AdminSuggestionsPage() {
     return true;
   });
 
-  return (
-    <div className="space-y-6 max-w-6xl mx-auto">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200/80 shadow-2xs">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold tracking-tight text-navy-950 flex items-center gap-2">
-              Instructor Curriculum & Taxonomy Suggestions
-            </h1>
-            <span className="px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[10px] font-bold">
-              {pendingCount} Pending
-            </span>
-          </div>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Review, verify, and approve academic categories, subjects, and grade levels proposed by instructors.
-          </p>
-        </div>
+  const marketingTabs = [
+    { label: "Adverts & Flyers", href: "/admin/adverts" },
+    {
+      label: "Curriculum Suggestions",
+      href: "/admin/suggestions",
+      badge: pendingCount > 0 ? pendingCount : undefined,
+    },
+  ];
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={loadData}
-          disabled={loading}
-          className="h-8 text-xs border-slate-200 gap-1.5"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-          <span>Refresh</span>
-        </Button>
-      </div>
+  return (
+    <div className="space-y-6 max-w-7xl mx-auto">
+      <AdminHubHeader
+        title="Marketing & Growth Hub"
+        badgeText="Curriculum Proposals"
+        description="Review, verify, and approve academic categories, subjects, and grade levels proposed by instructors."
+        tabs={marketingTabs}
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={loadData}
+            disabled={loading}
+            className="h-8 text-xs border-slate-200 gap-1.5"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            <span>Refresh</span>
+          </Button>
+        }
+      />
 
       {/* KPI Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">

@@ -24,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AdvertItem, AdvertMediaType } from "@/types";
+import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 
 export default function AdminAdvertsPage() {
   const [adverts, setAdverts] = useState<AdvertItem[]>([]);
@@ -218,43 +219,40 @@ export default function AdminAdvertsPage() {
   const totalDownloads = adverts.reduce((sum, a) => sum + (a.download_count || 0), 0);
   const totalViews = adverts.reduce((sum, a) => sum + (a.view_count || 0), 0);
 
+  const marketingTabs = [
+    { label: "Adverts & Flyers", href: "/admin/adverts" },
+    { label: "Curriculum Suggestions", href: "/admin/suggestions" },
+  ];
+
   return (
-    <div className="p-6 sm:p-8 max-w-7xl mx-auto space-y-8">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6">
-        <div>
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-teal-50 border border-teal-200 text-teal-700 text-xs font-semibold mb-2">
-            <Megaphone className="w-3.5 h-3.5" />
-            Homepage Arc Advertisement Hub
+    <div className="space-y-6 max-w-7xl mx-auto">
+      <AdminHubHeader
+        title="Marketing & Growth Hub"
+        badgeText="Homepage Arc Carousel"
+        description="Publish interactive flyers and promotional short videos directly to the homepage arc carousel with custom duration timers."
+        tabs={marketingTabs}
+        actions={
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchAdverts}
+              className="h-8 text-xs border-slate-200 gap-1.5"
+              disabled={loading}
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+              <span>Refresh</span>
+            </Button>
+            <Button
+              onClick={() => setIsModalOpen(true)}
+              className="h-8 px-3 text-xs font-semibold bg-teal-600 hover:bg-teal-700 text-white flex items-center gap-1.5 shadow-2xs"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Create Advert</span>
+            </Button>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-navy-950">
-            Adverts & Flyers Manager
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Publish interactive flyers and short videos directly to the homepage arc carousel with custom duration timers.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={fetchAdverts}
-            className="border-slate-200 text-slate-700 hover:bg-slate-50"
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-            Refresh
-          </Button>
-
-          <Button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-teal-600 hover:bg-teal-700 text-white font-semibold shadow-sm"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add New Advert
-          </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
