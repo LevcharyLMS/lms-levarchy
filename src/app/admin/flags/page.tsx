@@ -457,7 +457,11 @@ export default function AdminMessageFlagsPage() {
         isOpen={!!selectedFlag}
         onClose={() => setSelectedFlag(null)}
         title="Moderation Incident Details"
-        subtitle={`Flag ID: ${selectedFlag?.id || ""}`}
+        subtitle={
+          selectedFlag
+            ? `Reference #FLG-${selectedFlag.id.slice(0, 8).toUpperCase()} • ${new Date(selectedFlag.created_at).toLocaleDateString()}`
+            : ""
+        }
       >
         {selectedFlag && (
           <div className="space-y-5 text-xs">
