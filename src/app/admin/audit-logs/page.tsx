@@ -104,6 +104,12 @@ function formatAuditSummary(action: string, entityType: string, meta: any): stri
   if (action === "GRADE_TIER_DELETED") {
     return `Deleted grade tier (${meta.id || "ID"})`;
   }
+  if (action === "TAXONOMY_SUGGESTION_APPROVED") {
+    return `Approved and injected curriculum proposal into catalog${meta.adminNotes ? `: "${meta.adminNotes}"` : ""}`;
+  }
+  if (action === "TAXONOMY_SUGGESTION_REJECTED") {
+    return `Declined curriculum proposal${meta.adminNotes ? `: "${meta.adminNotes}"` : ""}`;
+  }
 
   // Fallback: extract the most informative key-value pairs
   const summaryEntries = Object.entries(meta)
