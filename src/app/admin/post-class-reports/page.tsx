@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,13 +8,19 @@ import { AdminClassReportsQueue } from "@/components/admin/class-reports-queue";
 import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 
 export default function AdminPostClassReportsPage() {
+  const [pendingCount, setPendingCount] = useState<number>(0);
+
   const academicTabs = [
     { label: "Categories", href: "/admin/categories" },
     { label: "Subjects", href: "/admin/subjects" },
     { label: "Grades", href: "/admin/grades" },
     { label: "Assignment Oversight", href: "/admin/assignments" },
     { label: "Curriculum Suggestions", href: "/admin/suggestions" },
-    { label: "Post-Class Reports", href: "/admin/post-class-reports" },
+    {
+      label: "Post-Class Reports",
+      href: "/admin/post-class-reports",
+      badge: pendingCount > 0 ? pendingCount : undefined,
+    },
   ];
 
   return (
@@ -40,7 +46,7 @@ export default function AdminPostClassReportsPage() {
         }
       />
 
-      <AdminClassReportsQueue />
+      <AdminClassReportsQueue onPendingCountChange={setPendingCount} />
     </div>
   );
 }

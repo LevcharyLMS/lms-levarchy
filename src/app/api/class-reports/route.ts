@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { SupabaseDbService } from "@/lib/supabase-db";
 import { NotificationService } from "@/services/notification";
 import { BrevoService } from "@/lib/brevo";
+import { db } from "@/lib/data-store";
 
 export async function GET(req: NextRequest) {
   try {
@@ -115,6 +116,22 @@ export async function PATCH(req: NextRequest) {
     if (!updated) {
       return NextResponse.json({ error: "Class report not found or update failed" }, { status: 404 });
     }
+
+    // Audit Log Admin Action
+    try {
+      db.logAudit({
+        actor_id: adminReviewerId || "usr-admin-1",
+        actor_role: "ADMIN",
+        action: status === "APPROVED" || status === "PUBLISHED" ? "POST_CLASS_REPORT_APPROVED" : "POST_CLASS_REPORT_CHANGES_REQUESTED",
+        entity_type: "CLASS_REPORT",
+        entity_id: reportId,
+        metadata: {
+          report_id: reportId,
+          status,
+          admin_notes: adminNotes || undefined,
+        },
+      });
+    } catch {}
 
     // If report is approved and published over platform, notify enrolled students & instructor
     if (status === "APPROVED" || status === "PUBLISHED") {

@@ -116,6 +116,12 @@ function formatAuditSummary(action: string, entityType: string, meta: any): stri
   if (action === "ASSIGNMENT_FLAGGED_REVIEW") {
     return `Placed assignment "${meta.title || "Assignment"}" under quality review`;
   }
+  if (action === "POST_CLASS_REPORT_APPROVED") {
+    return `Approved and published post-class report (#${meta.report_id?.slice(0, 8) || "ID"})`;
+  }
+  if (action === "POST_CLASS_REPORT_CHANGES_REQUESTED") {
+    return `Requested revisions on post-class report (#${meta.report_id?.slice(0, 8) || "ID"})${meta.admin_notes ? `: "${meta.admin_notes}"` : ""}`;
+  }
 
   // Fallback: extract the most informative key-value pairs
   const summaryEntries = Object.entries(meta)
