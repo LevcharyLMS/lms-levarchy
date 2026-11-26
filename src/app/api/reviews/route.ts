@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json();
-    const { reviewId, is_published, is_featured_testimonial, is_moderated } = body;
+    const { reviewId, is_published, is_featured_testimonial, is_moderated, actorId = "usr-admin-1" } = body;
 
     if (!reviewId) {
       return NextResponse.json({ error: "Missing reviewId" }, { status: 400 });
@@ -35,6 +35,26 @@ export async function PATCH(req: NextRequest) {
       is_featured_testimonial,
       is_moderated: is_moderated !== undefined ? is_moderated : true,
     });
+
+    // Audit Logging
+    try {
+      db.logAudit({
+        actor_id: actorId,
+        actor_role: "ADMIN",
+        action: is_featured_testimonial
+          ? "REVIEW_FEATURED_TESTIMONIAL"
+          : is_published
+          ? "REVIEW_APPROVED_PUBLISHED"
+          : "REVIEW_UNPUBLISHED",
+        entity_type: "REVIEW",
+        entity_id: reviewId,
+        metadata: {
+          review_id: reviewId,
+          is_published,
+          is_featured_testimonial,
+        },
+      });
+    } catch {}
 
     return NextResponse.json({ success: true, review: updated });
   } catch (error: any) {

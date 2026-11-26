@@ -246,7 +246,11 @@ export default function AdminMessageFlagsPage() {
   ];
 
   const moderationTabs = [
-    { label: "Safety Flags", href: "/admin/flags", badge: flags.filter((f) => f.status === "PENDING").length || undefined },
+    {
+      label: "Safety Flags",
+      href: "/admin/flags",
+      badge: flags.filter((f) => f.status === "PENDING_REVIEW").length || undefined,
+    },
     { label: "Review Approvals", href: "/admin/reviews" },
     { label: "Reports", href: "/admin/reports" },
   ];

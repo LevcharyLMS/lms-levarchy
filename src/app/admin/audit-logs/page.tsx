@@ -122,6 +122,24 @@ function formatAuditSummary(action: string, entityType: string, meta: any): stri
   if (action === "POST_CLASS_REPORT_CHANGES_REQUESTED") {
     return `Requested revisions on post-class report (#${meta.report_id?.slice(0, 8) || "ID"})${meta.admin_notes ? `: "${meta.admin_notes}"` : ""}`;
   }
+  if (action === "MESSAGE_FLAG_DISMISSED") {
+    return `Dismissed safety flag (#${meta.entity_id?.slice(0, 8) || "Flag"})`;
+  }
+  if (action === "MESSAGE_FLAG_WARNED") {
+    return `Issued safety warning on flagged message${meta.adminNotes ? `: "${meta.adminNotes}"` : ""}`;
+  }
+  if (action === "MESSAGE_FLAG_RESTRICTED") {
+    return `Restricted user account for severe safety violation (#${meta.sender_id?.slice(0, 8) || "User"})`;
+  }
+  if (action === "REVIEW_APPROVED_PUBLISHED") {
+    return `Approved and published student review (#${meta.review_id?.slice(0, 8) || "Review"})`;
+  }
+  if (action === "REVIEW_UNPUBLISHED") {
+    return `Hidden student review from public platform (#${meta.review_id?.slice(0, 8) || "Review"})`;
+  }
+  if (action === "REVIEW_FEATURED_TESTIMONIAL") {
+    return `Pinned student review to Homepage Testimonials (#${meta.review_id?.slice(0, 8) || "Review"})`;
+  }
 
   // Fallback: extract the most informative key-value pairs
   const summaryEntries = Object.entries(meta)

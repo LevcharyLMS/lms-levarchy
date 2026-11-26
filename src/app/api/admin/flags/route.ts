@@ -14,7 +14,7 @@ export async function GET() {
 export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json();
-    const { flagId, status, adminNotes, actorId = "usr-admin-1" } = body;
+    const { flagId, status, adminNotes, actorId = "usr-admin-1", senderId } = body;
 
     if (!flagId || !status) {
       return NextResponse.json({ error: "Missing flagId or status" }, { status: 400 });
@@ -24,11 +24,29 @@ export async function PATCH(req: NextRequest) {
 
     // Also update in-memory store for sync and audit log
     const memFlag = db.state.message_flags.find((f) => f.id === flagId);
+    let resolvedSenderId = senderId;
     if (memFlag) {
       memFlag.status = status;
       memFlag.reviewed_by = actorId;
       memFlag.reviewed_at = new Date().toISOString();
       memFlag.admin_notes = adminNotes;
+      if (!resolvedSenderId && (memFlag as any).sender_id) {
+        resolvedSenderId = (memFlag as any).sender_id;
+      }
+    }
+
+    // Account Enforcement on RESTRICTED (sets account_status to SUSPENDED)
+    if (status === "RESTRICTED" && resolvedSenderId) {
+      try {
+        await SupabaseDbService.query(
+          `UPDATE profiles SET account_status = 'SUSPENDED', updated_at = NOW() WHERE id = $1`,
+          [resolvedSenderId]
+        );
+        const profile = db.state.profiles.find((p) => p.id === resolvedSenderId);
+        if (profile) profile.account_status = "SUSPENDED";
+      } catch (restrictErr) {
+        console.warn("Account restriction notice:", restrictErr);
+      }
     }
 
     db.logAudit({
@@ -37,7 +55,7 @@ export async function PATCH(req: NextRequest) {
       action: `MESSAGE_FLAG_${status}`,
       entity_type: "MESSAGE_FLAG",
       entity_id: flagId,
-      metadata: { status, adminNotes },
+      metadata: { status, adminNotes, sender_id: resolvedSenderId },
     });
 
     return NextResponse.json({ success, status });
