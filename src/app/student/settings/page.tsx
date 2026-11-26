@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,7 +25,7 @@ import {
   Smartphone,
 } from "lucide-react";
 
-export default function StudentSettingsPage() {
+function StudentSettingsContent() {
   const searchParams = useSearchParams();
   const initialTab = searchParams?.get("tab") === "notifications" ? "notifications" : "profile";
 
@@ -572,5 +572,13 @@ export default function StudentSettingsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function StudentSettingsPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-slate-400 text-xs">Loading settings...</div>}>
+      <StudentSettingsContent />
+    </Suspense>
   );
 }

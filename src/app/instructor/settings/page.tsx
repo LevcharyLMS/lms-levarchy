@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
@@ -31,7 +31,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 
-export default function InstructorSettingsPage() {
+function InstructorSettingsContent() {
   const { user, refreshUser } = useAuth();
   const searchParams = useSearchParams();
   const initialTab = searchParams.get("tab")?.toUpperCase();
@@ -965,5 +965,13 @@ export default function InstructorSettingsPage() {
         allowedDocs={["userAgreement", "privacyPolicy", "instructorAgreement", "backgroundCheck"]}
       />
     </PageTransition>
+  );
+}
+
+export default function InstructorSettingsPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-slate-400 text-xs">Loading instructor settings...</div>}>
+      <InstructorSettingsContent />
+    </Suspense>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { RatingStars } from "@/components/ui/rating-stars";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { CheckCircle2, Star, AlertCircle, Award, Clock } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import { formatDisplayName } from "@/lib/utils";
 
-export default function StudentReviewsPage() {
+function StudentReviewsContent() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
   const preselectedBookingId = searchParams?.get("bookingId") || "";
@@ -290,5 +290,13 @@ export default function StudentReviewsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function StudentReviewsPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-slate-400 text-xs">Loading reviews...</div>}>
+      <StudentReviewsContent />
+    </Suspense>
   );
 }

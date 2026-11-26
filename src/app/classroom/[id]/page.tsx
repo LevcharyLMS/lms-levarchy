@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Users, ShieldCheck, CheckCircle2, Home } from "lucide-react";
@@ -9,7 +9,7 @@ import { Logo } from "@/components/ui/logo";
 import { JitsiClassroom } from "@/components/classroom/jitsi-classroom";
 import { useAuth } from "@/context/auth-context";
 
-export default function ClassroomPage() {
+function ClassroomContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -121,5 +121,13 @@ export default function ClassroomPage() {
         />
       </main>
     </div>
+  );
+}
+
+export default function ClassroomPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-navy-950 text-white flex items-center justify-center p-6 text-sm">Loading classroom session...</div>}>
+      <ClassroomContent />
+    </Suspense>
   );
 }
