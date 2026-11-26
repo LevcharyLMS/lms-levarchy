@@ -1093,12 +1093,126 @@ export class SupabaseDbService {
     return memoryDb.state.grades;
   }
 
-  static async getLocations() {
+  static async getLocations(includeInactive = false) {
     try {
-      const rows = await this.query(`SELECT * FROM class_locations WHERE is_active = true ORDER BY name ASC`);
+      const sql = includeInactive
+        ? `SELECT * FROM class_locations ORDER BY created_at DESC`
+        : `SELECT * FROM class_locations WHERE is_active = true ORDER BY name ASC`;
+      const rows = await this.query(sql);
       if (rows.length > 0) return rows;
-    } catch {}
-    return memoryDb.state.class_locations;
+    } catch (err) {
+      console.error("Error loading class_locations:", err);
+    }
+    return memoryDb.state.class_locations.filter((l) => includeInactive || l.is_active);
+  }
+
+  static async createLocation(params: {
+    name: string;
+    address: string;
+    city: string;
+    state: string;
+    postal_code: string;
+    country?: string;
+    capacity: number;
+    directions?: string | null;
+    qr_code_url?: string | null;
+  }) {
+    try {
+      const rows = await this.query(
+        `
+        INSERT INTO class_locations (
+          name, address, city, state, postal_code, country, capacity, directions, is_active, created_at, updated_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, NOW(), NOW())
+        RETURNING *
+        `,
+        [
+          params.name,
+          params.address,
+          params.city,
+          params.state,
+          params.postal_code,
+          params.country || "US",
+          params.capacity,
+          params.directions || null,
+        ]
+      );
+      if (rows[0]) {
+        memoryDb.state.class_locations.unshift(rows[0]);
+        return rows[0];
+      }
+    } catch (err) {
+      console.error("Error creating class_location:", err);
+    }
+
+    const fallback: any = {
+      id: `loc-${Date.now()}`,
+      name: params.name,
+      address: params.address,
+      city: params.city,
+      state: params.state,
+      postal_code: params.postal_code,
+      country: params.country || "US",
+      capacity: params.capacity,
+      directions: params.directions || null,
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    memoryDb.state.class_locations.unshift(fallback);
+    return fallback;
+  }
+
+  static async updateLocation(id: string, updates: Partial<{
+    name: string;
+    address: string;
+    city: string;
+    state: string;
+    postal_code: string;
+    country: string;
+    capacity: number;
+    directions: string | null;
+    is_active: boolean;
+  }>) {
+    try {
+      const fields = Object.keys(updates);
+      if (fields.length > 0) {
+        const setClauses = fields.map((f, i) => `${f} = $${i + 1}`).join(", ");
+        const values = Object.values(updates);
+        const rows = await this.query(
+          `UPDATE class_locations SET ${setClauses}, updated_at = NOW() WHERE id = $${values.length + 1} RETURNING *`,
+          [...values, id]
+        );
+        if (rows[0]) {
+          const idx = memoryDb.state.class_locations.findIndex((l) => l.id === id);
+          if (idx !== -1) memoryDb.state.class_locations[idx] = rows[0];
+          return rows[0];
+        }
+      }
+    } catch (err) {
+      console.error("Error updating class_location:", err);
+    }
+
+    const loc = memoryDb.state.class_locations.find((l) => l.id === id);
+    if (loc) {
+      Object.assign(loc, updates, { updated_at: new Date().toISOString() });
+      return loc;
+    }
+    return null;
+  }
+
+  static async deleteLocation(id: string) {
+    try {
+      await this.query(`DELETE FROM class_locations WHERE id = $1`, [id]);
+    } catch (err) {
+      console.error("Error deleting class_location:", err);
+    }
+    const idx = memoryDb.state.class_locations.findIndex((l) => l.id === id);
+    if (idx !== -1) {
+      memoryDb.state.class_locations.splice(idx, 1);
+      return true;
+    }
+    return true;
   }
 
   // --- TAXONOMY SUGGESTIONS (CATEGORY, SUBJECT, GRADE, ALL_IN_ONE) ---
