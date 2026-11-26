@@ -37,18 +37,29 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
+    // If resolvedSenderId not passed or found in memFlag, look up from DB
+    if (!resolvedSenderId) {
+      try {
+        const rows = await SupabaseDbService.query(
+          `SELECT m.sender_id FROM message_flags f JOIN messages m ON f.message_id = m.id WHERE f.id = $1 LIMIT 1`,
+          [flagId]
+        );
+        if (rows.length > 0 && rows[0].sender_id) {
+          resolvedSenderId = rows[0].sender_id;
+        }
+      } catch (dbLookupErr) {
+        console.warn("Could not lookup sender_id for flag:", dbLookupErr);
+      }
+    }
+
     // Account Enforcement on RESTRICTED (sets account_status to SUSPENDED)
     if (status === "RESTRICTED" && resolvedSenderId) {
       try {
-        await SupabaseDbService.query(
-          `UPDATE profiles SET account_status = 'SUSPENDED', updated_at = NOW() WHERE id = $1`,
-          [resolvedSenderId]
-        );
-        const profile = db.state.profiles.find((p) => p.id === resolvedSenderId);
-        if (profile) profile.account_status = "SUSPENDED";
+        await SupabaseDbService.updateUserProfile(resolvedSenderId, { account_status: "SUSPENDED" });
       } catch (restrictErr) {
         console.warn("Account restriction notice:", restrictErr);
       }
+      db.updateProfile(resolvedSenderId, { account_status: "SUSPENDED" as any });
     }
 
     // In-app Notification to Sender (Student or Instructor) on Warning or Restriction
