@@ -51,6 +51,27 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
+    // In-app Notification to Sender (Student or Instructor) on Warning or Restriction
+    if (resolvedSenderId && (status === "WARNED" || status === "RESTRICTED")) {
+      const isRestricted = status === "RESTRICTED";
+      const title = isRestricted ? "Account Temporarily Restricted" : "Community Safety Warning";
+      const message = isRestricted
+        ? "Your account has been restricted following a safety review regarding off-platform payment/contact details. Please contact Levchary Support."
+        : "A recent message was flagged for safety policy violation (e.g., off-platform contact/payment attempt). Please adhere to Levchary marketplace policies.";
+
+      try {
+        await SupabaseDbService.createNotification({
+          userId: resolvedSenderId,
+          title,
+          message,
+          type: "SYSTEM",
+          link: isRestricted ? "/contact-support" : "/student/messages",
+        });
+      } catch (notifErr) {
+        console.warn("Failed to dispatch safety decision notification to user:", notifErr);
+      }
+    }
+
     db.logAudit({
       actor_id: actorId,
       actor_role: "ADMIN",

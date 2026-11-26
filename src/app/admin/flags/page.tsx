@@ -106,7 +106,7 @@ export default function AdminMessageFlagsPage() {
     loadCustomKeywords();
   }, []);
 
-  const handleAction = async (flagId: string, status: "DISMISSED" | "WARNED" | "RESTRICTED" | "ACTIONED") => {
+  const handleAction = async (flagId: string, status: "DISMISSED" | "WARNED" | "RESTRICTED" | "ACTIONED", senderId?: string) => {
     try {
       const res = await fetch("/api/admin/flags", {
         method: "PATCH",
@@ -114,6 +114,7 @@ export default function AdminMessageFlagsPage() {
         body: JSON.stringify({
           flagId,
           status,
+          senderId,
           adminNotes: `Action ${status} applied by Admin at ${new Date().toISOString()}`,
         }),
       });
@@ -228,7 +229,7 @@ export default function AdminMessageFlagsPage() {
                 variant="outline"
                 size="sm"
                 className="h-7 text-xs border-amber-300 text-amber-800 hover:bg-amber-50"
-                onClick={() => handleAction(f.id, "WARNED")}
+                onClick={() => handleAction(f.id, "WARNED", f.sender_id)}
               >
                 Warn
               </Button>
@@ -236,7 +237,7 @@ export default function AdminMessageFlagsPage() {
                 variant="destructive"
                 size="sm"
                 className="h-7 text-xs"
-                onClick={() => handleAction(f.id, "RESTRICTED")}
+                onClick={() => handleAction(f.id, "RESTRICTED", f.sender_id)}
               >
                 Restrict
               </Button>
@@ -521,21 +522,21 @@ export default function AdminMessageFlagsPage() {
                   <Button
                     variant="outline"
                     className="h-8 text-xs border-slate-200"
-                    onClick={() => handleAction(selectedFlag.id, "DISMISSED")}
+                    onClick={() => handleAction(selectedFlag.id, "DISMISSED", selectedFlag.sender_id)}
                   >
                     Dismiss Flag
                   </Button>
                   <Button
                     variant="outline"
                     className="h-8 text-xs border-amber-300 text-amber-800 hover:bg-amber-50"
-                    onClick={() => handleAction(selectedFlag.id, "WARNED")}
+                    onClick={() => handleAction(selectedFlag.id, "WARNED", selectedFlag.sender_id)}
                   >
                     Send Warning
                   </Button>
                   <Button
                     variant="destructive"
                     className="h-8 text-xs"
-                    onClick={() => handleAction(selectedFlag.id, "RESTRICTED")}
+                    onClick={() => handleAction(selectedFlag.id, "RESTRICTED", selectedFlag.sender_id)}
                   >
                     Restrict User
                   </Button>

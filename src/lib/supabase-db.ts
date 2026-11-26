@@ -1064,6 +1064,9 @@ export class SupabaseDbService {
       console.warn("DB insert into message_flags notice, syncing with store:", err);
     }
 
+    const msg = memoryDb.state.messages?.find((m) => m.id === params.messageId);
+    const sender = msg ? memoryDb.getProfileById(msg.sender_id) : undefined;
+
     const newFlag = {
       id: `flg-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
       message_id: params.messageId,
@@ -1072,6 +1075,11 @@ export class SupabaseDbService {
       severity,
       status: 'PENDING_REVIEW',
       created_at: new Date().toISOString(),
+      message_body: msg?.body,
+      sender_id: msg?.sender_id,
+      sender_first_name: sender?.first_name,
+      sender_last_name: sender?.last_name,
+      sender_role: sender?.role,
     };
     memoryDb.state.message_flags.unshift(newFlag as any);
     return newFlag;
@@ -1842,7 +1850,36 @@ export class SupabaseDbService {
     }
   }
 
-  // --- NOTIFICATIONS QUERY ---
+  // --- NOTIFICATIONS QUERY & MUTATIONS ---
+  static async createNotification(params: {
+    userId: string;
+    title: string;
+    message: string;
+    type?: string;
+    link?: string;
+  }) {
+    const type = params.type || 'SYSTEM';
+    try {
+      const rows = await this.query(
+        `INSERT INTO notifications (user_id, title, message, type, link, is_read, created_at)
+         VALUES ($1, $2, $3, $4, $5, false, NOW())
+         RETURNING *`,
+        [params.userId, params.title, params.message, type, params.link || null]
+      );
+      if (rows.length > 0) return rows[0];
+    } catch (err) {
+      console.warn("DB insert into notifications notice, falling back to memory:", err);
+    }
+    return memoryDb.createNotification({
+      user_id: params.userId,
+      title: params.title,
+      message: params.message,
+      type: type as any,
+      link: params.link || null,
+      is_read: false,
+    });
+  }
+
   static async getNotifications(userId: string) {
     try {
       const rows = await this.query(
@@ -2155,6 +2192,10 @@ export class SupabaseDbService {
   }
 
   // --- USER PROFILES & AUTH ---
+  static async getAdminUser(): Promise<UserProfile | null> {
+    return this.getUserByEmail('admin@levchary.com');
+  }
+
   static async getUserByEmail(email: string): Promise<UserProfile | null> {
     const trimmed = email.trim();
     try {

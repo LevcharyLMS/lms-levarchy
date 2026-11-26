@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       hasFlag: scan.hasFlags,
     });
 
-    // If message was flagged by moderation rules, persist to message_flags table
+    // If message was flagged by moderation rules, persist to message_flags table & notify admin
     if (scan.hasFlags && savedMsg?.id) {
       for (const flag of scan.flags) {
         await supabaseDb.createMessageFlag({
@@ -64,6 +64,18 @@ export async function POST(request: NextRequest) {
           detectedText: flag.snippet,
           severity: flag.severity,
         }).catch((err) => console.error("Error creating message flag:", err));
+      }
+
+      // Notify Admin about new moderation alert
+      const adminProfile = await supabaseDb.getAdminUser();
+      if (adminProfile?.id) {
+        await supabaseDb.createNotification({
+          userId: adminProfile.id,
+          title: "New Moderation Incident Flagged",
+          message: `Suspicious activity detected in conversation: "${scan.flags[0]?.snippet || text.slice(0, 30)}". Pending review in Moderation Queue.`,
+          type: "SYSTEM",
+          link: "/admin/flags",
+        }).catch((err) => console.warn("Admin notification dispatch notice:", err));
       }
     }
 
