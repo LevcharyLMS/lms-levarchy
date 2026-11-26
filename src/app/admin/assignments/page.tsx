@@ -21,9 +21,11 @@ import {
   AlertCircle,
   ExternalLink,
   RefreshCw,
+  FileSpreadsheet,
 } from "lucide-react";
 import { Assignment } from "@/types";
 import { AdminHubHeader } from "@/components/admin/admin-hub-header";
+import Link from "next/link";
 
 export default function AdminAssignmentsPage() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -119,7 +121,17 @@ export default function AdminAssignmentsPage() {
           description="Inspect, edit, or put assignments under review across all instructor cohorts. Pre-approval is not mandated."
           tabs={academicTabs}
           actions={
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Link href="/admin/reports">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs border-slate-200 text-slate-600 hover:text-slate-900 gap-1.5"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-teal-600" />
+                  <span>Reports Hub CSV</span>
+                </Button>
+              </Link>
               <div className="relative w-48 sm:w-64">
                 <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <Input
@@ -134,7 +146,7 @@ export default function AdminAssignmentsPage() {
                 size="sm"
                 onClick={loadAssignments}
                 disabled={loading}
-                className="h-8 text-xs border-slate-200 gap-1.5"
+                className="h-8 text-xs border-slate-200 gap-1.5 text-slate-600 hover:text-slate-900"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
                 <span>Refresh</span>

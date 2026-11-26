@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { useAuth } from "@/context/auth-context";
 import { AdminHubHeader } from "@/components/admin/admin-hub-header";
@@ -12,376 +14,429 @@ import {
   BookOpen,
   Plus,
   CheckCircle2,
-  Sparkles,
-  Clock,
-  XCircle,
-  GraduationCap,
   RefreshCw,
-  Send,
+  Search,
+  FileSpreadsheet,
+  Edit2,
+  Trash2,
+  Layers,
+  GraduationCap,
+  Loader2,
   AlertCircle,
 } from "lucide-react";
 
 export default function AdminCategoriesPage() {
-  const { user } = useAuth();
+  const { user: currentAdmin } = useAuth();
   const [categories, setCategories] = useState<any[]>([]);
   const [subjects, setSubjects] = useState<any[]>([]);
-  const [grades, setGrades] = useState<any[]>([]);
-  const [suggestions, setSuggestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [actionInProgress, setActionInProgress] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [notice, setNotice] = useState<string | null>(null);
 
-  const [newCatName, setNewCatName] = useState("");
-  const [newSubName, setNewSubName] = useState("");
-  const [selectedCatId, setSelectedCatId] = useState("");
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<any | null>(null);
+  const [catName, setCatName] = useState("");
+  const [catDescription, setCatDescription] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const [taxRes, suggRes] = await Promise.all([
-        fetch("/api/taxonomy"),
-        fetch("/api/taxonomy/suggestions"),
-      ]);
+      const res = await fetch("/api/admin/categories");
+      const data = await res.json();
+      setCategories(data.categories || []);
 
+      const taxRes = await fetch("/api/taxonomy");
       const taxData = await taxRes.json();
-      const suggData = await suggRes.json();
-
-      setCategories(taxData.categories || []);
       setSubjects(taxData.subjects || []);
-      setGrades(taxData.grades || []);
-      setSuggestions(suggData.suggestions || []);
-
-      if (taxData.categories?.length > 0 && !selectedCatId) {
-        setSelectedCatId(taxData.categories[0].id);
-      }
     } catch (err) {
-      console.error("Error loading admin taxonomy data:", err);
+      console.error("Error loading categories:", err);
     } finally {
       setLoading(false);
     }
-  }, [selectedCatId]);
+  }, []);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  const handleReviewSuggestion = async (
-    suggestionId: string,
-    action: "APPROVE" | "REJECT",
-    adminNotes?: string
-  ) => {
+  const openCreateModal = () => {
+    setEditingCategory(null);
+    setCatName("");
+    setCatDescription("");
+    setErrorMsg("");
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (cat: any) => {
+    setEditingCategory(cat);
+    setCatName(cat.name);
+    setCatDescription(cat.description || "");
+    setErrorMsg("");
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!catName.trim()) return;
+
+    setSubmitting(true);
+    setErrorMsg("");
+
     try {
-      setActionInProgress(suggestionId);
-      const res = await fetch("/api/admin/taxonomy-suggestions", {
+      if (editingCategory) {
+        const res = await fetch("/api/admin/categories", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: editingCategory.id,
+            updates: { name: catName, description: catDescription },
+            adminId: currentAdmin?.id,
+          }),
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || "Failed to update category");
+        }
+        setNotice(`Discipline "${catName}" updated successfully.`);
+      } else {
+        const res = await fetch("/api/admin/categories", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: catName,
+            description: catDescription,
+            adminId: currentAdmin?.id,
+          }),
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || "Failed to create category");
+        }
+        setNotice(`Academic discipline "${catName}" created.`);
+      }
+
+      setIsModalOpen(false);
+      await loadData();
+      setTimeout(() => setNotice(null), 4000);
+    } catch (err: any) {
+      setErrorMsg(err.message || "An unexpected error occurred");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleToggleActive = async (cat: any) => {
+    try {
+      const res = await fetch("/api/admin/categories", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          suggestionId,
-          action,
-          adminId: user?.id,
-          adminNotes,
+          id: cat.id,
+          updates: { is_active: !cat.is_active },
+          adminId: currentAdmin?.id,
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to process suggestion");
-
-      // Reload taxonomy and suggestions
-      await loadData();
-    } catch (err: any) {
-      alert(err.message || "Failed to moderate suggestion");
-    } finally {
-      setActionInProgress(null);
+      if (res.ok) {
+        setNotice(`"${cat.name}" marked as ${!cat.is_active ? "Active" : "Archived"}.`);
+        await loadData();
+        setTimeout(() => setNotice(null), 4000);
+      }
+    } catch (err) {
+      console.error("Failed to toggle category active:", err);
     }
   };
 
-  const handleAddCategory = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCatName.trim()) return;
+  const handleDelete = async (cat: any) => {
+    if (!confirm(`Are you sure you want to delete "${cat.name}"?`)) return;
 
     try {
-      const res = await fetch("/api/admin/taxonomy-suggestions", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        // Direct addition can also be supported or handled via direct taxonomy insert
+      const res = await fetch(`/api/admin/categories?id=${cat.id}&adminId=${currentAdmin?.id || "usr-admin-1"}`, {
+        method: "DELETE",
       });
-      // Fallback optimistic UI update for local demo while database persists
-      const newCat = {
-        id: `cat-${Date.now()}`,
-        name: newCatName.trim(),
-        slug: newCatName.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-        is_active: true,
-      };
-      setCategories((prev) => [newCat, ...prev]);
-      setNewCatName("");
-    } catch (err) {
-      console.error(err);
+
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || "Failed to delete category");
+        return;
+      }
+
+      setNotice(`Category "${cat.name}" deleted.`);
+      await loadData();
+      setTimeout(() => setNotice(null), 4000);
+    } catch (err: any) {
+      alert("Error deleting category: " + err.message);
     }
   };
 
-  const handleAddSubject = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newSubName.trim() || !selectedCatId) return;
-
-    const newSub = {
-      id: `sub-${Date.now()}`,
-      category_id: selectedCatId,
-      name: newSubName.trim(),
-      slug: newSubName.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-      is_active: true,
-    };
-    setSubjects((prev) => [newSub, ...prev]);
-    setNewSubName("");
-  };
-
-  const pendingSuggestions = suggestions.filter((s) => s.status === "PENDING");
-  const reviewedSuggestions = suggestions.filter((s) => s.status !== "PENDING");
+  const filteredCategories = categories.filter((c) => {
+    const q = search.toLowerCase();
+    return c.name.toLowerCase().includes(q) || (c.description || "").toLowerCase().includes(q);
+  });
 
   const academicTabs = [
     { label: "Categories", href: "/admin/categories" },
     { label: "Subjects", href: "/admin/subjects" },
     { label: "Grades", href: "/admin/grades" },
     { label: "Assignment Oversight", href: "/admin/assignments" },
-    {
-      label: "Curriculum Suggestions",
-      href: "/admin/suggestions",
-      badge: pendingSuggestions.length > 0 ? pendingSuggestions.length : undefined,
-    },
+    { label: "Curriculum Suggestions", href: "/admin/suggestions" },
     { label: "Post-Class Reports", href: "/admin/post-class-reports" },
   ];
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <AdminHubHeader
-        title="Academics & Curriculum Hub"
-        badgeText="Categories & Taxonomy"
-        description="Define marketplace categories, manage academic disciplines, and moderate instructor curriculum proposals."
+        title="Academics Hub"
+        badgeText="Educational Disciplines"
+        description="Oversee top-level academic disciplines, track active subjects, and maintain authoritative curriculum domains."
         tabs={academicTabs}
         actions={
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={loadData}
-            disabled={loading}
-            className="h-8 text-xs border-slate-200 gap-1.5"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-            <span>Refresh</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadData}
+              className="h-8 text-xs border-slate-200 gap-1.5"
+              disabled={loading}
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+              <span>Refresh</span>
+            </Button>
+            <Button asChild variant="outline" size="sm" className="h-8 text-xs border-slate-200 gap-1.5 text-teal-700 hover:bg-teal-50">
+              <Link href="/admin/reports">
+                <FileSpreadsheet className="w-3.5 h-3.5" />
+                <span>Taxonomy CSV in Reports</span>
+              </Link>
+            </Button>
+            <Button
+              onClick={openCreateModal}
+              size="sm"
+              className="text-xs h-8 bg-teal-600 hover:bg-teal-700 text-white gap-1.5 shadow-2xs font-semibold"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Discipline</span>
+            </Button>
+          </div>
         }
       />
 
-      {/* Instructor Suggestions Moderation Panel */}
-      <div className="bg-white rounded-2xl border border-teal-200 shadow-xs overflow-hidden">
-        <div className="p-4 sm:p-5 bg-gradient-to-r from-teal-50 to-emerald-50/40 border-b border-teal-100 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-teal-600 text-white flex items-center justify-center shadow-xs">
-              <Sparkles className="w-4 h-4" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-sm font-bold text-navy-950">
-                  Instructor Curriculum & Taxonomy Suggestions
-                </h2>
-                <span className="px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[10px] font-bold">
-                  {pendingSuggestions.length} Pending Approval
-                </span>
-                <a
-                  href="/admin/suggestions"
-                  className="text-[11px] text-teal-700 hover:text-teal-900 font-semibold underline ml-1"
-                >
-                  Open Full Suggestions Center →
-                </a>
-              </div>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                Review proposed subjects, categories, and grade levels. Approving automatically injects the record into the live catalog and notifies the instructor.
-              </p>
-            </div>
+      {notice && (
+        <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center justify-between shadow-xs">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{notice}</span>
           </div>
+          <button onClick={() => setNotice(null)} className="underline font-semibold text-emerald-900">
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      {/* Search Bar */}
+      <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between gap-3">
+        <div className="relative w-full max-w-md">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="Search disciplines or domain descriptions..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white transition-all text-navy-950 font-medium"
+          />
         </div>
 
-        {pendingSuggestions.length === 0 ? (
-          <div className="p-8 text-center text-slate-400 text-xs">
-            <CheckCircle2 className="w-7 h-7 mx-auto text-emerald-500 mb-2 opacity-80" />
-            All instructor taxonomy suggestions are reviewed! No pending items in queue.
-          </div>
-        ) : (
-          <div className="divide-y divide-slate-100">
-            {pendingSuggestions.map((sugg) => (
-              <div
-                key={sugg.id}
-                className="p-4 sm:p-5 hover:bg-slate-50/60 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4"
+        <div className="text-xs text-slate-400">
+          Showing <strong className="text-slate-700">{filteredCategories.length}</strong> academic disciplines
+        </div>
+      </div>
+
+      {/* Disciplines Grid */}
+      {loading ? (
+        <div className="p-16 text-center text-slate-400 text-xs bg-white rounded-2xl border border-slate-200">
+          <Loader2 className="w-6 h-6 animate-spin text-teal-600 mx-auto mb-2" />
+          Loading academic disciplines...
+        </div>
+      ) : filteredCategories.length === 0 ? (
+        <div className="p-16 text-center text-slate-400 text-xs bg-white rounded-2xl border border-slate-200">
+          <Tag className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+          <p className="font-semibold text-slate-700 text-sm">No academic disciplines found</p>
+          <p className="text-xs text-slate-400 mt-1">
+            Click &quot;Add Discipline&quot; above to introduce new subjects and courses to the platform.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filteredCategories.map((cat) => {
+            const childCount = subjects.filter((s) => s.category_id === cat.id).length;
+            const isActive = cat.is_active !== false;
+
+            return (
+              <Card
+                key={cat.id}
+                className="border-slate-200 shadow-xs flex flex-col justify-between hover:border-teal-300 transition-all group"
               >
-                <div className="space-y-1.5 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span
-                      className={`px-2 py-0.5 text-[10px] font-bold rounded-md ${
-                        sugg.type === "SUBJECT"
-                          ? "bg-purple-100 text-purple-800"
-                          : sugg.type === "CATEGORY"
-                          ? "bg-teal-100 text-teal-800"
-                          : "bg-blue-100 text-blue-800"
+                <CardContent className="p-6 space-y-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                        isActive ? "bg-teal-50 text-teal-700" : "bg-slate-100 text-slate-400"
                       }`}
                     >
-                      {sugg.type === "SUBJECT"
-                        ? "Subject Discipline"
-                        : sugg.type === "CATEGORY"
-                        ? "Category Area"
-                        : "Academic Grade"}
+                      <BookOpen className="w-5 h-5" />
+                    </div>
+
+                    <span
+                      className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
+                        isActive
+                          ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                          : "bg-slate-100 text-slate-600 border-slate-200"
+                      }`}
+                    >
+                      {isActive ? "Active Discipline" : "Archived"}
                     </span>
-                    <span className="font-bold text-sm text-navy-950">
-                      {sugg.proposed_name}
-                    </span>
-                    {sugg.parent_category_name && (
-                      <span className="text-[11px] text-slate-500">
-                        under <span className="font-semibold text-slate-700">{sugg.parent_category_name}</span>
-                      </span>
-                    )}
                   </div>
 
-                  {sugg.reason_notes && (
-                    <p className="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100 italic">
-                      &ldquo;{sugg.reason_notes}&rdquo;
+                  <div>
+                    <h3 className="font-bold text-sm text-navy-950 group-hover:text-teal-700 transition-colors">
+                      {cat.name}
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-1 leading-relaxed line-clamp-2">
+                      {cat.description || "Core foundational discipline supporting active student and tutor classes."}
                     </p>
-                  )}
-
-                  <div className="flex items-center gap-3 text-[11px] text-slate-400">
-                    <span>
-                      Suggested by:{" "}
-                      <strong className="text-slate-700">
-                        {sugg.instructor_first_name} {sugg.instructor_last_name}
-                      </strong>{" "}
-                      ({sugg.instructor_email})
-                    </span>
-                    <span>•</span>
-                    <span>
-                      {new Date(sugg.created_at).toLocaleDateString()} at{" "}
-                      {new Date(sugg.created_at).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
                   </div>
-                </div>
 
-                <div className="flex items-center gap-2 self-end md:self-center shrink-0">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled={actionInProgress === sugg.id}
-                    onClick={() => {
-                      const note = prompt("Optional rejection reason for instructor:");
-                      if (note !== null) {
-                        handleReviewSuggestion(sugg.id, "REJECT", note);
-                      }
-                    }}
-                    className="h-8 text-xs border-slate-200 text-rose-600 hover:bg-rose-50 hover:border-rose-200"
-                  >
-                    <XCircle className="w-3.5 h-3.5 mr-1" />
-                    Reject
-                  </Button>
-                  <Button
-                    size="sm"
-                    disabled={actionInProgress === sugg.id}
-                    onClick={() => handleReviewSuggestion(sugg.id, "APPROVE")}
-                    className="h-8 text-xs bg-teal-600 hover:bg-teal-700 text-white font-medium shadow-2xs gap-1.5"
-                  >
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Approve & Inject</span>
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                    <span className="flex items-center gap-1.5">
+                      <Layers className="w-3.5 h-3.5 text-teal-600" />
+                      <span><strong>{childCount}</strong> Subjects Attached</span>
+                    </span>
+                    <Link
+                      href="/admin/subjects"
+                      className="text-[11px] font-semibold text-teal-700 hover:underline"
+                    >
+                      View Subjects →
+                    </Link>
+                  </div>
 
-      {/* Main Taxonomy Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Categories Column */}
-        <div className="space-y-4">
-          <Card className="border-slate-200 shadow-xs">
-            <CardContent className="p-6 space-y-4">
-              <h2 className="text-sm font-bold text-navy-950 flex items-center gap-2">
-                <Tag className="w-4 h-4 text-teal-600" /> Add Academic Category
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleToggleActive(cat)}
+                      className={`h-7 px-2.5 text-xs font-medium ${
+                        isActive
+                          ? "text-slate-500 hover:text-amber-700 hover:bg-amber-50"
+                          : "text-emerald-700 hover:bg-emerald-50"
+                      }`}
+                    >
+                      {isActive ? "Archive" : "Activate"}
+                    </Button>
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => openEditModal(cat)}
+                        title="Edit Discipline"
+                        className="p-1.5 text-slate-400 hover:text-navy-950 rounded-lg hover:bg-slate-100 transition-colors"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(cat)}
+                        title="Delete Discipline"
+                        className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Add / Edit Category Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-navy-950/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+              <h2 className="text-base font-bold text-navy-950">
+                {editingCategory ? "Edit Discipline" : "New Academic Discipline"}
               </h2>
-              <form onSubmit={handleAddCategory} className="flex gap-2">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            {errorMsg && (
+              <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{errorMsg}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Discipline Name *
+                </label>
                 <Input
-                  placeholder="e.g. Social Sciences & Law"
-                  value={newCatName}
-                  onChange={(e) => setNewCatName(e.target.value)}
-                  className="text-xs"
+                  type="text"
                   required
+                  placeholder="e.g. Engineering & Technology"
+                  value={catName}
+                  onChange={(e) => setCatName(e.target.value)}
+                  className="text-xs h-8.5"
                 />
-                <Button type="submit" variant="default" size="sm">
-                  Add
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-4 divide-y divide-slate-100 max-h-96 overflow-y-auto">
-            <h3 className="font-bold text-xs uppercase tracking-wider text-slate-400 pb-2 flex items-center justify-between">
-              <span>Active Categories ({categories.length})</span>
-            </h3>
-            {categories.map((c) => (
-              <div key={c.id} className="py-2.5 flex items-center justify-between text-xs">
-                <span className="font-semibold text-navy-950">{c.name}</span>
-                <span className="text-[10px] font-mono text-slate-400">/{c.slug}</span>
               </div>
-            ))}
-          </div>
-        </div>
 
-        {/* Subjects Column */}
-        <div className="space-y-4">
-          <Card className="border-slate-200 shadow-xs">
-            <CardContent className="p-6 space-y-4">
-              <h2 className="text-sm font-bold text-navy-950 flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-purple-700" /> Add Subject to Category
-              </h2>
-              <form onSubmit={handleAddSubject} className="space-y-3">
-                <select
-                  value={selectedCatId}
-                  onChange={(e) => setSelectedCatId(e.target.value)}
-                  className="w-full h-9 px-3 text-xs border border-slate-200 rounded-lg bg-white outline-hidden"
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Domain Description
+                </label>
+                <Textarea
+                  rows={3}
+                  placeholder="Summary of disciplines, prerequisite topics, and instructional focus..."
+                  value={catDescription}
+                  onChange={(e) => setCatDescription(e.target.value)}
+                  className="text-xs"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsModalOpen(false)}
+                  disabled={submitting}
+                  className="text-xs"
                 >
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="e.g. Multivariable Calculus"
-                    value={newSubName}
-                    onChange={(e) => setNewSubName(e.target.value)}
-                    className="text-xs"
-                    required
-                  />
-                  <Button type="submit" variant="default" size="sm">
-                    Add
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-4 divide-y divide-slate-100 max-h-96 overflow-y-auto">
-            <h3 className="font-bold text-xs uppercase tracking-wider text-slate-400 pb-2 flex items-center justify-between">
-              <span>Subject Catalogue ({subjects.length})</span>
-            </h3>
-            {subjects.map((s) => (
-              <div key={s.id} className="py-2.5 flex items-center justify-between text-xs">
-                <span className="font-semibold text-navy-950">{s.name}</span>
-                <span className="text-[10px] text-slate-500">
-                  {categories.find((c) => c.id === s.category_id)?.name}
-                </span>
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={submitting}
+                  className="bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs gap-1.5"
+                >
+                  {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  <span>{editingCategory ? "Save Changes" : "Create Discipline"}</span>
+                </Button>
               </div>
-            ))}
+            </form>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

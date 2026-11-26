@@ -22,7 +22,9 @@ import {
   Send,
   AlertCircle,
   GraduationCap,
+  FileSpreadsheet,
 } from "lucide-react";
+import Link from "next/link";
 
 export default function AdminSuggestionsPage() {
   const { user } = useAuth();
@@ -118,16 +120,28 @@ export default function AdminSuggestionsPage() {
         description="Review, verify, and approve academic categories, subjects, and grade levels proposed by instructors."
         tabs={academicTabs}
         actions={
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={loadData}
-            disabled={loading}
-            className="h-8 text-xs border-slate-200 gap-1.5"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-            <span>Refresh</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Link href="/admin/reports">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs border-slate-200 text-slate-600 hover:text-slate-900 gap-1.5"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5 text-teal-600" />
+                <span>Reports Hub CSV</span>
+              </Button>
+            </Link>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadData}
+              disabled={loading}
+              className="h-8 text-xs border-slate-200 gap-1.5 text-slate-600 hover:text-slate-900"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+              <span>Refresh</span>
+            </Button>
+          </div>
         }
       />
 

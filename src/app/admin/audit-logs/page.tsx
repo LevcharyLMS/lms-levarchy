@@ -80,6 +80,30 @@ function formatAuditSummary(action: string, entityType: string, meta: any): stri
   if (action === "BOOKING_ADMIN_CANCELLED") {
     return `Admin cancelled booking #${meta.booking_number || "Reference"}${meta.note ? `: "${meta.note}"` : ""}`;
   }
+  if (action === "ACADEMIC_CATEGORY_CREATED") {
+    return `Created academic discipline "${meta.name || "Category"}"`;
+  }
+  if (action === "ACADEMIC_CATEGORY_UPDATED") {
+    return `Updated academic discipline "${meta.name || "Category"}"`;
+  }
+  if (action === "ACADEMIC_CATEGORY_DELETED") {
+    return `Deleted academic discipline (${meta.id || "ID"})`;
+  }
+  if (action === "ACADEMIC_SUBJECT_CREATED") {
+    return `Created subject "${meta.name || "Subject"}" in discipline #${meta.category_id || "Category"}`;
+  }
+  if (action === "ACADEMIC_SUBJECT_DELETED") {
+    return `Deleted academic subject (${meta.id || "ID"})`;
+  }
+  if (action === "GRADE_TIER_CREATED") {
+    return `Created grade tier "${meta.name || "Grade"}" (Level ${meta.level || "1"}, ${meta.instructor_type || "BOTH"})`;
+  }
+  if (action === "GRADE_TIER_UPDATED") {
+    return `Updated grade tier "${meta.name || "Grade"}" (Level ${meta.level || "1"})`;
+  }
+  if (action === "GRADE_TIER_DELETED") {
+    return `Deleted grade tier (${meta.id || "ID"})`;
+  }
 
   // Fallback: extract the most informative key-value pairs
   const summaryEntries = Object.entries(meta)
