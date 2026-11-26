@@ -55,6 +55,18 @@ export async function POST(request: NextRequest) {
       hasFlag: scan.hasFlags,
     });
 
+    // If message was flagged by moderation rules, persist to message_flags table
+    if (scan.hasFlags && savedMsg?.id) {
+      for (const flag of scan.flags) {
+        await supabaseDb.createMessageFlag({
+          messageId: savedMsg.id,
+          flagType: flag.type,
+          detectedText: flag.snippet,
+          severity: flag.severity,
+        }).catch((err) => console.error("Error creating message flag:", err));
+      }
+    }
+
     return NextResponse.json({
       message: savedMsg,
       flags: scan.flags,

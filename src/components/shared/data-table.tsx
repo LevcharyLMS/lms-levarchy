@@ -24,6 +24,7 @@ interface DataTableProps<T> {
   columns: Column<T>[];
   searchPlaceholder?: string;
   searchKey?: keyof T | ((item: T) => string);
+  hideSearchBar?: boolean;
   pageSize?: number;
   emptyTitle?: string;
   emptyDescription?: string;
@@ -37,6 +38,7 @@ export function DataTable<T extends { id?: string | number }>({
   columns,
   searchPlaceholder = "Search records...",
   searchKey,
+  hideSearchBar = false,
   pageSize = 10,
   emptyTitle = "No records found",
   emptyDescription = "There are no matching entries in the database.",
@@ -105,24 +107,26 @@ export function DataTable<T extends { id?: string | number }>({
   return (
     <div className={`space-y-3 ${className}`}>
       {/* Search Bar */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="relative w-full max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-          <Input
-            type="text"
-            placeholder={searchPlaceholder}
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="pl-9 h-9 text-xs bg-white border-slate-200 rounded-lg"
-          />
+      {!hideSearchBar && (
+        <div className="flex items-center justify-between gap-3">
+          <div className="relative w-full max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+            <Input
+              type="text"
+              placeholder={searchPlaceholder}
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="pl-9 h-9 text-xs bg-white border-slate-200 rounded-lg"
+            />
+          </div>
+          <div className="text-xs text-slate-500 font-medium">
+            Showing {paginatedData.length} of {sortedData.length} entries
+          </div>
         </div>
-        <div className="text-xs text-slate-500 font-medium">
-          Showing {paginatedData.length} of {sortedData.length} entries
-        </div>
-      </div>
+      )}
 
       {/* Table Container */}
       <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">

@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { SupabaseDbService } from "@/lib/supabase-db";
 import { db } from "@/lib/data-store";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const flags = await SupabaseDbService.getMessageFlags();
+    const { searchParams } = new URL(req.url);
+    const status = searchParams.get("status") || undefined;
+    const flags = await SupabaseDbService.getMessageFlags(status);
     return NextResponse.json({ flags });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

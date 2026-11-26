@@ -23,6 +23,7 @@ import {
   KeyRound,
   Loader2,
   Search,
+  RefreshCw,
 } from "lucide-react";
 
 export default function AdminMessageFlagsPage() {
@@ -268,10 +269,11 @@ export default function AdminMessageFlagsPage() {
             onClick={loadFlags}
             variant="outline"
             size="sm"
-            className="h-8 text-xs border-slate-200"
+            className="h-8 text-xs border-slate-200 gap-1.5 text-slate-700 hover:text-navy-950 font-medium"
             disabled={loading}
           >
-            Refresh Queue
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            <span>Refresh Queue</span>
           </Button>
         }
       />
@@ -445,8 +447,7 @@ export default function AdminMessageFlagsPage() {
       <DataTable
         data={filteredFlags}
         columns={columns}
-        searchKey="detected_text"
-        searchPlaceholder="Filter flagged messages..."
+        hideSearchBar={true}
         emptyTitle="No moderation flags found"
         emptyDescription="All marketplace conversations comply with platform policies. Suspicious patterns will trigger alerts automatically."
       />

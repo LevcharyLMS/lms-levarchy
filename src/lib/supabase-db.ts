@@ -1045,9 +1045,41 @@ export class SupabaseDbService {
   }
 
   // --- MESSAGE FLAGS QUERY (MODERATION QUEUE) ---
-  static async getMessageFlags() {
+  static async createMessageFlag(params: {
+    messageId: string;
+    flagType: string;
+    detectedText: string;
+    severity?: string;
+  }) {
+    const severity = params.severity || 'MEDIUM';
     try {
-      const rows = await this.query(`
+      const rows = await this.query(
+        `INSERT INTO message_flags (message_id, flag_type, detected_text, severity, status, created_at)
+         VALUES ($1, $2, $3, $4, 'PENDING_REVIEW', NOW())
+         RETURNING *`,
+        [params.messageId, params.flagType, params.detectedText, severity]
+      );
+      if (rows.length > 0) return rows[0];
+    } catch (err) {
+      console.warn("DB insert into message_flags notice, syncing with store:", err);
+    }
+
+    const newFlag = {
+      id: `flg-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      message_id: params.messageId,
+      flag_type: params.flagType,
+      detected_text: params.detectedText,
+      severity,
+      status: 'PENDING_REVIEW',
+      created_at: new Date().toISOString(),
+    };
+    memoryDb.state.message_flags.unshift(newFlag as any);
+    return newFlag;
+  }
+
+  static async getMessageFlags(statusFilter?: string) {
+    try {
+      let queryStr = `
         SELECT
           f.*,
           m.body as message_body,
@@ -1058,14 +1090,25 @@ export class SupabaseDbService {
         FROM message_flags f
         LEFT JOIN messages m ON f.message_id = m.id
         LEFT JOIN profiles p ON m.sender_id = p.id
-        WHERE f.status = 'PENDING_REVIEW'
-        ORDER BY f.created_at DESC
-      `);
+      `;
+      const params: any[] = [];
+      if (statusFilter && statusFilter !== 'ALL') {
+        params.push(statusFilter);
+        queryStr += ` WHERE f.status = $1`;
+      }
+      queryStr += ` ORDER BY f.created_at DESC`;
+
+      const rows = await this.query(queryStr, params);
       if (rows.length > 0) return rows;
     } catch {
       // fallback
     }
-    return memoryDb.state.message_flags.filter((f) => f.status === 'PENDING_REVIEW');
+
+    let memList = [...memoryDb.state.message_flags];
+    if (statusFilter && statusFilter !== 'ALL') {
+      memList = memList.filter((f) => f.status === statusFilter);
+    }
+    return memList.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }
 
   // --- CATEGORIES, SUBJECTS, GRADES, LOCATIONS ---
