@@ -29,6 +29,11 @@ export function ClassCard({ classItem, basePath = "/student/classes" }: ClassCar
           <div className="flex flex-wrap items-center gap-1.5">
             <StatusBadge status={classItem.class_type} />
             <StatusBadge status={classItem.format} />
+            {classItem.grade?.name && (
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                {classItem.grade.name}
+              </span>
+            )}
           </div>
           <MoneyDisplay cents={classItem.price} />
         </div>

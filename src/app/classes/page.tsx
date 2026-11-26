@@ -17,19 +17,29 @@ import {
 
 export default function ClassesPage() {
   const [allClasses, setAllClasses] = useState<any[]>([]);
+  const [grades, setGrades] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<string>("ALL");
   const [selectedFormat, setSelectedFormat] = useState<string>("ALL");
+  const [selectedGrade, setSelectedGrade] = useState<string>("ALL");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   useEffect(() => {
     async function load() {
       try {
         setLoading(true);
-        const res = await fetch("/api/classes");
-        const data = await res.json();
+        const [classesRes, gradesRes] = await Promise.all([
+          fetch("/api/classes"),
+          fetch("/api/admin/grades"),
+        ]);
+        const data = await classesRes.json();
         setAllClasses(data.classes || []);
+
+        if (gradesRes.ok) {
+          const gData = await gradesRes.json();
+          setGrades(gData.grades || []);
+        }
       } catch (err) {
         console.error("Failed to load classes:", err);
       } finally {
@@ -43,21 +53,27 @@ export default function ClassesPage() {
     return allClasses.filter((c) => {
       if (selectedType !== "ALL" && c.class_type !== selectedType) return false;
       if (selectedFormat !== "ALL" && c.format !== selectedFormat) return false;
+      if (selectedGrade !== "ALL") {
+        const matchesGradeId = c.grade_id === selectedGrade;
+        const matchesGradeName = c.grade?.name === selectedGrade;
+        if (!matchesGradeId && !matchesGradeName) return false;
+      }
 
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchesTitle = (c.title || "").toLowerCase().includes(q);
         const matchesDesc = (c.description || "").toLowerCase().includes(q);
         const matchesSubject = (c.subject?.name || "").toLowerCase().includes(q);
+        const matchesGrade = (c.grade?.name || "").toLowerCase().includes(q);
         const matchesTutor = c.tutor
           ? `${c.tutor.first_name || ""} ${c.tutor.last_name || ""}`.toLowerCase().includes(q)
           : false;
-        return matchesTitle || matchesDesc || matchesSubject || matchesTutor;
+        return matchesTitle || matchesDesc || matchesSubject || matchesGrade || matchesTutor;
       }
 
       return true;
     });
-  }, [allClasses, searchQuery, selectedType, selectedFormat]);
+  }, [allClasses, searchQuery, selectedType, selectedFormat, selectedGrade]);
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 max-w-7xl">
@@ -79,9 +95,9 @@ export default function ClassesPage() {
 
       {/* Filter Bar */}
       <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/80 shadow-xs mb-8 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
           <div className="md:col-span-2 relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
             <Input
               placeholder="Search classes by title, subject, or instructor name..."
               className="pl-9 text-xs h-9 bg-slate-50 border-slate-200"
@@ -100,7 +116,22 @@ export default function ClassesPage() {
 
           <div>
             <select
-              className="w-full h-9 px-3 text-xs rounded-lg border border-slate-200 bg-slate-50 focus:outline-hidden focus:ring-1 focus:ring-primary"
+              className="w-full h-9 px-3 text-xs rounded-lg border border-slate-200 bg-slate-50 focus:outline-hidden focus:ring-1 focus:ring-primary font-medium"
+              value={selectedGrade}
+              onChange={(e) => setSelectedGrade(e.target.value)}
+            >
+              <option value="ALL">All Grade Tiers</option>
+              {grades.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <select
+              className="w-full h-9 px-3 text-xs rounded-lg border border-slate-200 bg-slate-50 focus:outline-hidden focus:ring-1 focus:ring-primary font-medium"
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
             >
@@ -112,7 +143,7 @@ export default function ClassesPage() {
 
           <div>
             <select
-              className="w-full h-9 px-3 text-xs rounded-lg border border-slate-200 bg-slate-50 focus:outline-hidden focus:ring-1 focus:ring-primary"
+              className="w-full h-9 px-3 text-xs rounded-lg border border-slate-200 bg-slate-50 focus:outline-hidden focus:ring-1 focus:ring-primary font-medium"
               value={selectedFormat}
               onChange={(e) => setSelectedFormat(e.target.value)}
             >
@@ -129,12 +160,13 @@ export default function ClassesPage() {
             <span>
               Showing <strong className="text-navy-950">{filteredClasses.length}</strong> available classes
             </span>
-            {(searchQuery || selectedType !== "ALL" || selectedFormat !== "ALL") && (
+            {(searchQuery || selectedType !== "ALL" || selectedFormat !== "ALL" || selectedGrade !== "ALL") && (
               <button
                 onClick={() => {
                   setSearchQuery("");
                   setSelectedType("ALL");
                   setSelectedFormat("ALL");
+                  setSelectedGrade("ALL");
                 }}
                 className="text-primary hover:underline font-semibold ml-2"
               >

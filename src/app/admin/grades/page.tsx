@@ -5,6 +5,7 @@ import { AdminHubHeader } from "@/components/admin/admin-hub-header";
 import {
   Plus,
   Trash2,
+  Edit2,
   Building2,
   UserCheck,
   Search,
@@ -34,6 +35,7 @@ export default function AdminGradesPage() {
   const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Create Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [newDescription, setNewDescription] = useState("");
@@ -41,6 +43,15 @@ export default function AdminGradesPage() {
   const [allowTutor, setAllowTutor] = useState(true);
   const [allowFaculty, setAllowFaculty] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
+
+  // Edit Modal State
+  const [editingGrade, setEditingGrade] = useState<GradeItem | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editLevel, setEditLevel] = useState<number>(1);
+  const [editAllowTutor, setEditAllowTutor] = useState(true);
+  const [editAllowFaculty, setEditAllowFaculty] = useState(false);
+  const [editModalError, setEditModalError] = useState<string | null>(null);
 
   const loadData = async () => {
     try {
@@ -104,6 +115,55 @@ export default function AdminGradesPage() {
       await loadData();
     } catch (err: any) {
       setModalError(err.message || "Failed to save grade tier");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleOpenEdit = (grade: GradeItem) => {
+    setEditingGrade(grade);
+    setEditName(grade.name);
+    setEditDescription(grade.description || "");
+    setEditLevel(grade.level);
+    setEditAllowTutor(grade.instructor_type === "TUTOR" || grade.instructor_type === "BOTH");
+    setEditAllowFaculty(grade.instructor_type === "FACULTY" || grade.instructor_type === "BOTH");
+    setEditModalError(null);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingGrade || !editName.trim()) return;
+
+    let instructor_type: InstructorType = "BOTH";
+    if (editAllowTutor && !editAllowFaculty) instructor_type = "TUTOR";
+    else if (!editAllowTutor && editAllowFaculty) instructor_type = "FACULTY";
+
+    try {
+      setSaving(true);
+      setEditModalError(null);
+      const res = await fetch("/api/admin/grades", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingGrade.id,
+          updates: {
+            name: editName.trim(),
+            level: Number(editLevel),
+            description: editDescription.trim() || "",
+            instructor_type,
+          },
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to update grade tier");
+      }
+
+      setEditingGrade(null);
+      await loadData();
+    } catch (err: any) {
+      setEditModalError(err.message || "Failed to update grade tier");
     } finally {
       setSaving(false);
     }
@@ -264,7 +324,16 @@ export default function AdminGradesPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleOpenEdit(g)}
+                    className="h-8 w-8 p-0 text-slate-500 hover:text-teal-700 hover:bg-teal-50"
+                    title="Edit grade tier"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </Button>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -272,7 +341,7 @@ export default function AdminGradesPage() {
                     className="h-8 w-8 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50"
                     title="Delete grade tier"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </Button>
                 </div>
               </div>
@@ -385,6 +454,117 @@ export default function AdminGradesPage() {
                   className="text-xs bg-teal-600 hover:bg-teal-700 text-white font-medium shadow-2xs"
                 >
                   {saving ? "Saving..." : "Save Tier"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {editingGrade && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-950/40 backdrop-blur-xs">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-2xl p-6 w-full max-w-md space-y-4">
+            <div>
+              <h3 className="text-sm font-bold text-navy-950">Edit Academic Grade Tier</h3>
+              <p className="text-xs text-slate-500 mt-0.5">Modify tier name, sequence level, or teaching authorizations.</p>
+            </div>
+
+            {editModalError && (
+              <div className="flex items-center gap-2 p-2.5 bg-red-50 text-red-700 text-xs rounded-lg border border-red-200">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{editModalError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSaveEdit} className="space-y-3.5">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">Tier Name *</label>
+                <Input
+                  placeholder="e.g. Graduate & Professional Research"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="h-9 text-xs"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">Progression Level (Sequence)</label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={editLevel}
+                  onChange={(e) => setEditLevel(Number(e.target.value))}
+                  className="h-9 text-xs"
+                  required
+                />
+                <p className="text-[10px] text-slate-400">Controls order of curriculum difficulty in class creation.</p>
+              </div>
+
+              {/* Instructor Eligibility */}
+              <div className="space-y-1.5 pt-1">
+                <label className="text-xs font-semibold text-slate-700 block">
+                  Instructor Eligibility
+                </label>
+                <div className="flex items-center gap-6 pt-1">
+                  <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={editAllowTutor}
+                      onChange={(e) => {
+                        setEditAllowTutor(e.target.checked);
+                        if (!e.target.checked && !editAllowFaculty) setEditAllowFaculty(true);
+                      }}
+                      className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 cursor-pointer"
+                    />
+                    <span>Tutors</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={editAllowFaculty}
+                      onChange={(e) => {
+                        setEditAllowFaculty(e.target.checked);
+                        if (!e.target.checked && !editAllowTutor) setEditAllowTutor(true);
+                      }}
+                      className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 cursor-pointer"
+                    />
+                    <span>Faculty</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">Description</label>
+                <Textarea
+                  placeholder="Curriculum scope and target student background..."
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  className="text-xs min-h-[80px]"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditingGrade(null)}
+                  disabled={saving}
+                  className="text-xs"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={saving || !editName.trim()}
+                  className="text-xs bg-teal-600 hover:bg-teal-700 text-white font-medium shadow-2xs"
+                >
+                  {saving ? "Saving..." : "Update Tier"}
                 </Button>
               </div>
             </form>

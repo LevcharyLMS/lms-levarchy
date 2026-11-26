@@ -41,6 +41,7 @@ export default function StudentSettingsPage() {
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [learningGoals, setLearningGoals] = useState("");
+  const [availableGrades, setAvailableGrades] = useState<{ id: string; name: string }[]>([]);
 
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -90,6 +91,19 @@ export default function StudentSettingsPage() {
       setGradeLevel(studentProfile.grade_level || "");
       setLearningGoals(studentProfile.learning_goals || "");
     }
+
+    async function loadGrades() {
+      try {
+        const res = await fetch("/api/admin/grades");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.grades && data.grades.length > 0) {
+            setAvailableGrades(data.grades.map((g: any) => ({ id: g.id, name: g.name })));
+          }
+        }
+      } catch {}
+    }
+    loadGrades();
   }, [user, studentProfile]);
 
   const handleSaveNotifPreferences = async () => {
@@ -239,12 +253,21 @@ export default function StudentSettingsPage() {
                   className="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
                 >
                   <option value="">Select your grade level...</option>
-                  <option value="Middle School (Grade 6-8)">Middle School (Grade 6-8)</option>
-                  <option value="High School - Freshman/Sophomore (Grade 9-10)">High School - Freshman/Sophomore (Grade 9-10)</option>
-                  <option value="High School - Junior/Senior (Grade 11-12)">High School - Junior/Senior (Grade 11-12)</option>
-                  <option value="College / Undergraduate">College / Undergraduate</option>
-                  <option value="Graduate / Professional">Graduate / Professional</option>
-                  <option value="Adult Learner">Adult Learner / Continuing Education</option>
+                  {availableGrades.length > 0 ? (
+                    availableGrades.map((g) => (
+                      <option key={g.id} value={g.name}>
+                        {g.name}
+                      </option>
+                    ))
+                  ) : (
+                    <>
+                      <option value="Middle School (Grades 6-8)">Middle School (Grades 6-8)</option>
+                      <option value="High School (Grades 9-10)">High School (Grades 9-10)</option>
+                      <option value="High School (Grades 11-12)">High School (Grades 11-12)</option>
+                      <option value="Undergraduate / College">Undergraduate / College</option>
+                      <option value="Graduate / Professional">Graduate / Professional</option>
+                    </>
+                  )}
                 </select>
                 <span className="text-[11px] text-slate-400 mt-1 block">
                   Helps instructors tailor curriculum depth to your coursework.

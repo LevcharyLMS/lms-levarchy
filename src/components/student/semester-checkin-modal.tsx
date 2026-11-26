@@ -22,11 +22,12 @@ interface SemesterCheckinModalProps {
   onCompleted: () => void;
 }
 
-const GRADE_OPTIONS = [
+const DEFAULT_GRADE_OPTIONS = [
   "Middle School (Grades 6-8)",
   "High School (Grades 9-10)",
   "High School (Grades 11-12)",
   "Undergraduate / College",
+  "Graduate / Professional",
 ];
 
 const COMMON_SUBJECTS = [
@@ -58,6 +59,22 @@ export function SemesterCheckinModal({
     initialSubjects.length > 0 ? initialSubjects : ["AP Calculus BC", "Physics: Mechanics"]
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [gradeOptions, setGradeOptions] = useState<string[]>(DEFAULT_GRADE_OPTIONS);
+
+  React.useEffect(() => {
+    async function fetchGrades() {
+      try {
+        const res = await fetch("/api/admin/grades");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.grades && data.grades.length > 0) {
+            setGradeOptions(data.grades.map((g: any) => g.name));
+          }
+        }
+      } catch {}
+    }
+    fetchGrades();
+  }, []);
   const [error, setError] = useState<string | null>(null);
 
   const toggleSubject = (sub: string) => {
@@ -142,7 +159,7 @@ export function SemesterCheckinModal({
               Current Academic Grade Standing
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {GRADE_OPTIONS.map((g) => {
+              {gradeOptions.map((g) => {
                 const isSelected = gradeLevel === g;
                 return (
                   <button
