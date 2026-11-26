@@ -61,7 +61,7 @@ export function MaintenanceBanner() {
             System Maintenance Underway
           </span>
           <h1 className="text-2xl font-bold tracking-tight text-white pt-2">
-            We'll Be Right Back
+            We&apos;ll Be Right Back
           </h1>
           <p className="text-sm text-slate-400 leading-relaxed">
             {maintenanceMessage}

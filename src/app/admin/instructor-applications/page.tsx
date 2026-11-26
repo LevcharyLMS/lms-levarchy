@@ -449,8 +449,8 @@ export default function AdminTutorApplicationsPage() {
                 <span>Teaching Philosophy & Methodology</span>
               </span>
               <p className="text-[11px] text-slate-600 leading-relaxed italic">
-                "{selectedApp.teaching_statement ||
-                  "I emphasize first-principles conceptual understanding followed by deliberate practice and real-world problem solving. Every student learns at an individualized cadence."}"
+                &ldquo;{selectedApp.teaching_statement ||
+                  "I emphasize first-principles conceptual understanding followed by deliberate practice and real-world problem solving. Every student learns at an individualized cadence."}&rdquo;
               </p>
             </div>
 

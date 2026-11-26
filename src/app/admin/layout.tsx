@@ -432,7 +432,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
                 {searchResults.matchingHubs.length === 0 && searchResults.matchingTabs.length === 0 && (
                   <div className="p-4 text-center text-slate-400 text-[11px]">
-                    No hubs or tabs match "{searchQuery}"
+                    No hubs or tabs match &ldquo;{searchQuery}&rdquo;
                   </div>
                 )}
               </div>

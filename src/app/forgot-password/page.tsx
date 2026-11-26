@@ -184,7 +184,7 @@ export default function ForgotPasswordPage() {
                     Reset Instructions Sent
                   </h3>
                   <p className="text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">
-                    If an account matches <strong>{email}</strong>, a secure link has been sent to your inbox. Please check your promotions or spam folder if it doesn't appear shortly.
+                    If an account matches <strong>{email}</strong>, a secure link has been sent to your inbox. Please check your promotions or spam folder if it doesn&apos;t appear shortly.
                   </p>
                 </div>
 

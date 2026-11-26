@@ -880,7 +880,7 @@ export default function InstructorAssignmentsPage() {
                 </div>
 
                 <div className="p-3 rounded-lg bg-teal-50 border border-teal-200 text-[11px] text-teal-800 leading-relaxed">
-                  <strong>Progression Update:</strong> Publishing this evaluation updates the student's mastery score and archives their progress record permanently.
+                  <strong>Progression Update:</strong> Publishing this evaluation updates the student&apos;s mastery score and archives their progress record permanently.
                 </div>
 
                 <div className="pt-2 flex items-center justify-end gap-2">
