@@ -110,6 +110,12 @@ function formatAuditSummary(action: string, entityType: string, meta: any): stri
   if (action === "TAXONOMY_SUGGESTION_REJECTED") {
     return `Declined curriculum proposal${meta.adminNotes ? `: "${meta.adminNotes}"` : ""}`;
   }
+  if (action === "ASSIGNMENT_MODERATED") {
+    return `Updated assignment "${meta.title || "Assignment"}" (Status: ${meta.status || "PUBLISHED"})`;
+  }
+  if (action === "ASSIGNMENT_FLAGGED_REVIEW") {
+    return `Placed assignment "${meta.title || "Assignment"}" under quality review`;
+  }
 
   // Fallback: extract the most informative key-value pairs
   const summaryEntries = Object.entries(meta)

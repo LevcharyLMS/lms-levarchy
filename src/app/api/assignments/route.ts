@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SupabaseDbService } from "@/lib/supabase-db";
 import { NotificationService } from "@/services/notification";
+import { db } from "@/lib/data-store";
 
 export const dynamic = "force-dynamic";
 
@@ -87,13 +88,31 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json();
-    const { id, ...updates } = body;
+    const { id, adminId = "usr-admin-1", ...updates } = body;
 
     if (!id) {
       return NextResponse.json({ error: "Assignment ID is required." }, { status: 400 });
     }
 
     const updated = await SupabaseDbService.updateAssignment(id, updates);
+
+    // Audit Logging if performed by admin
+    try {
+      db.logAudit({
+        actor_id: adminId,
+        actor_role: "ADMIN",
+        action: updates.status === "IN_REVIEW" ? "ASSIGNMENT_FLAGGED_REVIEW" : "ASSIGNMENT_MODERATED",
+        entity_type: "ASSIGNMENT",
+        entity_id: id,
+        metadata: {
+          assignment_id: id,
+          title: updates.title,
+          status: updates.status,
+          max_marks: updates.max_marks,
+        },
+      });
+    } catch {}
+
     return NextResponse.json({ assignment: updated });
   } catch (err: any) {
     console.error("PATCH /api/assignments error:", err);
